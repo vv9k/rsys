@@ -11,7 +11,7 @@ const MODEL_NAME: &str = "model name";
 const TOTAL_MEM: &str = "MemTotal:       ";
 
 pub fn default_iface() -> Result<String, Error> {
-    let mut cmd = Command::new("roaute");
+    let mut cmd = Command::new("route");
     Ok(run(&mut cmd)?
         .split('\n')
         .filter(|l| l.starts_with("default"))
@@ -29,16 +29,15 @@ pub fn hostname() -> Result<String, Error> {
         .to_string())
 }
 
-fn ip(ifc: &str) -> Result<serde_json::Value, Error> {
-    Ok(
-        serde_json::from_str::<serde_json::Value>(&run(Command::new("ip")
-            .arg("-j")
-            .arg("-p")
-            .arg("address")
-            .arg("show")
-            .arg(ifc))?)
-        .map_err(|e| Error::CommandParseError(e.to_string()))?,
-    )
+fn ip(iface: &str) -> Result<serde_json::Value, Error> {
+    let mut _ip = Command::new("ip");
+    let mut cmd = if iface == "" {
+        _ip.arg("-j").arg("address").arg("show")
+    } else {
+        _ip.arg("-j").arg("address").arg("show").arg(&iface)
+    };
+    Ok(serde_json::from_str::<serde_json::Value>(&run(&mut cmd)?)
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
 pub fn ipv4(iface: &str) -> Result<String, Error> {
@@ -49,7 +48,42 @@ pub fn ipv4(iface: &str) -> Result<String, Error> {
         return Ok(ip.as_str().map(|s| s.to_string()).unwrap());
     }
 
-    Ok("127.0.0.1".to_string())
+    Err(Error::CommandParseError(format!(
+        "ip address '{:?}' was not a string",
+        ip
+    )))
+}
+
+pub fn mac(iface: &str) -> Result<String, Error> {
+    let out = ip(&iface)?;
+    let mac = &out[0]["address"];
+    if mac.is_string() {
+        // It's ok to unwrap here because we know it's a string
+        return Ok(mac.as_str().map(|s| s.to_string()).unwrap());
+    }
+
+    Err(Error::CommandParseError(format!(
+        "mac address '{:?}' was not a string",
+        mac
+    )))
+}
+
+pub fn interfaces() -> Result<Vec<String>, Error> {
+    let out = ip("")?;
+    if !out.is_array() {
+        return Err(Error::CommandParseError(
+            "invalid 'ip' command output".to_string(),
+        ));
+    }
+
+    // It's ok to unwrap here because we check that out is an array and all non-string values are filtered out
+    Ok(out
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|v| v["ifname"].is_string())
+        .map(|v| v["ifname"].as_str().unwrap().to_string())
+        .collect())
 }
 
 pub fn ipv6() -> Result<String, Error> {

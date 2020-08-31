@@ -35,6 +35,26 @@ pub fn ipv4(iface: &str) -> Result<String, Error> {
     }
 }
 
+pub fn mac(iface: &str) -> Result<String, Error> {
+    if cfg!(target_os = "macos") {
+        todo!()
+    } else if cfg!(target_os = "linux") {
+        linux::mac(iface)
+    } else {
+        todo!()
+    }
+}
+
+pub fn interfaces() -> Result<Vec<String>, Error> {
+    if cfg!(target_os = "macos") {
+        todo!()
+    } else if cfg!(target_os = "linux") {
+        linux::interfaces()
+    } else {
+        todo!()
+    }
+}
+
 pub fn cpu() -> Result<String, Error> {
     if cfg!(target_os = "macos") {
         macos::cpu()
