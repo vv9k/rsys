@@ -3,18 +3,27 @@ use std::process::Command;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-const INTERFACE: &str = "interface: ";
-const INTERFACE_LEN: usize = INTERFACE.len();
-
 const SYSCTL_CPU: &str = "machdep.cpu.brand_string";
 const SYSCTL_HOSTNAME: &str = "kern.hostname";
 const SYSCTL_BOOTTIME: &str = "kern.boottime";
 const SYSCTL_MODEL: &str = "hw.model";
 const SYSCTL_MEMSIZE: &str = "hw.memsize";
+const CPU_FREQUENCY: &str = "hw.cpufrequency";
+const CPU_CORES: &str = "hw.physicalcpu";
+const VM_PAGESIZE: &str = "vm.pagesize";
+
+const INTERFACE: &str = "interface: ";
+const INTERFACE_LEN: usize = INTERFACE.len();
 const SYSCTL_BOOTTIME_LEN: usize = "{ sec = ".len();
+const PAGES_ACTIVE: &str = "Pages active:";
+const PAGES_INACTIVE: &str = "Pages inactive:";
 
 fn sysctl(property: &str) -> Result<String, Error> {
     run(Command::new("sysctl").arg("-n").arg(property))
+}
+
+fn vm_pagesize() -> Result<u32, Error> {
+    Ok(sysctl(VM_PAGESIZE)?.parse::<u32>().map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
 pub(crate) fn default_iface() -> Result<String, Error> {
@@ -42,6 +51,14 @@ pub(crate) fn cpu() -> Result<String, Error> {
     sysctl(SYSCTL_CPU)
 }
 
+pub(crate) fn cpu_cores() -> Result<u16, Error> {
+    Ok(sysctl(CPU_CORES)?.parse::<u16>().map_err(|e| Error::CommandParseError(e.to_string()))?)
+}
+
+pub(crate) fn cpu_clock() -> Result<f32, Error> {
+    Ok(sysctl(CPU_FREQUENCY)?.parse::<u64>().map_err(|e| Error::CommandParseError(e.to_string())).map(|v| v as f32)?)
+}
+
 pub(crate) fn arch() -> Result<String, Error> {
     run(Command::new("uname").arg("-m"))
 }
@@ -57,6 +74,38 @@ pub(crate) fn uptime() -> Result<u64, Error> {
         .parse::<u64>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?;
     Ok(now - boottime)
+}
+
+pub(crate) fn swap() -> Result<usize, Error> {
+    let (mut active, mut inactive) = (0, 0);
+    let (mut was_active, mut was_inactive) = (false, false);
+    let mut pagesize = vm_pagesize()?;
+    let mut cmd = Command::new("vm_stat");
+    for line in run(&mut cmd)?.split('\n') {
+        if line.starts_with(PAGES_ACTIVE) {
+            active = line
+                .split_ascii_whitespace()
+                .last()
+                .unwrap()
+                .parse::<u64>()
+                .map_err(|e| Error::CommandParseError(e.to_string()))?;
+            was_active = true;
+        }
+        if line.starts_with(PAGES_INACTIVE) {
+            inactive = line
+                .split_ascii_whitespace()
+                .last()
+                .unwrap()
+                .parse::<u64>()
+                .map_err(|e| Error::CommandParseError(e.to_string()))?;
+            was_inactive = true;
+        }
+        if was_active && was_inactive {
+            break;
+        }
+    }
+
+    Ok(((active + inactive) * pagesize as u64) as usize)
 }
 
 /// Returns a model of host machine.

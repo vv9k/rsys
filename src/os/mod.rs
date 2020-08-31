@@ -90,7 +90,7 @@ pub fn cpu() -> Result<String, Error> {
 ///   ...
 pub fn cpu_clock() -> Result<f32, Error> {
     if cfg!(target_os = "macos") {
-        todo!()
+        macos::cpu_clock()
     } else if cfg!(target_os = "linux") {
         linux::cpu_clock()
     } else {
@@ -106,7 +106,7 @@ pub fn cpu_clock() -> Result<f32, Error> {
 ///   ...
 pub fn cpu_cores() -> Result<u16, Error> {
     if cfg!(target_os = "macos") {
-        todo!()
+        macos::cpu_cores()
     } else if cfg!(target_os = "linux") {
         linux::cpu_cores()
     } else {
@@ -138,7 +138,7 @@ pub fn memory() -> Result<usize, Error> {
 ///   ...
 pub fn swap() -> Result<usize, Error> {
     if cfg!(target_os = "macos") {
-        todo!()
+        macos::swap()
     } else if cfg!(target_os = "linux") {
         linux::swap()
     } else {
