@@ -86,7 +86,7 @@ pub fn cpu() -> Result<String, Error> {
 ///   * **linux**
 ///     * by reading `/proc/cpuinfo`
 ///   * **macos**
-///     * by calling `sysctl("...")`
+///     * by calling `sysctl("hw.cpufrequency")`
 ///   ...
 pub fn cpu_clock() -> Result<f32, Error> {
     if cfg!(target_os = "macos") {

@@ -23,13 +23,17 @@ fn sysctl(property: &str) -> Result<String, Error> {
 }
 
 fn vm_pagesize() -> Result<u32, Error> {
-    Ok(sysctl(VM_PAGESIZE)?.parse::<u32>().map_err(|e| Error::CommandParseError(e.to_string()))?)
+    Ok(sysctl(VM_PAGESIZE)?
+        .parse::<u32>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
 pub(crate) fn default_iface() -> Result<String, Error> {
     let out = run(Command::new("route").arg("get").arg("default"))?;
-    if let Some(ifc_line) = out.split('\n').filter(|l| l.trim().starts_with(INTERFACE)).next() {
-        return Ok(ifc_line.trim()[INTERFACE_LEN..].trim_end_matches('\n').to_string());
+    if let Some(ifc_line) = out.split('\n').find(|l| l.trim().starts_with(INTERFACE)) {
+        return Ok(ifc_line.trim()[INTERFACE_LEN..]
+            .trim_end_matches('\n')
+            .to_string());
     }
 
     Ok("".to_string())
@@ -52,11 +56,16 @@ pub(crate) fn cpu() -> Result<String, Error> {
 }
 
 pub(crate) fn cpu_cores() -> Result<u16, Error> {
-    Ok(sysctl(CPU_CORES)?.parse::<u16>().map_err(|e| Error::CommandParseError(e.to_string()))?)
+    Ok(sysctl(CPU_CORES)?
+        .parse::<u16>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
 pub(crate) fn cpu_clock() -> Result<f32, Error> {
-    Ok(sysctl(CPU_FREQUENCY)?.parse::<u64>().map_err(|e| Error::CommandParseError(e.to_string())).map(|v| v as f32)?)
+    Ok(sysctl(CPU_FREQUENCY)?
+        .parse::<u64>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))
+        .map(|v| (v / 1_000_000) as f32)?)
 }
 
 pub(crate) fn arch() -> Result<String, Error> {
@@ -64,12 +73,17 @@ pub(crate) fn arch() -> Result<String, Error> {
 }
 
 pub(crate) fn memory() -> Result<usize, Error> {
-    Ok(sysctl(SYSCTL_MEMSIZE)?.parse::<usize>().map_err(|e| Error::CommandParseError(e.to_string()))?)
+    Ok(sysctl(SYSCTL_MEMSIZE)?
+        .parse::<usize>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
 pub(crate) fn uptime() -> Result<u64, Error> {
     let boot = sysctl(SYSCTL_BOOTTIME)?;
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|e| Error::TimeError(e.to_string()))?.as_secs();
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| Error::TimeError(e.to_string()))?
+        .as_secs();
     let boottime = boot[SYSCTL_BOOTTIME_LEN..SYSCTL_BOOTTIME_LEN + format!("{}", now).len()]
         .parse::<u64>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?;
@@ -79,7 +93,7 @@ pub(crate) fn uptime() -> Result<u64, Error> {
 pub(crate) fn swap() -> Result<usize, Error> {
     let (mut active, mut inactive) = (0, 0);
     let (mut was_active, mut was_inactive) = (false, false);
-    let mut pagesize = vm_pagesize()?;
+    let pagesize = vm_pagesize()?;
     let mut cmd = Command::new("vm_stat");
     for line in run(&mut cmd)?.split('\n') {
         if line.starts_with(PAGES_ACTIVE) {
@@ -87,6 +101,7 @@ pub(crate) fn swap() -> Result<usize, Error> {
                 .split_ascii_whitespace()
                 .last()
                 .unwrap()
+                .trim_end_matches('.')
                 .parse::<u64>()
                 .map_err(|e| Error::CommandParseError(e.to_string()))?;
             was_active = true;
@@ -96,6 +111,7 @@ pub(crate) fn swap() -> Result<usize, Error> {
                 .split_ascii_whitespace()
                 .last()
                 .unwrap()
+                .trim_end_matches('.')
                 .parse::<u64>()
                 .map_err(|e| Error::CommandParseError(e.to_string()))?;
             was_inactive = true;
