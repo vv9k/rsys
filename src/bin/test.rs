@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use rsys::*;
 use std::error::Error;
 
@@ -10,6 +11,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("{}", rsys::arch()?);
     println!("{}", rsys::memory()?);
     println!("{}", rsys::uptime()?);
-    println!("{:#?}", rsys::linux::interfaces()?);
+    println!("{:#?}", rsys::interfaces()?);
+    println!("{}", rsys::swap()?);
+    println!("{}", rsys::cpu_cores()?);
+    println!("{}", rsys::cpu_clock()?);
+    println!("{}", rsys::linux::kernel_version()?);
     Ok(())
 }

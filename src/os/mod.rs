@@ -25,11 +25,31 @@ pub fn hostname() -> Result<String, Error> {
     }
 }
 
+pub fn domainname() -> Result<String, Error> {
+    if cfg!(target_os = "macos") {
+        todo!()
+    } else if cfg!(target_os = "linux") {
+        linux::domainname()
+    } else {
+        todo!()
+    }
+}
+
 pub fn ipv4(iface: &str) -> Result<String, Error> {
     if cfg!(target_os = "macos") {
         macos::ipv4(iface)
     } else if cfg!(target_os = "linux") {
         linux::ipv4(iface)
+    } else {
+        todo!()
+    }
+}
+
+pub fn ipv6(iface: &str) -> Result<String, Error> {
+    if cfg!(target_os = "macos") {
+        macos::ipv6(iface)
+    } else if cfg!(target_os = "linux") {
+        linux::ipv6(iface)
     } else {
         todo!()
     }
@@ -60,6 +80,16 @@ pub fn cpu() -> Result<String, Error> {
         macos::cpu()
     } else if cfg!(target_os = "linux") {
         linux::cpu()
+    } else {
+        todo!()
+    }
+}
+
+pub fn cpu_clock() -> Result<f32, Error> {
+    if cfg!(target_os = "macos") {
+        todo!()
+    } else if cfg!(target_os = "linux") {
+        linux::cpu_clock()
     } else {
         todo!()
     }
@@ -100,6 +130,26 @@ pub fn default_iface() -> Result<String, Error> {
         macos::default_iface()
     } else if cfg!(target_os = "linux") {
         linux::default_iface()
+    } else {
+        todo!()
+    }
+}
+
+pub fn swap() -> Result<usize, Error> {
+    if cfg!(target_os = "macos") {
+        todo!()
+    } else if cfg!(target_os = "linux") {
+        linux::swap()
+    } else {
+        todo!()
+    }
+}
+
+pub fn cpu_cores() -> Result<u16, Error> {
+    if cfg!(target_os = "macos") {
+        todo!()
+    } else if cfg!(target_os = "linux") {
+        linux::cpu_cores()
     } else {
         todo!()
     }

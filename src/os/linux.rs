@@ -2,32 +2,18 @@ use super::{run, Error};
 use std::fs;
 use std::process::Command;
 
-const HOSTNAME: &str = "/etc/hostname";
+const HOSTNAME: &str = "/proc/sys/kernel/hostname";
+const DOMAINNAME: &str = "/proc/sys/kernel/domainname";
 const CPU: &str = "/proc/cpuinfo";
 const MEM: &str = "/proc/meminfo";
 const UPTIME: &str = "/proc/uptime";
+const KERNEL: &str = "/proc/sys/kernel/osrelease";
 
 const MODEL_NAME: &str = "model name";
-const TOTAL_MEM: &str = "MemTotal:       ";
-
-pub fn default_iface() -> Result<String, Error> {
-    let mut cmd = Command::new("route");
-    Ok(run(&mut cmd)?
-        .split('\n')
-        .filter(|l| l.starts_with("default"))
-        .collect::<String>()
-        .split_ascii_whitespace()
-        .last()
-        .unwrap()
-        .to_string())
-}
-
-pub fn hostname() -> Result<String, Error> {
-    Ok(fs::read_to_string(HOSTNAME)
-        .map_err(|e| Error::FileReadError(HOSTNAME.to_string(), e.to_string()))?
-        .trim()
-        .to_string())
-}
+const CPU_CORES: &str = "cpu cores";
+const CPU_CLOCK: &str = "cpu MHz";
+const TOTAL_MEM: &str = "MemTotal:";
+const TOTAL_SWAP: &str = "SwapTotal:";
 
 fn ip(iface: &str) -> Result<serde_json::Value, Error> {
     let mut _ip = Command::new("ip");
@@ -40,7 +26,33 @@ fn ip(iface: &str) -> Result<serde_json::Value, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn ipv4(iface: &str) -> Result<String, Error> {
+pub(crate) fn default_iface() -> Result<String, Error> {
+    let mut cmd = Command::new("route");
+    Ok(run(&mut cmd)?
+        .split('\n')
+        .filter(|l| l.starts_with("default"))
+        .collect::<String>()
+        .split_ascii_whitespace()
+        .last()
+        .unwrap()
+        .to_string())
+}
+
+pub(crate) fn hostname() -> Result<String, Error> {
+    Ok(fs::read_to_string(HOSTNAME)
+        .map_err(|e| Error::FileReadError(HOSTNAME.to_string(), e.to_string()))?
+        .trim()
+        .to_string())
+}
+
+pub(crate) fn domainname() -> Result<String, Error> {
+    Ok(fs::read_to_string(DOMAINNAME)
+        .map_err(|e| Error::FileReadError(DOMAINNAME.to_string(), e.to_string()))?
+        .trim()
+        .to_string())
+}
+
+pub(crate) fn ipv4(iface: &str) -> Result<String, Error> {
     let out = ip(&iface)?;
     let ip = &out[0]["addr_info"][0]["local"];
     if ip.is_string() {
@@ -48,13 +60,10 @@ pub fn ipv4(iface: &str) -> Result<String, Error> {
         return Ok(ip.as_str().map(|s| s.to_string()).unwrap());
     }
 
-    Err(Error::CommandParseError(format!(
-        "ip address '{:?}' was not a string",
-        ip
-    )))
+    Err(Error::CommandParseError(format!("ip address '{:?}' was not a string", ip)))
 }
 
-pub fn mac(iface: &str) -> Result<String, Error> {
+pub(crate) fn mac(iface: &str) -> Result<String, Error> {
     let out = ip(&iface)?;
     let mac = &out[0]["address"];
     if mac.is_string() {
@@ -62,18 +71,13 @@ pub fn mac(iface: &str) -> Result<String, Error> {
         return Ok(mac.as_str().map(|s| s.to_string()).unwrap());
     }
 
-    Err(Error::CommandParseError(format!(
-        "mac address '{:?}' was not a string",
-        mac
-    )))
+    Err(Error::CommandParseError(format!("mac address '{:?}' was not a string", mac)))
 }
 
-pub fn interfaces() -> Result<Vec<String>, Error> {
+pub(crate) fn interfaces() -> Result<Vec<String>, Error> {
     let out = ip("")?;
     if !out.is_array() {
-        return Err(Error::CommandParseError(
-            "invalid 'ip' command output".to_string(),
-        ));
+        return Err(Error::CommandParseError("invalid 'ip' command output".to_string()));
     }
 
     // It's ok to unwrap here because we check that out is an array and all non-string values are filtered out
@@ -86,11 +90,11 @@ pub fn interfaces() -> Result<Vec<String>, Error> {
         .collect())
 }
 
-pub fn ipv6() -> Result<String, Error> {
+pub(crate) fn ipv6(_iface: &str) -> Result<String, Error> {
     todo!()
 }
 
-pub fn cpu() -> Result<String, Error> {
+pub(crate) fn cpu() -> Result<String, Error> {
     Ok(fs::read_to_string(CPU)
         .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
         .split('\n')
@@ -105,11 +109,43 @@ pub fn cpu() -> Result<String, Error> {
         .to_string())
 }
 
-pub fn arch() -> Result<String, Error> {
+pub(crate) fn cpu_cores() -> Result<u16, Error> {
+    Ok(fs::read_to_string(CPU)
+        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
+        .split('\n')
+        .filter(|l| l.starts_with(CPU_CORES))
+        .take(1)
+        .collect::<String>()
+        .split(':')
+        .skip(1)
+        .take(1)
+        .collect::<String>()
+        .trim()
+        .parse::<u16>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+}
+
+pub(crate) fn cpu_clock() -> Result<f32, Error> {
+    Ok(fs::read_to_string(CPU)
+        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
+        .split('\n')
+        .filter(|l| l.starts_with(CPU_CLOCK))
+        .take(1)
+        .collect::<String>()
+        .split(':')
+        .skip(1)
+        .take(1)
+        .collect::<String>()
+        .trim()
+        .parse::<f32>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+}
+
+pub(crate) fn arch() -> Result<String, Error> {
     run(Command::new("uname").arg("-m"))
 }
 
-pub fn memory() -> Result<usize, Error> {
+pub(crate) fn memory() -> Result<usize, Error> {
     Ok(fs::read_to_string(MEM)
         .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
         .split('\n')
@@ -123,7 +159,21 @@ pub fn memory() -> Result<usize, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))? as usize)
 }
 
-pub fn uptime() -> Result<u64, Error> {
+pub(crate) fn swap() -> Result<usize, Error> {
+    Ok(fs::read_to_string(MEM)
+        .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
+        .split('\n')
+        .filter(|l| l.starts_with(TOTAL_SWAP))
+        .collect::<String>()
+        .split_ascii_whitespace()
+        .skip(1)
+        .take(1)
+        .collect::<String>()
+        .parse::<usize>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))? as usize)
+}
+
+pub(crate) fn uptime() -> Result<u64, Error> {
     Ok(fs::read_to_string(UPTIME)
         .map_err(|e| Error::FileReadError(UPTIME.to_string(), e.to_string()))?
         .split_ascii_whitespace()
@@ -131,4 +181,8 @@ pub fn uptime() -> Result<u64, Error> {
         .collect::<String>()
         .parse::<f64>()
         .map_err(|e| Error::CommandParseError(e.to_string()))? as u64)
+}
+
+pub fn kernel_version() -> Result<String, Error> {
+    Ok(fs::read_to_string(KERNEL).map_err(|e| Error::FileReadError(UPTIME.to_string(), e.to_string()))?)
 }
