@@ -183,6 +183,7 @@ pub(crate) fn uptime() -> Result<u64, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))? as u64)
 }
 
+/// Returns a kernel version of host os.
 pub fn kernel_version() -> Result<String, Error> {
     Ok(fs::read_to_string(KERNEL).map_err(|e| Error::FileReadError(UPTIME.to_string(), e.to_string()))?)
 }

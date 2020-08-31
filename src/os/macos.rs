@@ -59,6 +59,7 @@ pub(crate) fn uptime() -> Result<u64, Error> {
     Ok(now - boottime)
 }
 
+/// Returns a model of host machine.
 pub fn model() -> Result<String, Error> {
     sysctl(SYSCTL_MODEL)
 }
