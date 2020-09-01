@@ -34,7 +34,9 @@ pub(crate) fn default_iface() -> Result<String, Error> {
         .collect::<String>()
         .split_ascii_whitespace()
         .last()
-        .unwrap()
+        .ok_or(Error::CommandParseError(
+            "output of route command was invalid".to_string(),
+        ))?
         .to_string())
 }
 
@@ -60,7 +62,10 @@ pub(crate) fn ipv4(iface: &str) -> Result<String, Error> {
         return Ok(ip.as_str().map(|s| s.to_string()).unwrap());
     }
 
-    Err(Error::CommandParseError(format!("ip address '{:?}' was not a string", ip)))
+    Err(Error::CommandParseError(format!(
+        "ip address '{:?}' was not a string",
+        ip
+    )))
 }
 
 pub(crate) fn mac(iface: &str) -> Result<String, Error> {
@@ -71,7 +76,10 @@ pub(crate) fn mac(iface: &str) -> Result<String, Error> {
         return Ok(mac.as_str().map(|s| s.to_string()).unwrap());
     }
 
-    Err(Error::CommandParseError(format!("mac address '{:?}' was not a string", mac)))
+    Err(Error::CommandParseError(format!(
+        "mac address '{:?}' was not a string",
+        mac
+    )))
 }
 
 pub(crate) fn interfaces() -> Result<Vec<String>, Error> {

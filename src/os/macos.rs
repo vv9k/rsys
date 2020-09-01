@@ -31,9 +31,7 @@ fn vm_pagesize() -> Result<u32, Error> {
 pub(crate) fn default_iface() -> Result<String, Error> {
     let out = run(Command::new("route").arg("get").arg("default"))?;
     if let Some(ifc_line) = out.split('\n').find(|l| l.trim().starts_with(INTERFACE)) {
-        return Ok(ifc_line.trim()[INTERFACE_LEN..]
-            .trim_end_matches('\n')
-            .to_string());
+        return Ok(ifc_line.trim()[INTERFACE_LEN..].trim_end_matches('\n').to_string());
     }
 
     Ok("".to_string())
@@ -100,7 +98,10 @@ pub(crate) fn swap() -> Result<usize, Error> {
             active = line
                 .split_ascii_whitespace()
                 .last()
-                .unwrap()
+                .ok_or(Error::InvalidInputError(format!(
+                    "line containing active pages was invalid `{}`",
+                    line
+                )))?
                 .trim_end_matches('.')
                 .parse::<u64>()
                 .map_err(|e| Error::CommandParseError(e.to_string()))?;
@@ -110,7 +111,10 @@ pub(crate) fn swap() -> Result<usize, Error> {
             inactive = line
                 .split_ascii_whitespace()
                 .last()
-                .unwrap()
+                .ok_or(Error::InvalidInputError(format!(
+                    "line containing inactive pages was invalid `{}`",
+                    line
+                )))?
                 .trim_end_matches('.')
                 .parse::<u64>()
                 .map_err(|e| Error::CommandParseError(e.to_string()))?;
