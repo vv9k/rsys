@@ -1,7 +1,7 @@
 #[allow(unused_imports)]
 use rsys::*;
 
-fn main() -> Result<(), Error> {
+fn display() -> Result<(), Error> {
     println!("HOSTNAME - {}", rsys::hostname()?);
     let iface = rsys::default_iface()?;
     println!("CPU - {}", rsys::cpu()?);
@@ -18,6 +18,14 @@ fn main() -> Result<(), Error> {
         println!("INTERFACES - {:#?}", rsys::interfaces()?);
     } else if cfg!(target_os = "macos") {
         println!("{}", rsys::macos::model()?);
+    }
+
+    Ok(())
+}
+
+fn main() -> Result<(), Error> {
+    if let Err(e) = display() {
+        println!("{}", e);
     }
     Ok(())
 }
