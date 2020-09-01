@@ -10,4 +10,6 @@ pub enum RsysError {
     FileReadError(String, String),
     #[error("Failed to acquire local time - `{0}`")]
     TimeError(String),
+    #[error("Failed to parse value from input - `{0}`")]
+    InvalidInputError(String),
 }
