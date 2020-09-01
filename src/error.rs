@@ -15,6 +15,6 @@ pub enum RsysError {
 
     // Windows
     // #[cfg(target_os = "windows")]
-    #[error("Failed to communicate with Win32 api - `{0}`")]
-    WinApiError(String),
+    #[error("Failed to communicate with Win32 api. Error code: `{0}`, Reason: `{1}`")]
+    WinApiError(u32, String),
 }
