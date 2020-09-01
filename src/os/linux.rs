@@ -12,6 +12,7 @@ const KERNEL: &str = "/proc/sys/kernel/osrelease";
 
 const MODEL_NAME: &str = "model name";
 const CPU_CORES: &str = "cpu cores";
+const SIBLINGS: &str = "siblings";
 const CPU_CLOCK: &str = "cpu MHz";
 const TOTAL_MEM: &str = "MemTotal:";
 const TOTAL_SWAP: &str = "SwapTotal:";
@@ -121,6 +122,22 @@ pub(crate) fn _cpu_cores() -> Result<u16, Error> {
         .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
         .split('\n')
         .filter(|l| l.starts_with(CPU_CORES))
+        .take(1)
+        .collect::<String>()
+        .split(':')
+        .skip(1)
+        .take(1)
+        .collect::<String>()
+        .trim()
+        .parse::<u16>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+}
+
+pub(crate) fn _logical_cores() -> Result<u16, Error> {
+    Ok(fs::read_to_string(CPU)
+        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
+        .split('\n')
+        .filter(|l| l.starts_with(SIBLINGS))
         .take(1)
         .collect::<String>()
         .split(':')

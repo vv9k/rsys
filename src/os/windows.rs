@@ -1,22 +1,20 @@
-#![cfg(target_os = "windows")]
 use super::Error;
 use std::mem;
 use winapi::{
-    ctypes::c_char,
+    shared::ntdef::{LARGE_INTEGER, NULL},
     um::{
         errhandlingapi::GetLastError,
         lmwksta::{NetWkstaGetInfo, WKSTA_INFO_100},
         profileapi::QueryPerformanceFrequency,
-        shared::ntdef::{LARGE_INTEGER, NULL},
         sysinfoapi::{
-            GetPhysicallyInstalledSystemMemory, GetSystemInfo, GetTickCount64, GlobalMemoryStatusEx, SYSTEM_INFO_u,
-            MEMORYSTATUSEX, SYSTEM_INFO,
+            GetLogicalProcessorInformation, GetPhysicallyInstalledSystemMemory, GetSystemInfo, GetTickCount64,
+            GlobalMemoryStatusEx, SYSTEM_INFO_u, MEMORYSTATUSEX, SYSTEM_INFO,
         },
         winbase::{
             FormatMessageA, GetComputerNameA, FORMAT_MESSAGE_ALLOCATE_BUFFER, FORMAT_MESSAGE_FROM_SYSTEM,
             FORMAT_MESSAGE_IGNORE_INSERTS,
         },
-        winnt::{LANG_NEUTRAL, MAKELANGID, SUBLANG_DEFAULT},
+        winnt::{LANG_NEUTRAL, MAKELANGID, SUBLANG_DEFAULT, SYSTEM_LOGICAL_PROCESSOR_INFORMATION},
     },
 };
 
@@ -31,7 +29,7 @@ fn utf8_buf_to_string(buf: &[i8]) -> Result<String, Error> {
 }
 
 fn last_error_msg() -> Result<String, Error> {
-    let mut out_buf: Vec<c_char> = Vec::new();
+    let mut out_buf: Vec<u8> = Vec::new();
     let mut out_size: u32;
 
     unsafe {
@@ -43,7 +41,7 @@ fn last_error_msg() -> Result<String, Error> {
             MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
             out_buf.as_mut_ptr(),
             out_size as *mut u32,
-            NULL as *mut c_char,
+            NULL,
         )
     }
 
@@ -76,6 +74,22 @@ fn net_wksta() -> WKSTA_INFO_100 {
         NetWkstaGetInfo(NULL as *mut u16, 100, info.as_mut_ptr());
         info
     }
+}
+
+fn logical_processor_information() -> Result<SYSTEM_LOGICAL_PROCESSOR_INFORMATION, Error> {
+    unsafe {
+        let mut info: SYSTEM_LOGICAL_PROCESSOR_INFORMATION = mem::zeroed();
+        let mut info_size: u32;
+        let is_success = GetLogicalProcessorInformation(info.as_mut_ptr(), info_size as *mut u32);
+        if !is_success {
+            return Err(Error::WinApiError(last_error_msg()?));
+        }
+        Ok(info)
+    }
+}
+
+fn is_cpu_hyperthreaded() -> Result<bool, Error> {
+    unsafe { Ok(logical_processor_information()?.u.ProcessorCore().Flags == 1) }
 }
 
 pub(crate) fn _hostname() -> Result<String, Error> {
@@ -119,6 +133,14 @@ pub(crate) fn _cpu() -> Result<String, Error> {
 }
 
 pub(crate) fn _cpu_cores() -> Result<u16, Error> {
+    if is_cpu_hyperthreaded()? {
+        Ok(_logical_cores()? / 2)
+    } else {
+        Ok(_logical_cores()?)
+    }
+}
+
+pub(crate) fn _logical_cores() -> Result<u16, Error> {
     system_info().dwNumberOfProcessors
 }
 

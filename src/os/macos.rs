@@ -11,6 +11,7 @@ const SYSCTL_MODEL: &str = "hw.model";
 const SYSCTL_MEMSIZE: &str = "hw.memsize";
 const CPU_FREQUENCY: &str = "hw.cpufrequency";
 const CPU_CORES: &str = "hw.physicalcpu";
+const LOGICAL_CORES: &str = "hw.logicalcpu";
 const VM_PAGESIZE: &str = "vm.pagesize";
 
 const INTERFACE: &str = "interface: ";
@@ -56,6 +57,12 @@ pub(crate) fn _cpu() -> Result<String, Error> {
 
 pub(crate) fn _cpu_cores() -> Result<u16, Error> {
     Ok(sysctl(CPU_CORES)?
+        .parse::<u16>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+}
+
+pub(crate) fn _logical_cores() -> Result<u16, Error> {
+    Ok(sysctl(LOGICAL_CORES)?
         .parse::<u16>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }

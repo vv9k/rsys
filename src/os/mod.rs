@@ -90,6 +90,16 @@ pub fn cpu_cores() -> Result<u16, Error> {
     _cpu_cores()
 }
 
+/// Returns cpu cores.
+///   * **linux**
+///     * by reading `/proc/cpuinfo`
+///   * **macos**
+///     * by calling `sysctl("hw.logicalcpu")`
+///   ...
+pub fn logical_cores() -> Result<u16, Error> {
+    _logical_cores()
+}
+
 /// Returns total ram memory.
 ///   * **linux**
 ///     * by reading `/proc/meminfo`
