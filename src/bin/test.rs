@@ -12,12 +12,10 @@ fn display() -> Result<(), Error> {
     println!("CPU CORES - {}", rsys::cpu_cores()?);
     println!("CPU CLOCK - {} MHz", rsys::cpu_clock()?);
     println!("IPv4 - {}", rsys::ipv4(&iface)?);
+    println!("MAC - {}", rsys::mac(&iface)?);
+    println!("INTERFACES - {:#?}", rsys::interfaces()?);
     if cfg!(target_os = "linux") {
-        println!("MAC - {}", rsys::mac(&iface)?);
         println!("KERNEL VERSION - {}", rsys::linux::kernel_version()?);
-        println!("INTERFACES - {:#?}", rsys::interfaces()?);
-    } else if cfg!(target_os = "macos") {
-        println!("{}", rsys::macos::model()?);
     }
 
     Ok(())
