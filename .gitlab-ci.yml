@@ -1,0 +1,18 @@
+image: "rust:latest"
+
+
+before_script:
+  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  - rustup update
+  - rustup component add clippy
+  - cargo install rustfmt
+
+lint:
+  script:
+    - cargo clippy -- -Wall
+    - cargo fmt -- --check
+
+build:
+  script:
+    - cargo build
+    - cargo test
