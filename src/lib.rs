@@ -7,7 +7,7 @@
 //! while os-specific functions are hidden in submodules corresponding to each os.  
 //!   
 //! ## Example usage:
-//! ```rust
+//! ```rust,ignore
 //! use rsys::*;
 //!
 //! fn main() -> Result<(), Error> {
