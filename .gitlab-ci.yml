@@ -8,7 +8,7 @@ before_script:
 
 lint:
   script:
-    - cargo clippy -- -Wall
+    - cargo clippy -- -Wclippy::all
     - cargo fmt -- --check
 
 build:
