@@ -3,8 +3,7 @@ image: "rust:latest"
 
 before_script:
   - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && sudo chmod +x install.sh && ./install.sh -y
-  - rustup update
-  - rustup component add clippy
+  - rustup update && rustup component add clippy rustfmt
 
 lint:
   script:
