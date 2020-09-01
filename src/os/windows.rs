@@ -18,6 +18,9 @@ use winapi::{
     },
 };
 
+//################################################################################
+// INTERNAL
+
 fn last_error() -> u32 {
     unsafe { GetLastError() }
 }
@@ -92,6 +95,13 @@ fn is_cpu_hyperthreaded() -> Result<bool, Error> {
     unsafe { Ok(logical_processor_information()?.u.ProcessorCore().Flags == 1) }
 }
 
+fn pagesize() -> u32 {
+    system_info().dwPageSize
+}
+
+//################################################################################
+// PUBLIC
+
 pub(crate) fn _hostname() -> Result<String, Error> {
     let mut out_buf: Vec<i8> = Vec::new();
     let mut out_size: u32;
@@ -104,55 +114,8 @@ pub(crate) fn _hostname() -> Result<String, Error> {
     utf8_buf_to_string(&out_buf)
 }
 
-pub(crate) fn _default_iface() -> Result<String, Error> {
-    todo!()
-}
-
-pub(crate) fn _domainname() -> Result<String, Error> {
-    Ok(net_wksta().wki100_langroup)
-}
-
-pub(crate) fn _ipv4(iface: &str) -> Result<String, Error> {
-    todo!()
-}
-
-pub(crate) fn _mac(iface: &str) -> Result<String, Error> {
-    todo!()
-}
-
-pub(crate) fn _interfaces() -> Result<Vec<String>, Error> {
-    todo!()
-}
-
-pub(crate) fn _ipv6(_iface: &str) -> Result<String, Error> {
-    todo!()
-}
-
-pub(crate) fn _cpu() -> Result<String, Error> {
-    todo!()
-}
-
-pub(crate) fn _cpu_cores() -> Result<u16, Error> {
-    if is_cpu_hyperthreaded()? {
-        Ok(_logical_cores()? / 2)
-    } else {
-        Ok(_logical_cores()?)
-    }
-}
-
-pub(crate) fn _logical_cores() -> Result<u16, Error> {
-    system_info().dwNumberOfProcessors
-}
-
-pub(crate) fn _cpu_clock() -> Result<f32, Error> {
-    unsafe {
-        let mut freq: LARGE_INTEGER = mem::zeroed();
-        let is_success = QueryPerformanceFrequency(freq.as_mut_ptr()) as bool;
-        if !is_success {
-            return Err(Error::WinApiError(last_error_msg()?));
-        }
-        Ok(freq.QuadPart() as f32)
-    }
+pub(crate) fn _uptime() -> Result<u64, Error> {
+    unsafe { Ok((GetTickCount64() as u64) * 1000) }
 }
 
 pub(crate) fn _arch() -> Result<String, Error> {
@@ -169,6 +132,33 @@ pub(crate) fn _arch() -> Result<String, Error> {
     }
 }
 
+pub(crate) fn _cpu() -> Result<String, Error> {
+    todo!()
+}
+
+pub(crate) fn _cpu_clock() -> Result<f32, Error> {
+    unsafe {
+        let mut freq: LARGE_INTEGER = mem::zeroed();
+        let is_success = QueryPerformanceFrequency(freq.as_mut_ptr()) as bool;
+        if !is_success {
+            return Err(Error::WinApiError(last_error_msg()?));
+        }
+        Ok(freq.QuadPart() as f32)
+    }
+}
+
+pub(crate) fn _cpu_cores() -> Result<u16, Error> {
+    if is_cpu_hyperthreaded()? {
+        Ok(_logical_cores()? / 2)
+    } else {
+        Ok(_logical_cores()?)
+    }
+}
+
+pub(crate) fn _logical_cores() -> Result<u16, Error> {
+    system_info().dwNumberOfProcessors
+}
+
 pub(crate) fn _memory() -> Result<usize, Error> {
     Ok(memory_status()?.ullTotalPhys as usize)
 }
@@ -177,10 +167,26 @@ pub(crate) fn _swap() -> Result<usize, Error> {
     Ok(memory_status()?.ullTotalVirtual as usize)
 }
 
-pub(crate) fn _uptime() -> Result<u64, Error> {
-    unsafe { Ok((GetTickCount64() as u64) * 1000) }
+pub(crate) fn _default_iface() -> Result<String, Error> {
+    todo!()
 }
 
-pub(crate) fn _pagesize() -> u32 {
-    system_info().dwPageSize
+pub(crate) fn _ipv4(iface: &str) -> Result<String, Error> {
+    todo!()
+}
+
+pub(crate) fn _ipv6(_iface: &str) -> Result<String, Error> {
+    todo!()
+}
+
+pub(crate) fn _mac(iface: &str) -> Result<String, Error> {
+    todo!()
+}
+
+pub(crate) fn _interfaces() -> Result<Vec<String>, Error> {
+    todo!()
+}
+
+pub(crate) fn _domainname() -> Result<String, Error> {
+    Ok(net_wksta().wki100_langroup)
 }

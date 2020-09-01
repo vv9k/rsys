@@ -33,7 +33,8 @@ fn run(cmd: &mut Command) -> Result<String, Error> {
 ///     * by reading `/proc/sys/kernel/hostname`
 ///   * **macos**
 ///     * by calling `sysctl("kern.hostname")`
-///   ...
+///   * **windows**
+///     * by calling win32 api `GetComputerNameA`
 pub fn hostname() -> Result<String, Error> {
     _hostname()
 }
@@ -43,7 +44,8 @@ pub fn hostname() -> Result<String, Error> {
 ///     * by reading `/proc/uptime`
 ///   * **macos**
 ///     * by calling `sysctl("kern.boottime")`
-///   ...
+///   * **windows**
+///     * by calling win32 api `GetTickCount64`
 pub fn uptime() -> Result<u64, Error> {
     _uptime()
 }
@@ -56,7 +58,8 @@ pub fn os() -> String {
 /// Returns cpu architecture.
 ///   * **linux** and **macos**
 ///     * by calling `uname -m`
-///   ...
+///   * **windows**
+///     * by calling win32 api `GetSystemInfo`
 pub fn arch() -> Result<String, Error> {
     _arch()
 }
@@ -85,17 +88,19 @@ pub fn cpu_clock() -> Result<f32, Error> {
 ///     * by reading `/proc/cpuinfo`
 ///   * **macos**
 ///     * by calling `sysctl("hw.physicalcpu")`
-///   ...
+///   * **windows**
+///     * by determining if cpu is hyperthreaded and calculating from logical cores.
 pub fn cpu_cores() -> Result<u16, Error> {
     _cpu_cores()
 }
 
-/// Returns cpu cores.
+/// Returns logical cpu cores.
 ///   * **linux**
 ///     * by reading `/proc/cpuinfo`
 ///   * **macos**
 ///     * by calling `sysctl("hw.logicalcpu")`
-///   ...
+///   * **windows**
+///     * by calling win32 api `GetSystemInfo`
 pub fn logical_cores() -> Result<u16, Error> {
     _logical_cores()
 }
@@ -105,17 +110,19 @@ pub fn logical_cores() -> Result<u16, Error> {
 ///     * by reading `/proc/meminfo`
 ///   * **macos**
 ///     * by calling `sysctl("hw.memsize")`
-///   ...
+///   * **windows**
+///     * by calling win32 api `GlobalMemoryStatusEx`
 pub fn memory() -> Result<usize, Error> {
     _memory()
 }
 
-/// Returns swap size.
+/// Returns total swap size.
 ///   * **linux**
 ///     * by reading `/proc/meminfo`
 ///   * **macos**
 ///     * by calling `sysctl("hw.swapusage")`
-///   ...
+///   * **windows**
+///     * by calling win32 api `GlobalMemoryStatusEx`
 pub fn swap() -> Result<usize, Error> {
     _swap()
 }
@@ -164,6 +171,8 @@ pub fn interfaces() -> Result<Vec<String>, Error> {
 /// Returns a domain name.
 ///   * **linux**
 ///     * by reading `/proc/sys/kernel/domainname`
+///   * **windows**
+///     * by calling win32 api `NetWkstaGetInfo`
 ///   ...
 pub fn domainname() -> Result<String, Error> {
     _domainname()
