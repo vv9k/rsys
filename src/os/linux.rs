@@ -34,9 +34,7 @@ pub(crate) fn default_iface() -> Result<String, Error> {
         .collect::<String>()
         .split_ascii_whitespace()
         .last()
-        .ok_or(Error::CommandParseError(
-            "output of route command was invalid".to_string(),
-        ))?
+        .ok_or_else(|| Error::CommandParseError("output of route command was invalid".to_string()))?
         .to_string())
 }
 

@@ -98,10 +98,9 @@ pub(crate) fn swap() -> Result<usize, Error> {
             active = line
                 .split_ascii_whitespace()
                 .last()
-                .ok_or(Error::InvalidInputError(format!(
-                    "line containing active pages was invalid `{}`",
-                    line
-                )))?
+                .ok_or_else(|| {
+                    Error::InvalidInputError(format!("line containing active pages was invalid `{}`", line))
+                })?
                 .trim_end_matches('.')
                 .parse::<u64>()
                 .map_err(|e| Error::CommandParseError(e.to_string()))?;
@@ -111,10 +110,9 @@ pub(crate) fn swap() -> Result<usize, Error> {
             inactive = line
                 .split_ascii_whitespace()
                 .last()
-                .ok_or(Error::InvalidInputError(format!(
-                    "line containing inactive pages was invalid `{}`",
-                    line
-                )))?
+                .ok_or_else(|| {
+                    Error::InvalidInputError(format!("line containing inactive pages was invalid `{}`", line))
+                })?
                 .trim_end_matches('.')
                 .parse::<u64>()
                 .map_err(|e| Error::CommandParseError(e.to_string()))?;
