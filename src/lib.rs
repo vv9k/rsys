@@ -34,8 +34,10 @@
 //!     Ok(())
 //! }
 //! ```
+#[cfg(windows)]
+extern crate winapi;
 
-pub mod error;
+mod error;
 mod os;
 pub use error::RsysError as Error;
-pub use os::{linux, macos, *};
+pub use os::*;

@@ -1,3 +1,4 @@
+#![cfg(target_os = "linux")]
 use super::{run, Error};
 use std::fs;
 use std::process::Command;
@@ -26,7 +27,7 @@ fn ip(iface: &str) -> Result<serde_json::Value, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn default_iface() -> Result<String, Error> {
+pub(crate) fn _default_iface() -> Result<String, Error> {
     let mut cmd = Command::new("route");
     Ok(run(&mut cmd)?
         .split('\n')
@@ -38,21 +39,21 @@ pub(crate) fn default_iface() -> Result<String, Error> {
         .to_string())
 }
 
-pub(crate) fn hostname() -> Result<String, Error> {
+pub(crate) fn _hostname() -> Result<String, Error> {
     Ok(fs::read_to_string(HOSTNAME)
         .map_err(|e| Error::FileReadError(HOSTNAME.to_string(), e.to_string()))?
         .trim()
         .to_string())
 }
 
-pub(crate) fn domainname() -> Result<String, Error> {
+pub(crate) fn _domainname() -> Result<String, Error> {
     Ok(fs::read_to_string(DOMAINNAME)
         .map_err(|e| Error::FileReadError(DOMAINNAME.to_string(), e.to_string()))?
         .trim()
         .to_string())
 }
 
-pub(crate) fn ipv4(iface: &str) -> Result<String, Error> {
+pub(crate) fn _ipv4(iface: &str) -> Result<String, Error> {
     let out = ip(&iface)?;
     let ip = &out[0]["addr_info"][0]["local"];
     if ip.is_string() {
@@ -66,7 +67,7 @@ pub(crate) fn ipv4(iface: &str) -> Result<String, Error> {
     )))
 }
 
-pub(crate) fn mac(iface: &str) -> Result<String, Error> {
+pub(crate) fn _mac(iface: &str) -> Result<String, Error> {
     let out = ip(&iface)?;
     let mac = &out[0]["address"];
     if mac.is_string() {
@@ -80,7 +81,7 @@ pub(crate) fn mac(iface: &str) -> Result<String, Error> {
     )))
 }
 
-pub(crate) fn interfaces() -> Result<Vec<String>, Error> {
+pub(crate) fn _interfaces() -> Result<Vec<String>, Error> {
     let out = ip("")?;
     if !out.is_array() {
         return Err(Error::CommandParseError("invalid 'ip' command output".to_string()));
@@ -96,11 +97,11 @@ pub(crate) fn interfaces() -> Result<Vec<String>, Error> {
         .collect())
 }
 
-pub(crate) fn ipv6(_iface: &str) -> Result<String, Error> {
+pub(crate) fn _ipv6(_iface: &str) -> Result<String, Error> {
     todo!()
 }
 
-pub(crate) fn cpu() -> Result<String, Error> {
+pub(crate) fn _cpu() -> Result<String, Error> {
     Ok(fs::read_to_string(CPU)
         .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
         .split('\n')
@@ -115,7 +116,7 @@ pub(crate) fn cpu() -> Result<String, Error> {
         .to_string())
 }
 
-pub(crate) fn cpu_cores() -> Result<u16, Error> {
+pub(crate) fn _cpu_cores() -> Result<u16, Error> {
     Ok(fs::read_to_string(CPU)
         .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
         .split('\n')
@@ -131,7 +132,7 @@ pub(crate) fn cpu_cores() -> Result<u16, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn cpu_clock() -> Result<f32, Error> {
+pub(crate) fn _cpu_clock() -> Result<f32, Error> {
     Ok(fs::read_to_string(CPU)
         .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
         .split('\n')
@@ -147,11 +148,11 @@ pub(crate) fn cpu_clock() -> Result<f32, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn arch() -> Result<String, Error> {
+pub(crate) fn _arch() -> Result<String, Error> {
     run(Command::new("uname").arg("-m"))
 }
 
-pub(crate) fn memory() -> Result<usize, Error> {
+pub(crate) fn _memory() -> Result<usize, Error> {
     Ok(fs::read_to_string(MEM)
         .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
         .split('\n')
@@ -165,7 +166,7 @@ pub(crate) fn memory() -> Result<usize, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))? as usize)
 }
 
-pub(crate) fn swap() -> Result<usize, Error> {
+pub(crate) fn _swap() -> Result<usize, Error> {
     Ok(fs::read_to_string(MEM)
         .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
         .split('\n')
@@ -179,7 +180,7 @@ pub(crate) fn swap() -> Result<usize, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))? as usize)
 }
 
-pub(crate) fn uptime() -> Result<u64, Error> {
+pub(crate) fn _uptime() -> Result<u64, Error> {
     Ok(fs::read_to_string(UPTIME)
         .map_err(|e| Error::FileReadError(UPTIME.to_string(), e.to_string()))?
         .split_ascii_whitespace()

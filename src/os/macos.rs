@@ -1,3 +1,4 @@
+#![cfg(target_os = "macos")]
 use super::{run, Error};
 use std::process::Command;
 use std::str;
@@ -37,46 +38,46 @@ pub(crate) fn default_iface() -> Result<String, Error> {
     Ok("".to_string())
 }
 
-pub(crate) fn hostname() -> Result<String, Error> {
+pub(crate) fn _hostname() -> Result<String, Error> {
     sysctl(SYSCTL_HOSTNAME)
 }
 
-pub(crate) fn ipv4(iface: &str) -> Result<String, Error> {
+pub(crate) fn _ipv4(iface: &str) -> Result<String, Error> {
     run(Command::new("ipconfig").arg("getifaddr").arg(iface))
 }
 
-pub(crate) fn ipv6(_iface: &str) -> Result<String, Error> {
+pub(crate) fn _ipv6(_iface: &str) -> Result<String, Error> {
     todo!()
 }
 
-pub(crate) fn cpu() -> Result<String, Error> {
+pub(crate) fn _cpu() -> Result<String, Error> {
     sysctl(SYSCTL_CPU)
 }
 
-pub(crate) fn cpu_cores() -> Result<u16, Error> {
+pub(crate) fn _cpu_cores() -> Result<u16, Error> {
     Ok(sysctl(CPU_CORES)?
         .parse::<u16>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn cpu_clock() -> Result<f32, Error> {
+pub(crate) fn _cpu_clock() -> Result<f32, Error> {
     Ok(sysctl(CPU_FREQUENCY)?
         .parse::<u64>()
         .map_err(|e| Error::CommandParseError(e.to_string()))
         .map(|v| (v / 1_000_000) as f32)?)
 }
 
-pub(crate) fn arch() -> Result<String, Error> {
+pub(crate) fn _arch() -> Result<String, Error> {
     run(Command::new("uname").arg("-m"))
 }
 
-pub(crate) fn memory() -> Result<usize, Error> {
+pub(crate) fn _memory() -> Result<usize, Error> {
     Ok(sysctl(SYSCTL_MEMSIZE)?
         .parse::<usize>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn uptime() -> Result<u64, Error> {
+pub(crate) fn _uptime() -> Result<u64, Error> {
     let boot = sysctl(SYSCTL_BOOTTIME)?;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -88,7 +89,7 @@ pub(crate) fn uptime() -> Result<u64, Error> {
     Ok(now - boottime)
 }
 
-pub(crate) fn swap() -> Result<usize, Error> {
+pub(crate) fn _swap() -> Result<usize, Error> {
     let (mut active, mut inactive) = (0, 0);
     let (mut was_active, mut was_inactive) = (false, false);
     let pagesize = vm_pagesize()?;

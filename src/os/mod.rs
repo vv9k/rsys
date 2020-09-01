@@ -1,9 +1,21 @@
+#[cfg(target_os = "linux")]
 pub mod linux;
+#[cfg(target_os = "macos")]
 pub mod macos;
+#[cfg(target_os = "windows")]
+pub mod windows;
+
 use super::error::RsysError as Error;
 use std::env;
 use std::process::Command;
 use std::str;
+
+#[cfg(target_os = "linux")]
+use linux::*;
+#[cfg(target_os = "macos")]
+use macos::*;
+#[cfg(target_os = "windows")]
+use windows::*;
 
 // Internal function for mapping errors on command execution
 fn run(cmd: &mut Command) -> Result<String, Error> {
@@ -23,13 +35,7 @@ fn run(cmd: &mut Command) -> Result<String, Error> {
 ///     * by calling `sysctl("kern.hostname")`
 ///   ...
 pub fn hostname() -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        macos::hostname()
-    } else if cfg!(target_os = "linux") {
-        linux::hostname()
-    } else {
-        todo!()
-    }
+    _hostname()
 }
 
 /// Returns time since boot in seconds.
@@ -39,13 +45,7 @@ pub fn hostname() -> Result<String, Error> {
 ///     * by calling `sysctl("kern.boottime")`
 ///   ...
 pub fn uptime() -> Result<u64, Error> {
-    if cfg!(target_os = "macos") {
-        macos::uptime()
-    } else if cfg!(target_os = "linux") {
-        linux::uptime()
-    } else {
-        todo!()
-    }
+    _uptime()
 }
 
 /// Returns operating system. Reexported `env::consts::OS` for convenience.
@@ -58,13 +58,7 @@ pub fn os() -> String {
 ///     * by calling `uname -m`
 ///   ...
 pub fn arch() -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        macos::arch()
-    } else if cfg!(target_os = "linux") {
-        linux::arch()
-    } else {
-        todo!()
-    }
+    _arch()
 }
 /// Returns a cpu model name.
 ///   * **linux**
@@ -73,13 +67,7 @@ pub fn arch() -> Result<String, Error> {
 ///     * by calling `sysctl("machdep.cpu.brand_string")`
 ///   ...
 pub fn cpu() -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        macos::cpu()
-    } else if cfg!(target_os = "linux") {
-        linux::cpu()
-    } else {
-        todo!()
-    }
+    _cpu()
 }
 
 /// Returns clock speed of cpu.
@@ -89,13 +77,7 @@ pub fn cpu() -> Result<String, Error> {
 ///     * by calling `sysctl("hw.cpufrequency")`
 ///   ...
 pub fn cpu_clock() -> Result<f32, Error> {
-    if cfg!(target_os = "macos") {
-        macos::cpu_clock()
-    } else if cfg!(target_os = "linux") {
-        linux::cpu_clock()
-    } else {
-        todo!()
-    }
+    _cpu_clock()
 }
 
 /// Returns cpu cores.
@@ -105,13 +87,7 @@ pub fn cpu_clock() -> Result<f32, Error> {
 ///     * by calling `sysctl("hw.physicalcpu")`
 ///   ...
 pub fn cpu_cores() -> Result<u16, Error> {
-    if cfg!(target_os = "macos") {
-        macos::cpu_cores()
-    } else if cfg!(target_os = "linux") {
-        linux::cpu_cores()
-    } else {
-        todo!()
-    }
+    _cpu_cores()
 }
 
 /// Returns total ram memory.
@@ -121,13 +97,7 @@ pub fn cpu_cores() -> Result<u16, Error> {
 ///     * by calling `sysctl("hw.memsize")`
 ///   ...
 pub fn memory() -> Result<usize, Error> {
-    if cfg!(target_os = "macos") {
-        macos::memory()
-    } else if cfg!(target_os = "linux") {
-        linux::memory()
-    } else {
-        todo!()
-    }
+    _memory()
 }
 
 /// Returns swap size.
@@ -137,13 +107,7 @@ pub fn memory() -> Result<usize, Error> {
 ///     * by calling `sysctl("hw.swapusage")`
 ///   ...
 pub fn swap() -> Result<usize, Error> {
-    if cfg!(target_os = "macos") {
-        macos::swap()
-    } else if cfg!(target_os = "linux") {
-        linux::swap()
-    } else {
-        todo!()
-    }
+    _swap()
 }
 
 /// Returns a default internet interface.
@@ -153,13 +117,7 @@ pub fn swap() -> Result<usize, Error> {
 ///     * by calling `route get default`
 ///   ...
 pub fn default_iface() -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        macos::default_iface()
-    } else if cfg!(target_os = "linux") {
-        linux::default_iface()
-    } else {
-        todo!()
-    }
+    _default_iface()
 }
 
 /// Returns IP address version 4 of interface iface.
@@ -169,24 +127,12 @@ pub fn default_iface() -> Result<String, Error> {
 ///     * by calling `ipconfig getifaddr <iface>`
 ///   ...
 pub fn ipv4(iface: &str) -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        macos::ipv4(iface)
-    } else if cfg!(target_os = "linux") {
-        linux::ipv4(iface)
-    } else {
-        todo!()
-    }
+    _ipv4(iface)
 }
 
 /// Returns IP address version 6 of interface iface.
 pub fn ipv6(iface: &str) -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        macos::ipv6(iface)
-    } else if cfg!(target_os = "linux") {
-        linux::ipv6(iface)
-    } else {
-        todo!()
-    }
+    _ipv6(iface)
 }
 
 /// Returns a MAC address of interface iface.
@@ -194,13 +140,7 @@ pub fn ipv6(iface: &str) -> Result<String, Error> {
 ///     * by calling `ip address show <iface>`
 ///   ...
 pub fn mac(iface: &str) -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        todo!()
-    } else if cfg!(target_os = "linux") {
-        linux::mac(iface)
-    } else {
-        todo!()
-    }
+    _mac(iface)
 }
 
 /// Returns a vector of names of network interfaces that are available.
@@ -208,13 +148,7 @@ pub fn mac(iface: &str) -> Result<String, Error> {
 ///     * by calling `ip address show`
 ///   ...
 pub fn interfaces() -> Result<Vec<String>, Error> {
-    if cfg!(target_os = "macos") {
-        todo!()
-    } else if cfg!(target_os = "linux") {
-        linux::interfaces()
-    } else {
-        todo!()
-    }
+    _interfaces()
 }
 
 /// Returns a domain name.
@@ -222,11 +156,5 @@ pub fn interfaces() -> Result<Vec<String>, Error> {
 ///     * by reading `/proc/sys/kernel/domainname`
 ///   ...
 pub fn domainname() -> Result<String, Error> {
-    if cfg!(target_os = "macos") {
-        todo!()
-    } else if cfg!(target_os = "linux") {
-        linux::domainname()
-    } else {
-        todo!()
-    }
+    _domainname()
 }
