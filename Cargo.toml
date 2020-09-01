@@ -17,7 +17,7 @@ thiserror = "1"
 serde_json = "1"
 
 [target.'cfg(windows)'.dependencies]
-winapi = "0.3"
+winapi = { version = "0.3.9", features = ["winbase", "errhandlingapi", "winnt", "std", "sysinfoapi", "profileapi", "lmwksta"] }
 
 [[bin]]
 name = "test"

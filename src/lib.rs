@@ -34,7 +34,7 @@
 //!     Ok(())
 //! }
 //! ```
-#[cfg(windows)]
+#[cfg(target_os = "windows")]
 extern crate winapi;
 
 mod error;

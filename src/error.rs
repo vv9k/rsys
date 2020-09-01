@@ -12,4 +12,9 @@ pub enum RsysError {
     TimeError(String),
     #[error("Failed to parse value from input - `{0}`")]
     InvalidInputError(String),
+
+    // Windows
+    // #[cfg(target_os = "windows")]
+    #[error("Failed to communicate with Win32 api - `{0}`")]
+    WinApiError(String),
 }
