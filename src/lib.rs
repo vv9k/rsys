@@ -11,7 +11,9 @@
 //! ```rust,ignore
 //! use rsys::{Error, Rsys};
 //!
-//! fn display() -> Result<(), Error> {
+//! fn main() -> Result<(), Error> {
+//!     // You can either use api through Rsys object
+//!     // for os-agnostic experience
 //!     let rsys = Rsys::new();
 //!     println!("HOSTNAME - {}", rsys.hostname()?);
 //!     let iface = rsys.default_iface()?;
@@ -26,17 +28,12 @@
 //!     println!("MAC - {}", rsys.mac(&iface)?);
 //!     println!("INTERFACES - {:#?}", rsys.interfaces()?);
 //!     
+//!     // Or use functions in each module
 //!     if cfg!(target_os = "linux") {
 //!         println!("KERNEL VERSION - {}", rsys::linux::kernel_version()?);
+//!         println!("HOSTNAME - {}", rsys::linux::hostname()?);
 //!     }
 //!
-//!     Ok(())
-//! }
-//!
-//! fn main() -> Result<(), Error> {
-//!     if let Err(e) = display() {
-//!         println!("{}", e);
-//!     }
 //!     Ok(())
 //! }
 //! ```
