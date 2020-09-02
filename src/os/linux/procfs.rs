@@ -9,6 +9,7 @@ pub(crate) enum ProcPath {
     MemInfo,
     Uptime,
     KernelRelease,
+    Mounts,
 }
 impl ProcPath {
     fn path(self) -> &'static str {
@@ -19,6 +20,7 @@ impl ProcPath {
             ProcPath::MemInfo => "/proc/meminfo",
             ProcPath::Uptime => "/proc/uptime",
             ProcPath::KernelRelease => "/proc/sys/kernel/osrelease",
+            ProcPath::Mounts => "/proc/mounts",
         }
     }
 

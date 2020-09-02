@@ -122,3 +122,13 @@ pub fn domainname() -> Result<String, Error> {
 pub fn kernel_version() -> Result<String, Error> {
     ProcPath::KernelRelease.read()
 }
+
+pub fn mounts() -> Result<MountPoints, Error> {
+    let mut mps = Vec::new();
+    for line in ProcPath::Mounts.read()?.split('\n') {
+        if let Some(mp) = MountPoint::from_line(line) {
+            mps.push(mp);
+        }
+    }
+    Ok(mps)
+}
