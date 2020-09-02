@@ -22,66 +22,19 @@ pub fn arch() -> Result<String, Error> {
 }
 
 pub fn cpu() -> Result<String, Error> {
-    Ok(fs::read_to_string(CPU)
-        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
-        .split('\n')
-        .filter(|l| l.starts_with(MODEL_NAME))
-        .take(1)
-        .collect::<String>()
-        .split(':')
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .trim()
-        .to_string())
+    cpuinfo_extract::<String>(MODEL_NAME)
 }
 
 pub fn cpu_clock() -> Result<f32, Error> {
-    Ok(fs::read_to_string(CPU)
-        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
-        .split('\n')
-        .filter(|l| l.starts_with(CPU_CLOCK))
-        .take(1)
-        .collect::<String>()
-        .split(':')
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .trim()
-        .parse::<f32>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+    cpuinfo_extract::<f32>(CPU_CLOCK)
 }
 
 pub fn cpu_cores() -> Result<u16, Error> {
-    Ok(fs::read_to_string(CPU)
-        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
-        .split('\n')
-        .filter(|l| l.starts_with(CPU_CORES))
-        .take(1)
-        .collect::<String>()
-        .split(':')
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .trim()
-        .parse::<u16>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+    cpuinfo_extract::<u16>(CPU_CORES)
 }
 
 pub fn logical_cores() -> Result<u16, Error> {
-    Ok(fs::read_to_string(CPU)
-        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
-        .split('\n')
-        .filter(|l| l.starts_with(SIBLINGS))
-        .take(1)
-        .collect::<String>()
-        .split(':')
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .trim()
-        .parse::<u16>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+    cpuinfo_extract::<u16>(SIBLINGS)
 }
 
 pub fn memory_total() -> Result<usize, Error> {

@@ -13,6 +13,7 @@ fn display() -> Result<(), Error> {
     println!("TOTAL SWAP - {}b", rsys.swap_total()?);
     println!("FREE SWAP - {}b", rsys.swap_total()?);
     println!("CPU CORES - {}", rsys.cpu_cores()?);
+    println!("LOGICAL CORES - {}", rsys.logical_cores()?);
     println!("CPU CLOCK - {} MHz", rsys.cpu_clock()?);
     println!("IPv4 - {}", rsys.ipv4(&iface)?);
     println!("MAC - {}", rsys.mac(&iface)?);
