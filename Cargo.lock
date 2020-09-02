@@ -28,15 +28,17 @@ dependencies = [
 name = "rsys"
 version = "0.2.1"
 dependencies = [
- "rsys_impl_macro",
+ "rsys_macro",
  "serde_json",
  "thiserror",
  "winapi",
 ]
 
 [[package]]
-name = "rsys_impl_macro"
+name = "rsys_macro"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5389fbda7d2ec2d72c2d2314e4bb662d33558f8565309f55b4a3920f09df455a"
 dependencies = [
  "proc-macro2",
 ]

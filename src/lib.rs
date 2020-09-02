@@ -41,7 +41,7 @@
 extern crate winapi;
 
 #[macro_use]
-extern crate rsys_impl_macro;
+extern crate rsys_macro;
 
 mod api;
 mod error;
