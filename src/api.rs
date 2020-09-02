@@ -116,8 +116,16 @@ impl Rsys {
     ///     * by calling `sysctl("hw.memsize")`
     ///   * **windows**
     ///     * by calling win32 api `GlobalMemoryStatusEx`
-    pub fn memory(&self) -> Result<usize, Error> {
-        self.0.memory()
+    pub fn memory_total(&self) -> Result<usize, Error> {
+        self.0.memory_total()
+    }
+
+    /// Returns free ram memory.
+    ///   * **linux**
+    ///     * by reading `/proc/meminfo`
+    ///   ...
+    pub fn memory_free(&self) -> Result<usize, Error> {
+        self.0.memory_free()
     }
 
     /// Returns total swap size.
@@ -127,8 +135,19 @@ impl Rsys {
     ///     * by calling `sysctl("hw.swapusage")`
     ///   * **windows**
     ///     * by calling win32 api `GlobalMemoryStatusEx`
-    pub fn swap(&self) -> Result<usize, Error> {
-        self.0.swap()
+    pub fn swap_total(&self) -> Result<usize, Error> {
+        self.0.swap_total()
+    }
+
+    /// Returns free swap size.
+    ///   * **linux**
+    ///     * by reading `/proc/meminfo`
+    ///   * **macos**
+    ///     * by calling `sysctl("hw.swapusage")`
+    ///   * **windows**
+    ///     * by calling win32 api `GlobalMemoryStatusEx`
+    pub fn swap_free(&self) -> Result<usize, Error> {
+        self.0.swap_free()
     }
 
     /// Returns a default internet interface.

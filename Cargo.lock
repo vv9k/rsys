@@ -36,9 +36,9 @@ dependencies = [
 
 [[package]]
 name = "rsys_macro"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5389fbda7d2ec2d72c2d2314e4bb662d33558f8565309f55b4a3920f09df455a"
+checksum = "9e03f826356e615493a7778461924b77ebb91a0d971bb999c6e125090821caf7"
 dependencies = [
  "proc-macro2",
 ]

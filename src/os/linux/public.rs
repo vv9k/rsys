@@ -84,32 +84,20 @@ pub fn logical_cores() -> Result<u16, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn memory() -> Result<usize, Error> {
-    Ok(fs::read_to_string(MEM)
-        .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
-        .split('\n')
-        .filter(|l| l.starts_with(TOTAL_MEM))
-        .collect::<String>()
-        .split_ascii_whitespace()
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .parse::<usize>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))? as usize)
+pub fn memory_total() -> Result<usize, Error> {
+    mem_extract(MEM_TOTAL)
 }
 
-pub fn swap() -> Result<usize, Error> {
-    Ok(fs::read_to_string(MEM)
-        .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
-        .split('\n')
-        .filter(|l| l.starts_with(TOTAL_SWAP))
-        .collect::<String>()
-        .split_ascii_whitespace()
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .parse::<usize>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))? as usize)
+pub fn memory_free() -> Result<usize, Error> {
+    mem_extract(MEM_FREE)
+}
+
+pub fn swap_total() -> Result<usize, Error> {
+    mem_extract(SWAP_TOTAL)
+}
+
+pub fn swap_free() -> Result<usize, Error> {
+    mem_extract(SWAP_FREE)
 }
 
 pub fn default_iface() -> Result<String, Error> {

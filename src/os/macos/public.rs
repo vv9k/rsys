@@ -43,13 +43,17 @@ pub fn logical_cores() -> Result<u16, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn memory() -> Result<usize, Error> {
+pub fn memory_total() -> Result<usize, Error> {
     Ok(sysctl(SYSCTL_MEMSIZE)?
         .parse::<usize>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn swap() -> Result<usize, Error> {
+pub fn memory_free() -> Result<usize, Error> {
+    todo!()
+}
+
+pub fn swap_total() -> Result<usize, Error> {
     let (mut active, mut inactive) = (0, 0);
     let (mut was_active, mut was_inactive) = (false, false);
     let pagesize = vm_pagesize()?;
@@ -85,6 +89,10 @@ pub fn swap() -> Result<usize, Error> {
     }
 
     Ok(((active + inactive) * pagesize as u64) as usize)
+}
+
+pub fn swap_free() -> Result<usize, Error> {
+    todo!()
 }
 
 pub fn default_iface() -> Result<String, Error> {
