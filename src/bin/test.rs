@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use rsys::*;
+use rsys::{Error, Rsys};
 
 fn display() -> Result<(), Error> {
     let rsys = Rsys::new();
@@ -15,9 +15,6 @@ fn display() -> Result<(), Error> {
     println!("IPv4 - {}", rsys.ipv4(&iface)?);
     println!("MAC - {}", rsys.mac(&iface)?);
     println!("INTERFACES - {:#?}", rsys.interfaces()?);
-    if cfg!(target_os = "linux") {
-        println!("KERNEL VERSION - {}", rsys::linux::kernel_version()?);
-    }
 
     Ok(())
 }

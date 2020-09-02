@@ -3,41 +3,55 @@
 //! Crate for aquiring information about host machine and operating system
 //! in a os-agnostic fashion.  
 //!  
-//! The common api and error type is available at the root of this crate for convienience
+//! The common api is available through Rsys struct which compiles conditionally with
+//! required methods. The error type is available at the root of this crate for convienience
 //! while os-specific functions are hidden in submodules corresponding to each os.  
 //!   
 //! ## Example usage:
 //! ```rust,ignore
-//! use rsys::*;
+//! use rsys::{Error, Rsys};
+//!
+//! fn display() -> Result<(), Error> {
+//!     let rsys = Rsys::new();
+//!     println!("HOSTNAME - {}", rsys.hostname()?);
+//!     let iface = rsys.default_iface()?;
+//!     println!("CPU - {}", rsys.cpu()?);
+//!     println!("ARCH - {}", rsys.arch()?);
+//!     println!("MEMORY - {} b", rsys.memory()?);
+//!     println!("UPTIME - {} s", rsys.uptime()?);
+//!     println!("SWAP - {}b", rsys.swap()?);
+//!     println!("CPU CORES - {}", rsys.cpu_cores()?);
+//!     println!("CPU CLOCK - {} MHz", rsys.cpu_clock()?);
+//!     println!("IPv4 - {}", rsys.ipv4(&iface)?);
+//!     println!("MAC - {}", rsys.mac(&iface)?);
+//!     println!("INTERFACES - {:#?}", rsys.interfaces()?);
+//!     
+//!     if cfg!(target_os = "linux") {
+//!         println!("KERNEL VERSION - {}", rsys::linux::kernel_version()?);
+//!     }
+//!
+//!     Ok(())
+//! }
 //!
 //! fn main() -> Result<(), Error> {
-//!     // Common api
-//!     let hostname = rsys::hostname()?;
-//!     let iface = rsys::default_iface()?;
-//!     let ip4 =  rsys::ipv4(&iface)?;
-//!     let mac =  rsys::mac(&iface)?;
-//!     let cpu = rsys::cpu()?;
-//!     let arch = rsys::arch()?;
-//!     let memory = rsys::memory()?;
-//!     let uptime = rsys::uptime()?;
-//!     let ifaces = rsys::interfaces()?;
-//!     let swap = rsys::swap()?;
-//!     let cpu_cores = rsys::cpu_cores()?;
-//!     let cpu_clock = rsys::cpu_clock()?;
-//!     
-//!     // Linux only
-//!     let kernel_version = rsys::linux::kernel_version()?;
-//!
-//!     // Mac only
-//!     let model = rsys::macos::model()?;
-//!
+//!     if let Err(e) = display() {
+//!         println!("{}", e);
+//!     }
 //!     Ok(())
 //! }
 //! ```
 #[cfg(target_os = "windows")]
 extern crate winapi;
 
+mod api;
 mod error;
 mod os;
+pub use api::Rsys;
 pub use error::RsysError as Error;
-pub use os::*;
+
+#[cfg(target_os = "linux")]
+pub use os::linux;
+#[cfg(target_os = "macos")]
+pub use os::macos;
+#[cfg(target_os = "windows")]
+pub use os::windows;

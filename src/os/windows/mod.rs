@@ -1,3 +1,4 @@
+//! Windows specific api
 mod public;
 
 use super::{Error, OsImpl};

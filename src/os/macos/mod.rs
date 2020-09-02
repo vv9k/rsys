@@ -1,3 +1,4 @@
+//! MacOS specific api
 mod public;
 
 use super::{run, Error, OsImpl};

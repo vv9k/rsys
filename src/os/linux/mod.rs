@@ -1,3 +1,4 @@
+//! Linux specific api
 #![cfg(target_os = "linux")]
 
 mod public;
