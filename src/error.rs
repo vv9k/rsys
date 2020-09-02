@@ -14,7 +14,7 @@ pub enum RsysError {
     InvalidInputError(String),
 
     // Windows
-    // #[cfg(target_os = "windows")]
+    #[cfg(target_os = "windows")]
     #[error("Failed to communicate with Win32 api. Error code: `{0}`, Reason: `{1}`")]
     WinApiError(u32, String),
 }

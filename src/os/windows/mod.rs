@@ -1,12 +1,12 @@
-#![cfg(target_os = "windows")]
+mod public;
 
-pub(crate) mod public;
-
-use super::Error;
+use super::{Error, OsImpl};
 use std::ffi::OsString;
 use std::mem;
+#[cfg(target_os = "windows")]
 use std::os::windows::ffi::OsStringExt;
 use std::ptr::{null, null_mut};
+#[cfg(target_os = "windows")]
 use winapi::{
     shared::{
         minwindef::{HKEY, MAX_PATH},
@@ -41,10 +41,12 @@ const NL: char = '\n';
 //https://github.com/retep998/winapi-rs/issues/780
 const MAX_COMPUTERNAME_LENGTH: u32 = 31;
 
+#[cfg(target_os = "windows")]
 fn last_error() -> u32 {
     unsafe { GetLastError() }
 }
 
+#[cfg(target_os = "windows")]
 fn utf16_buf_to_string(buf: &[u16]) -> Result<String, Error> {
     Ok(OsString::from_wide(&buf)
         .to_string_lossy()
@@ -55,6 +57,7 @@ fn utf16_buf_to_string(buf: &[u16]) -> Result<String, Error> {
         .to_string())
 }
 
+#[cfg(target_os = "windows")]
 fn last_error_msg() -> Result<(u32, String), Error> {
     let mut out_buf: Vec<u16> = vec![0; BUF_SIZE];
     let mut last_id = 0;
@@ -75,6 +78,7 @@ fn last_error_msg() -> Result<(u32, String), Error> {
     utf16_buf_to_string(&out_buf).map(|s| (last_id, s))
 }
 
+#[cfg(target_os = "windows")]
 fn system_info() -> SYSTEM_INFO {
     unsafe {
         let mut info: SYSTEM_INFO = mem::zeroed();
@@ -83,6 +87,7 @@ fn system_info() -> SYSTEM_INFO {
     }
 }
 
+#[cfg(target_os = "windows")]
 fn memory_status() -> Result<MEMORYSTATUSEX, Error> {
     unsafe {
         let mut info = mem::zeroed::<MEMORYSTATUSEX>();
@@ -96,6 +101,7 @@ fn memory_status() -> Result<MEMORYSTATUSEX, Error> {
     }
 }
 
+// #[cfg(target_os = "windows")]
 // fn net_wksta() -> WKSTA_INFO_100 {
 //     unsafe {
 //         let mut info: WKSTA_INFO_100 = mem::zeroed();
@@ -105,6 +111,7 @@ fn memory_status() -> Result<MEMORYSTATUSEX, Error> {
 //     }
 // }
 
+#[cfg(target_os = "windows")]
 fn logical_processor_information() -> Result<Vec<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>, Error> {
     unsafe {
         let x = mem::zeroed::<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>();
@@ -119,15 +126,18 @@ fn logical_processor_information() -> Result<Vec<SYSTEM_LOGICAL_PROCESSOR_INFORM
     }
 }
 
+#[cfg(target_os = "windows")]
 fn is_cpu_hyperthreaded() -> Result<bool, Error> {
     unsafe { Ok(logical_processor_information()?[0].u.ProcessorCore().Flags == 1) }
 }
 
+#[cfg(target_os = "windows")]
 #[allow(dead_code)]
 fn pagesize() -> u32 {
     system_info().dwPageSize
 }
 
+#[cfg(target_os = "windows")]
 fn reg_val<T>(key: HKEY, subkey: &str, val: &str) -> Result<T, Error> {
     unsafe {
         let mut hkey = mem::zeroed::<HKEY>();

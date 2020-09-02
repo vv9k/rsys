@@ -1,12 +1,12 @@
 #![cfg(target_os = "linux")]
 
-pub(crate) mod public;
+mod public;
 
-use super::{run, Error};
+use super::{run, Error, OsImpl};
 use std::fs;
 use std::process::Command;
 
-pub(crate) use public::*;
+pub(crate) use public::Linux;
 
 const HOSTNAME: &str = "/proc/sys/kernel/hostname";
 const DOMAINNAME: &str = "/proc/sys/kernel/domainname";

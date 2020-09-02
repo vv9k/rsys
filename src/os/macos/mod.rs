@@ -1,8 +1,6 @@
-#![cfg(target_os = "macos")]
+mod public;
 
-pub(crate) mod public;
-
-use super::{run, Error};
+use super::{run, Error, OsImpl};
 use std::process::Command;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
