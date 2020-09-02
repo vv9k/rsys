@@ -1,4 +1,5 @@
 //! MacOS specific api
+mod internal;
 mod public;
 
 use super::{run, Error, OsImpl};
@@ -6,7 +7,8 @@ use std::process::Command;
 use std::str;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub(crate) use public::*;
+pub(crate) use internal::*;
+pub use public::*;
 
 const SYSCTL_CPU: &str = "machdep.cpu.brand_string";
 const SYSCTL_HOSTNAME: &str = "kern.hostname";
@@ -24,23 +26,5 @@ const SYSCTL_BOOTTIME_LEN: usize = "{ sec = ".len();
 const PAGES_ACTIVE: &str = "Pages active:";
 const PAGES_INACTIVE: &str = "Pages inactive:";
 
-//################################################################################
-// INTERNAL
-
-fn sysctl(property: &str) -> Result<String, Error> {
-    run(Command::new("sysctl").arg("-n").arg(property))
-}
-
-fn vm_pagesize() -> Result<u32, Error> {
-    Ok(sysctl(VM_PAGESIZE)?
-        .parse::<u32>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))?)
-}
-
-//################################################################################
-// UNIQUE
-
-/// Returns a model of host machine.
-pub fn model() -> Result<String, Error> {
-    sysctl(SYSCTL_MODEL)
-}
+#[derive(Default, OsImpl)]
+pub(crate) struct Macos {}

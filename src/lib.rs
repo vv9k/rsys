@@ -43,6 +43,9 @@
 #[cfg(target_os = "windows")]
 extern crate winapi;
 
+#[macro_use]
+extern crate rsys_impl_macro;
+
 mod api;
 mod error;
 mod os;
