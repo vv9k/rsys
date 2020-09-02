@@ -28,9 +28,17 @@ dependencies = [
 name = "rsys"
 version = "0.2.0"
 dependencies = [
+ "rsys_impl_macro",
  "serde_json",
  "thiserror",
  "winapi",
+]
+
+[[package]]
+name = "rsys_impl_macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
 ]
 
 [[package]]

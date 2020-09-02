@@ -15,6 +15,7 @@ categories = ["os"]
 [dependencies]
 thiserror = "1"
 serde_json = "1"
+rsys_impl_macro = { path = "./crates/rsys_impl_macro" }
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3.9", features = ["winbase", "errhandlingapi", "winnt", "std", "sysinfoapi", "profileapi", "lmwksta", "powerbase", "winreg", "winerror", "minwindef"] }
