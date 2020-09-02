@@ -1,6 +1,16 @@
-use super::{fs, run, Command, Error, CPU, MEM};
+use super::{run, Error, ProcPath};
 use std::fmt::Display;
+use std::process::Command;
 use std::str::FromStr;
+
+pub(crate) const MODEL_NAME: &str = "model name";
+pub(crate) const CPU_CORES: &str = "cpu cores";
+pub(crate) const SIBLINGS: &str = "siblings";
+pub(crate) const CPU_CLOCK: &str = "cpu MHz";
+pub(crate) const MEM_TOTAL: &str = "MemTotal:";
+pub(crate) const MEM_FREE: &str = "MemAvailable:";
+pub(crate) const SWAP_TOTAL: &str = "SwapTotal:";
+pub(crate) const SWAP_FREE: &str = "SwapFree:";
 
 pub(crate) fn ip(iface: &str) -> Result<serde_json::Value, Error> {
     let mut _ip = Command::new("ip");
@@ -14,8 +24,8 @@ pub(crate) fn ip(iface: &str) -> Result<serde_json::Value, Error> {
 }
 
 pub(crate) fn mem_extract(line: &str) -> Result<usize, Error> {
-    Ok(fs::read_to_string(MEM)
-        .map_err(|e| Error::FileReadError(MEM.to_string(), e.to_string()))?
+    Ok(ProcPath::MemInfo
+        .read()?
         .split('\n')
         .filter(|l| l.starts_with(line))
         .collect::<String>()
@@ -32,8 +42,8 @@ pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T, Error>
 where
     <T as FromStr>::Err: Display,
 {
-    Ok(fs::read_to_string(CPU)
-        .map_err(|e| Error::FileReadError(CPU.to_string(), e.to_string()))?
+    Ok(ProcPath::CpuInfo
+        .read()?
         .split('\n')
         .filter(|l| l.starts_with(line))
         .take(1)

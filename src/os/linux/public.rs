@@ -1,15 +1,13 @@
 use super::*;
+use std::process::Command;
 
 pub fn hostname() -> Result<String, Error> {
-    Ok(fs::read_to_string(HOSTNAME)
-        .map_err(|e| Error::FileReadError(HOSTNAME.to_string(), e.to_string()))?
-        .trim()
-        .to_string())
+    Ok(ProcPath::Hostname.read()?.trim().to_string())
 }
 
 pub fn uptime() -> Result<u64, Error> {
-    Ok(fs::read_to_string(UPTIME)
-        .map_err(|e| Error::FileReadError(UPTIME.to_string(), e.to_string()))?
+    Ok(ProcPath::Uptime
+        .read()?
         .split_ascii_whitespace()
         .take(1)
         .collect::<String>()
@@ -114,10 +112,7 @@ pub fn interfaces() -> Result<Vec<String>, Error> {
 }
 
 pub fn domainname() -> Result<String, Error> {
-    Ok(fs::read_to_string(DOMAINNAME)
-        .map_err(|e| Error::FileReadError(DOMAINNAME.to_string(), e.to_string()))?
-        .trim()
-        .to_string())
+    Ok(ProcPath::DomainName.read()?.trim().to_string())
 }
 
 //################################################################################
@@ -125,5 +120,5 @@ pub fn domainname() -> Result<String, Error> {
 
 /// Returns a kernel version of host os.
 pub fn kernel_version() -> Result<String, Error> {
-    Ok(fs::read_to_string(KERNEL).map_err(|e| Error::FileReadError(UPTIME.to_string(), e.to_string()))?)
+    ProcPath::KernelRelease.read()
 }
