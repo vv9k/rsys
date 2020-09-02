@@ -122,13 +122,13 @@ fn pagesize() -> u32 {
     system_info().dwPageSize
 }
 
-fn reg_lm_val<T>(subkey: &str, val: &str) -> Result<T, Error> {
+fn reg_val<T>(key: HKEY, subkey: &str, val: &str) -> Result<T, Error> {
     unsafe {
         let mut hkey = mem::zeroed::<HKEY>();
         let mut subkey = subkey.encode_utf16().collect::<Vec<u16>>();
-        println!("hkey = `{:?}`", hkey);
-        let mut is_success =
-            RegOpenKeyExW(HKEY_LOCAL_MACHINE, subkey.as_ptr(), 0, KEY_READ, &mut hkey) as u32 != ERROR_SUCCESS;
+        println!("main key = `{:?}`", key);
+        println!("sub key = `{}`", subkey);
+        let mut is_success = RegOpenKeyExW(key, subkey.as_ptr(), 0, KEY_READ, &mut hkey) as u32 != ERROR_SUCCESS;
         if !is_success {
             let (id, msg) = last_error_msg()?;
             return Err(Error::WinApiError(id, msg));
@@ -198,7 +198,12 @@ pub(crate) fn _cpu() -> Result<String, Error> {
 // # TODO
 // Figure out why the registry is returning an empty buffer (probably not finding the right hkey?)
 pub(crate) fn _cpu_clock() -> Result<f32, Error> {
-    reg_lm_val::<u32>("HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", "~MHz").map(|v| v as f32)
+    reg_val::<u32>(
+        HKEY_LOCAL_MACHINE,
+        "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
+        "~MHz",
+    )
+    .map(|v| v as f32)
 }
 
 pub(crate) fn _cpu_cores() -> Result<u16, Error> {
