@@ -13,6 +13,6 @@ before_install:
 
 
 install:
-  - cargo clippy -- -Dclippy:all
+  - cargo clippy -- -Wclippy:all
   - cargo fmt -- --check
   - cargo test
