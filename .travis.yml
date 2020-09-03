@@ -1,16 +1,18 @@
-image: "rust:latest"
+language: rust
+
+os:
+  - linux
+  - windows
+  - osx
 
 
-before_script:
+before_install:
   - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && sudo chmod +x install.sh && ./install.sh -y
+  - rustup toolchain add stable
   - rustup update && rustup component add clippy rustfmt
 
-lint:
-  script:
-    - cargo clippy -- -Wclippy::all
-    - cargo fmt -- --check
 
-build:
-  script:
-    - cargo build
-    - cargo test
+install:
+  - cargo clippy -- -Dclippy:all
+  - cargo fmt -- --check
+  - cargo test
