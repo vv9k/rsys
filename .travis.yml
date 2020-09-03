@@ -7,9 +7,7 @@ os:
 
 
 before_install:
-  - curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh && sudo chmod +x install.sh && ./install.sh -y
-  - rustup toolchain add stable
-  - rustup update && rustup component add clippy rustfmt
+  - rustup component add clippy rustfmt
 
 
 install:
