@@ -2,6 +2,8 @@
 #![cfg(target_os = "linux")]
 
 mod internal;
+#[cfg(test)]
+pub(crate) mod mocks;
 mod procfs;
 mod public;
 mod types;

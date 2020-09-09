@@ -1,3 +1,5 @@
+#[cfg(test)]
+use super::mocks::*;
 use super::*;
 use std::process::Command;
 
@@ -5,14 +7,17 @@ pub fn hostname() -> Result<String, Error> {
     Ok(ProcPath::Hostname.read()?.trim().to_string())
 }
 
-pub fn uptime() -> Result<u64, Error> {
-    Ok(ProcPath::Uptime
-        .read()?
+fn _uptime(out: &str) -> Result<u64, Error> {
+    Ok(out
         .split_ascii_whitespace()
         .take(1)
         .collect::<String>()
         .parse::<f64>()
         .map_err(|e| Error::CommandParseError(e.to_string()))? as u64)
+}
+
+pub fn uptime() -> Result<u64, Error> {
+    _uptime(&ProcPath::Uptime.read()?)
 }
 
 pub fn arch() -> Result<String, Error> {
@@ -51,9 +56,8 @@ pub fn swap_free() -> Result<usize, Error> {
     mem_extract(SWAP_FREE)
 }
 
-pub fn default_iface() -> Result<String, Error> {
-    let mut cmd = Command::new("route");
-    Ok(run(&mut cmd)?
+fn _default_iface(out: &str) -> Result<String, Error> {
+    Ok(out
         .split('\n')
         .filter(|l| l.starts_with("default"))
         .collect::<String>()
@@ -63,8 +67,12 @@ pub fn default_iface() -> Result<String, Error> {
         .to_string())
 }
 
-pub fn ipv4(iface: &str) -> Result<String, Error> {
-    let out = ip(&iface)?;
+pub fn default_iface() -> Result<String, Error> {
+    let mut cmd = Command::new("route");
+    _default_iface(&run(&mut cmd)?)
+}
+
+fn _ipv4(out: &serde_json::Value) -> Result<String, Error> {
     let ip = &out[0]["addr_info"][0]["local"];
     if ip.is_string() {
         // It's ok to unwrap here because we know it's a string
@@ -77,12 +85,16 @@ pub fn ipv4(iface: &str) -> Result<String, Error> {
     )))
 }
 
+pub fn ipv4(iface: &str) -> Result<String, Error> {
+    let out = ip(&iface)?;
+    _ipv4(&out)
+}
+
 pub fn ipv6(_iface: &str) -> Result<String, Error> {
     todo!()
 }
 
-pub fn mac(iface: &str) -> Result<String, Error> {
-    let out = ip(&iface)?;
+fn _mac(out: &serde_json::Value) -> Result<String, Error> {
     let mac = &out[0]["address"];
     if mac.is_string() {
         // It's ok to unwrap here because we know it's a string
@@ -95,12 +107,12 @@ pub fn mac(iface: &str) -> Result<String, Error> {
     )))
 }
 
-pub fn interfaces() -> Result<Vec<String>, Error> {
-    let out = ip("")?;
-    if !out.is_array() {
-        return Err(Error::CommandParseError("invalid 'ip' command output".to_string()));
-    }
+pub fn mac(iface: &str) -> Result<String, Error> {
+    let out = ip(&iface)?;
+    _mac(&out)
+}
 
+fn _interfaces(out: &serde_json::Value) -> Result<Vec<String>, Error> {
     // It's ok to unwrap here because we check that out is an array and all non-string values are filtered out
     Ok(out
         .as_array()
@@ -109,6 +121,14 @@ pub fn interfaces() -> Result<Vec<String>, Error> {
         .filter(|v| v["ifname"].is_string())
         .map(|v| v["ifname"].as_str().unwrap().to_string())
         .collect())
+}
+
+pub fn interfaces() -> Result<Vec<String>, Error> {
+    let out = ip("")?;
+    if !out.is_array() {
+        return Err(Error::CommandParseError("invalid 'ip' command output".to_string()));
+    }
+    _interfaces(&out)
 }
 
 pub fn domainname() -> Result<String, Error> {
@@ -131,4 +151,42 @@ pub fn mounts() -> Result<MountPoints, Error> {
         }
     }
     Ok(mps)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn gets_uptime() {
+        assert_eq!(_uptime(UPTIME).unwrap(), 5771)
+    }
+
+    #[test]
+    fn gets_default_iface() {
+        assert_eq!(_default_iface(ROUTE).unwrap(), "enp8s0".to_string())
+    }
+
+    #[test]
+    fn gets_ipv4() {
+        assert_eq!(
+            _ipv4(&serde_json::from_str::<serde_json::Value>(IP_IFACE).unwrap()).unwrap(),
+            "192.168.0.6".to_string()
+        )
+    }
+
+    #[test]
+    fn gets_mac() {
+        assert_eq!(
+            _mac(&serde_json::from_str::<serde_json::Value>(IP_IFACE).unwrap()).unwrap(),
+            "70:85:c2:f9:9b:2a".to_string()
+        )
+    }
+
+    #[test]
+    fn gets_interfaces() {
+        assert_eq!(
+            _interfaces(&serde_json::from_str::<serde_json::Value>(IP).unwrap()).unwrap(),
+            vec!["lo", "enp8s0", "br-211476fe73de", "docker0"]
+        )
+    }
 }

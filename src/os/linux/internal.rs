@@ -3,6 +3,9 @@ use std::fmt::Display;
 use std::process::Command;
 use std::str::FromStr;
 
+#[cfg(test)]
+use super::mocks::*;
+
 pub(crate) const MODEL_NAME: &str = "model name";
 pub(crate) const CPU_CORES: &str = "cpu cores";
 pub(crate) const SIBLINGS: &str = "siblings";
@@ -23,9 +26,8 @@ pub(crate) fn ip(iface: &str) -> Result<serde_json::Value, Error> {
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn mem_extract(line: &str) -> Result<usize, Error> {
-    Ok(ProcPath::MemInfo
-        .read()?
+fn _mem_extract(out: &str, line: &str) -> Result<usize, Error> {
+    Ok(out
         .split('\n')
         .filter(|l| l.starts_with(line))
         .collect::<String>()
@@ -38,12 +40,15 @@ pub(crate) fn mem_extract(line: &str) -> Result<usize, Error> {
         * 1024 as usize)
 }
 
-pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T, Error>
+pub(crate) fn mem_extract(line: &str) -> Result<usize, Error> {
+    _mem_extract(&ProcPath::MemInfo.read()?, &line)
+}
+
+fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T, Error>
 where
     <T as FromStr>::Err: Display,
 {
-    Ok(ProcPath::CpuInfo
-        .read()?
+    Ok(out
         .split('\n')
         .filter(|l| l.starts_with(line))
         .take(1)
@@ -55,4 +60,29 @@ where
         .trim()
         .parse::<T>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
+}
+
+pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T, Error>
+where
+    <T as FromStr>::Err: Display,
+{
+    _cpuinfo_extract(&ProcPath::CpuInfo.read()?, &line)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn extract_meminfo() {
+        assert_eq!(_mem_extract(MEMINFO, MEM_TOTAL).unwrap(), 16712671232);
+        assert_eq!(_mem_extract(MEMINFO, MEM_FREE).unwrap(), 14993084416);
+        assert_eq!(_mem_extract(MEMINFO, SWAP_TOTAL).unwrap(), 0);
+        assert_eq!(_mem_extract(MEMINFO, SWAP_FREE).unwrap(), 0);
+    }
+    #[test]
+    fn extract_cpuinfo() {
+        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES).unwrap(), 6);
+        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS).unwrap(), 12);
+        assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK).unwrap(), 2053.971);
+    }
 }
