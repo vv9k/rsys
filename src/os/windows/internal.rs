@@ -93,7 +93,7 @@ pub(crate) fn reg_val<T>(key: HKEY, subkey: &str, val: &str) -> Result<T, Error>
         let mut hkey = mem::zeroed::<HKEY>();
         let mut subkey = subkey.encode_utf16().collect::<Vec<u16>>();
         println!("main key = `{:?}`", key);
-        println!("sub key = `{}`", subkey);
+        println!("sub key = `{:?}`", subkey);
         let mut is_success = RegOpenKeyExW(key, subkey.as_ptr(), 0, KEY_READ, &mut hkey) as u32 != ERROR_SUCCESS;
         if !is_success {
             let (id, msg) = last_error_msg()?;

@@ -48,9 +48,9 @@ pub fn cpu_clock() -> Result<f32, Error> {
 
 pub fn cpu_cores() -> Result<u16, Error> {
     if is_cpu_hyperthreaded()? {
-        Ok(_logical_cores()? / 2)
+        Ok(logical_cores()? / 2)
     } else {
-        Ok(_logical_cores()?)
+        Ok(logical_cores()?)
     }
 }
 
