@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Eq, PartialEq)]
 pub enum RsysError {
     #[error("Failed to execute command - `{0}`")]
     CommandRunError(String),
