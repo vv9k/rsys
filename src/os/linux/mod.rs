@@ -11,7 +11,7 @@ mod types;
 use super::{run, Error, OsImpl};
 
 pub use public::*;
-pub use types::{MountPoint, MountPoints};
+pub use types::{MountPoint, MountPoints, Ifaces, IfaceDev};
 
 pub(crate) use internal::*;
 pub(crate) use procfs::ProcPath;

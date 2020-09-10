@@ -153,6 +153,20 @@ pub fn mounts() -> Result<MountPoints, Error> {
     Ok(mps)
 }
 
+fn _ifaces(out: &str) -> Result<Ifaces, Error> {
+    let mut ifaces = Vec::new();
+    for line in out.split('\n') {
+        if let Ok(iface) = IfaceDev::from_line(&line) {
+            ifaces.push(iface)
+        }
+    }
+    Ok(ifaces)
+}
+
+pub fn ifaces() -> Result<Ifaces, Error> {
+    _ifaces(&ProcPath::NetDev.read()?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -188,5 +202,92 @@ mod tests {
             _interfaces(&serde_json::from_str::<serde_json::Value>(IP).unwrap()).unwrap(),
             vec!["lo", "enp8s0", "br-211476fe73de", "docker0"]
         )
+    }
+    #[test]
+    fn parses_ifaces_from_net_dev() {
+        let ifaces = vec![
+            IfaceDev {
+                iface: "lo".to_string(),
+                rx_bytes: 17776656,
+                rx_packets: 127989,
+                rx_errs: 0,
+                rx_drop: 0,
+                rx_fifo: 0,
+                rx_frame: 0,
+                rx_compressed: 0,
+                rx_multicast: 0,
+
+                tx_bytes: 17776656,
+                tx_packets: 127989,
+                tx_errs: 0,
+                tx_drop: 0,
+                tx_fifo: 0,
+                tx_frame: 0,
+                tx_compressed: 0,
+                tx_multicast: 0,
+            },
+            IfaceDev {
+                iface: "enp8s0".to_string(),
+                rx_bytes: 482459368,
+                rx_packets: 349468,
+                rx_errs: 0,
+                rx_drop: 0,
+                rx_fifo: 0,
+                rx_frame: 0,
+                rx_compressed: 0,
+                rx_multicast: 4785,
+
+                tx_bytes: 16133415,
+                tx_packets: 198549,
+                tx_errs: 0,
+                tx_drop: 0,
+                tx_fifo: 0,
+                tx_frame: 0,
+                tx_compressed: 0,
+                tx_multicast: 0,
+            },
+            IfaceDev {
+                iface: "br-211476fe73de".to_string(),
+                rx_bytes: 0,
+                rx_packets: 0,
+                rx_errs: 0,
+                rx_drop: 0,
+                rx_fifo: 0,
+                rx_frame: 0,
+                rx_compressed: 0,
+                rx_multicast: 0,
+
+                tx_bytes: 0,
+                tx_packets: 0,
+                tx_errs: 0,
+                tx_drop: 0,
+                tx_fifo: 0,
+                tx_frame: 0,
+                tx_compressed: 0,
+                tx_multicast: 0,
+            },
+            IfaceDev {
+                iface: "docker0".to_string(),
+                rx_bytes: 0,
+                rx_packets: 0,
+                rx_errs: 0,
+                rx_drop: 0,
+                rx_fifo: 0,
+                rx_frame: 0,
+                rx_compressed: 0,
+                rx_multicast: 0,
+
+                tx_bytes: 0,
+                tx_packets: 0,
+                tx_errs: 0,
+                tx_drop: 0,
+                tx_fifo: 0,
+                tx_frame: 0,
+                tx_compressed: 0,
+                tx_multicast: 0,
+            },
+        ];
+
+        assert_eq!(Ok(ifaces), _ifaces(NET_DEV))
     }
 }

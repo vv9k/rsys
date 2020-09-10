@@ -10,6 +10,7 @@ pub(crate) enum ProcPath {
     Uptime,
     KernelRelease,
     Mounts,
+    NetDev,
 }
 impl ProcPath {
     fn path(self) -> &'static str {
@@ -21,6 +22,7 @@ impl ProcPath {
             ProcPath::Uptime => "/proc/uptime",
             ProcPath::KernelRelease => "/proc/sys/kernel/osrelease",
             ProcPath::Mounts => "/proc/mounts",
+            ProcPath::NetDev => "/proc/net/dev",
         }
     }
 
