@@ -172,35 +172,38 @@ mod tests {
     use super::*;
     #[test]
     fn gets_uptime() {
-        assert_eq!(_uptime(UPTIME).unwrap(), 5771)
+        assert_eq!(_uptime(UPTIME), Ok(5771))
     }
 
     #[test]
     fn gets_default_iface() {
-        assert_eq!(_default_iface(ROUTE).unwrap(), "enp8s0".to_string())
+        assert_eq!(_default_iface(ROUTE), Ok("enp8s0".to_string()))
     }
 
     #[test]
     fn gets_ipv4() {
         assert_eq!(
-            _ipv4(&serde_json::from_str::<serde_json::Value>(IP_IFACE).unwrap()).unwrap(),
-            "192.168.0.6".to_string()
+            _ipv4(&serde_json::from_str::<serde_json::Value>(IP_IFACE).unwrap()),
+            Ok("192.168.0.6".to_string())
         )
     }
 
     #[test]
     fn gets_mac() {
         assert_eq!(
-            _mac(&serde_json::from_str::<serde_json::Value>(IP_IFACE).unwrap()).unwrap(),
-            "70:85:c2:f9:9b:2a".to_string()
+            _mac(&serde_json::from_str::<serde_json::Value>(IP_IFACE).unwrap()),
+            Ok("70:85:c2:f9:9b:2a".to_string())
         )
     }
 
     #[test]
     fn gets_interfaces() {
         assert_eq!(
-            _interfaces(&serde_json::from_str::<serde_json::Value>(IP).unwrap()).unwrap(),
-            vec!["lo", "enp8s0", "br-211476fe73de", "docker0"]
+            _interfaces(&serde_json::from_str::<serde_json::Value>(IP).unwrap()),
+            Ok(vec!["lo", "enp8s0", "br-211476fe73de", "docker0"]
+                .into_iter()
+                .map(str::to_string)
+                .collect())
         )
     }
     #[test]

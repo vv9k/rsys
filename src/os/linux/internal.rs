@@ -74,15 +74,15 @@ mod tests {
     use super::*;
     #[test]
     fn extract_meminfo() {
-        assert_eq!(_mem_extract(MEMINFO, MEM_TOTAL).unwrap(), 16712671232);
-        assert_eq!(_mem_extract(MEMINFO, MEM_FREE).unwrap(), 14993084416);
-        assert_eq!(_mem_extract(MEMINFO, SWAP_TOTAL).unwrap(), 0);
-        assert_eq!(_mem_extract(MEMINFO, SWAP_FREE).unwrap(), 0);
+        assert_eq!(_mem_extract(MEMINFO, MEM_TOTAL), Ok(16712671232));
+        assert_eq!(_mem_extract(MEMINFO, MEM_FREE), Ok(14993084416));
+        assert_eq!(_mem_extract(MEMINFO, SWAP_TOTAL), Ok(0));
+        assert_eq!(_mem_extract(MEMINFO, SWAP_FREE), Ok(0));
     }
     #[test]
     fn extract_cpuinfo() {
-        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES).unwrap(), 6);
-        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS).unwrap(), 12);
-        assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK).unwrap(), 2053.971);
+        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES), Ok(6));
+        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS), Ok(12));
+        assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK), Ok(2053.971));
     }
 }
