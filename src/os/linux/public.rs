@@ -167,6 +167,10 @@ pub fn ifaces() -> Result<Ifaces, Error> {
     _ifaces(&ProcPath::NetDev.read()?)
 }
 
+pub fn process(pid: u64) -> Result<Process, Error> {
+    Process::from_stat(&ProcPath::PidStat(pid).read()?)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

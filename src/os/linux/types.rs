@@ -1,4 +1,6 @@
 use super::Error;
+use std::any::type_name;
+use std::str::SplitAsciiWhitespace;
 
 #[derive(Debug, Default, Eq, PartialEq)]
 pub struct MountPoint {
@@ -95,5 +97,107 @@ impl IfaceDev {
         Err(Error::InvalidInputError(
             "Line contains invalid proc/net/dev output".to_string(),
         ))
+    }
+}
+
+//#TODO: Add more states
+#[derive(Debug, Eq, PartialEq)]
+pub enum ProcessState {
+    Sleeping,
+    Zombie,
+    Unknown,
+}
+impl From<&str> for ProcessState {
+    fn from(s: &str) -> Self {
+        use self::ProcessState::*;
+        match s.chars().next() {
+            Some('S') => Sleeping,
+            Some('Z') => Zombie,
+            _ => Unknown,
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Process {
+    pid: i32,
+    name: String,
+    state: ProcessState,
+    ppid: i32,
+    pgrp: i32,
+    session: i32,
+    tty_nr: i32,
+    utime: u64,
+    stime: u64,
+    cutime: i64,
+    cstime: i64,
+    priority: i32,
+    nice: i32,
+    num_threads: i32,
+    itrealvalue: i32,
+    starttime: u64,
+    vsize: u32,
+    rss: i32,
+    rsslim: u64,
+    nswap: u32,
+    cnswap: u32,
+    guest_time: u32,
+    cguest_time: u32,
+}
+
+impl Process {
+    pub(crate) fn from_stat(stat: &str) -> Result<Process, Error> {
+        let mut elems = stat.split_ascii_whitespace();
+
+        fn next<'l, T, I>(iter: &mut I) -> Result<T, Error>
+        where
+            T: std::str::FromStr,
+            T::Err: std::fmt::Display,
+            I: Iterator<Item = &'l str>,
+        {
+            if let Some(s) = iter.next() {
+                return s.parse::<T>().map_err(|e| Error::InvalidInputError(e.to_string()));
+            }
+
+            Err(Error::InvalidInputError(format!(
+                "element is not of type {}",
+                type_name::<T>()
+            )))
+        }
+        fn skip<I, T>(n: usize, iter: &mut I) -> &mut I
+        where
+            I: Iterator<Item = T>,
+        {
+            for _ in 0..n {
+                iter.next();
+            }
+            iter
+        }
+
+        Ok(Process {
+            pid: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            name: next::<String, SplitAsciiWhitespace>(&mut elems)?,
+            state: ProcessState::from(next::<String, SplitAsciiWhitespace>(&mut elems)?.as_str()),
+            ppid: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            pgrp: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            session: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            tty_nr: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            utime: next::<u64, SplitAsciiWhitespace>(skip(6, &mut elems))?,
+            stime: next::<u64, SplitAsciiWhitespace>(&mut elems)?,
+            cutime: next::<i64, SplitAsciiWhitespace>(&mut elems)?,
+            cstime: next::<i64, SplitAsciiWhitespace>(&mut elems)?,
+            priority: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            nice: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            num_threads: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            itrealvalue: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            starttime: next::<u64, SplitAsciiWhitespace>(&mut elems)?,
+            vsize: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
+            rss: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
+            rsslim: next::<u64, SplitAsciiWhitespace>(&mut elems)?,
+            nswap: next::<u32, SplitAsciiWhitespace>(skip(10, &mut elems))?,
+            cnswap: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
+            guest_time: next::<u32, SplitAsciiWhitespace>(skip(5, &mut elems))?,
+            cguest_time: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
+        })
     }
 }
