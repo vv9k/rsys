@@ -167,8 +167,12 @@ pub fn ifaces() -> Result<Ifaces, Error> {
     _ifaces(&ProcPath::NetDev.read()?)
 }
 
-pub fn process(pid: u64) -> Result<Process, Error> {
-    Process::from_stat(&ProcPath::PidStat(pid).read()?)
+fn _stat_process(out: &str) -> Result<Process, Error> {
+    Process::from_stat(out)
+}
+
+pub fn stat_process(pid: u64) -> Result<Process, Error> {
+    _stat_process(&ProcPath::PidStat(pid).read()?)
 }
 
 #[cfg(test)]
@@ -296,5 +300,35 @@ mod tests {
         ];
 
         assert_eq!(Ok(ifaces), _ifaces(NET_DEV))
+    }
+
+    #[test]
+    fn parses_process_stat() {
+        let process = Process {
+            pid: 69035,
+            name: "(alacritty)".to_string(),
+            state: ProcessState::Sleeping,
+            ppid: 1,
+            pgrp: 69035,
+            session: 69035,
+            tty_nr: 0,
+            utime: 3977,
+            stime: 293,
+            cutime: 0,
+            cstime: 0,
+            priority: 20,
+            nice: 0,
+            num_threads: 26,
+            itrealvalue: 0,
+            starttime: 967628,
+            vsize: 2158927872,
+            rss: 45316,
+            rsslim: 18446744073709551615,
+            nswap: 0,
+            cnswap: 0,
+            guest_time: 0,
+            cguest_time: 0,
+        };
+        assert_eq!(_stat_process(PROCESS_STAT), Ok(process))
     }
 }

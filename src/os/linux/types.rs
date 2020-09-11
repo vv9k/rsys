@@ -120,33 +120,34 @@ impl From<&str> for ProcessState {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Process {
-    pid: i32,
-    name: String,
-    state: ProcessState,
-    ppid: i32,
-    pgrp: i32,
-    session: i32,
-    tty_nr: i32,
-    utime: u64,
-    stime: u64,
-    cutime: i64,
-    cstime: i64,
-    priority: i32,
-    nice: i32,
-    num_threads: i32,
-    itrealvalue: i32,
-    starttime: u64,
-    vsize: u32,
-    rss: i32,
-    rsslim: u64,
-    nswap: u32,
-    cnswap: u32,
-    guest_time: u32,
-    cguest_time: u32,
+    pub pid: i32,
+    pub name: String,
+    pub state: ProcessState,
+    pub ppid: i32,
+    pub pgrp: i32,
+    pub session: i32,
+    pub tty_nr: i32,
+    pub utime: u64,
+    pub stime: u64,
+    pub cutime: i64,
+    pub cstime: i64,
+    pub priority: i32,
+    pub nice: i32,
+    pub num_threads: i32,
+    pub itrealvalue: i32,
+    pub starttime: u64,
+    pub vsize: u32,
+    pub rss: i32,
+    pub rsslim: u64,
+    pub nswap: u32,
+    pub cnswap: u32,
+    pub guest_time: u32,
+    pub cguest_time: u32,
 }
 
 impl Process {
     pub(crate) fn from_stat(stat: &str) -> Result<Process, Error> {
+        println!("{}\n", stat);
         let mut elems = stat.split_ascii_whitespace();
 
         fn next<'l, T, I>(iter: &mut I) -> Result<T, Error>
