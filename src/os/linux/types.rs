@@ -140,7 +140,7 @@ pub struct Process {
     pub num_threads: i32,
     pub itrealvalue: i32,
     pub starttime: u64,
-    pub vsize: u32,
+    pub vsize: u64,
     pub rss: i32,
     pub rsslim: u64,
     pub nswap: u32,
