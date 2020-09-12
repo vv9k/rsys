@@ -226,13 +226,33 @@ pub fn processes() -> Result<Processes, Error> {
 }
 
 pub fn stat_block_device(name: &str) -> Result<BlockStorage, Error> {
+    fn maybe_value<T>(p: SysPath) -> Option<T>
+    where
+        T: std::str::FromStr,
+        T::Err: std::fmt::Display,
+    {
+        if let Ok(v) = p.read() {
+            trim_parse_map::<T>(&v).ok()
+        } else {
+            None
+        }
+    }
+
     Ok(BlockStorage {
-        name: name.to_string(),
+        dev: name.to_string(),
         size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
-        model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
-        vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
-        state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
-        stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
+        bd_model: maybe_value::<String>(SysPath::SysBlockDevModel(name)),
+        bd_vendor: maybe_value::<String>(SysPath::SysBlockDevVendor(name)),
+        bd_state: maybe_value::<String>(SysPath::SysBlockDevState(name)),
+        stat: {
+            if let Ok(stat) = SysPath::SysBlockDevStat(name).read() {
+                BlockStorageStat::from_stat(&stat).ok()
+            } else {
+                None
+            }
+        },
+        dm_name: maybe_value::<String>(SysPath::SysDevMapperName(name)),
+        dm_uuid: maybe_value::<String>(SysPath::SysDevMapperUuid(name)),
     })
 }
 

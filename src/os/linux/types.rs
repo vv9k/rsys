@@ -197,12 +197,14 @@ impl Process {
 #[derive(Debug, Eq, PartialEq)]
 /// Represents a block storage device.
 pub struct BlockStorage {
-    pub name: String,
+    pub dev: String,
     pub size: usize,
-    pub model: String,
-    pub vendor: String,
-    pub state: String,
-    pub stat: BlockStorageStat,
+    pub bd_model: Option<String>,
+    pub bd_vendor: Option<String>,
+    pub bd_state: Option<String>,
+    pub stat: Option<BlockStorageStat>,
+    pub dm_name: Option<String>,
+    pub dm_uuid: Option<String>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -363,12 +365,12 @@ mod tests {
     #[test]
     fn parses_block_device_stat_from_sys_block_dev_stat() {
         let dev = BlockStorage {
-            name: "sda".to_string(),
+            dev: "sda".to_string(),
             size: 3907029168,
-            model: "ST2000DM008-2FR1".to_string(),
-            vendor: "ATA".to_string(),
-            state: "running".to_string(),
-            stat: BlockStorageStat {
+            bd_model: Some("ST2000DM008-2FR1".to_string()),
+            bd_vendor: Some("ATA".to_string()),
+            bd_state: Some("running".to_string()),
+            stat: Some(BlockStorageStat {
                 read_ios: 327,
                 read_merges: 72,
                 read_sectors: 8832,
@@ -384,9 +386,11 @@ mod tests {
                 discard_merges: 0,
                 discard_sectors: 0,
                 discard_ticks: 0,
-            },
+            }),
+            dm_name: None,
+            dm_uuid: None,
         };
 
-        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.stat))
+        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.stat.unwrap()))
     }
 }
