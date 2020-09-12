@@ -1,5 +1,5 @@
 #[cfg(test)]
-use super::mocks::{NET_DEV, PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
+use super::mocks::{NET_DEV, PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME, SYS_BLOCK_DEV_STAT};
 use super::Error;
 use crate::util::{next, skip};
 use std::str::SplitAsciiWhitespace;
@@ -194,6 +194,61 @@ impl Process {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
+/// Represents a block storage device.
+pub struct BlockStorage {
+    pub name: String,
+    pub size: usize,
+    pub model: String,
+    pub vendor: String,
+    pub state: String,
+    pub stat: BlockStorageStat,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+/// Represents stats of a block storage device
+/// read from /sys/block/<device>/stat
+pub struct BlockStorageStat {
+    pub read_ios: usize,
+    pub read_merges: usize,
+    pub read_sectors: usize,
+    pub read_ticks: u64,
+    pub write_ios: usize,
+    pub write_merges: usize,
+    pub write_sectors: usize,
+    pub write_ticks: u64,
+    pub in_flight: usize,
+    pub io_ticks: u64,
+    pub time_in_queue: u64,
+    pub discard_ios: usize,
+    pub discard_merges: usize,
+    pub discard_sectors: usize,
+    pub discard_ticks: u64,
+}
+impl BlockStorageStat {
+    pub(crate) fn from_stat(stat: &str) -> Result<BlockStorageStat, Error> {
+        let mut elems = stat.split_ascii_whitespace();
+
+        Ok(BlockStorageStat {
+            read_ios: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            read_merges: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            read_sectors: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            read_ticks: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            write_ios: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            write_merges: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            write_sectors: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            write_ticks: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            in_flight: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            io_ticks: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            time_in_queue: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            discard_ios: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            discard_merges: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            discard_sectors: next::<usize, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            discard_ticks: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -303,5 +358,35 @@ mod tests {
             cguest_time: 0,
         };
         assert_eq!(Process::from_stat(PROCESS_STAT_WHITESPACE_NAME), Ok(process))
+    }
+
+    #[test]
+    fn parses_block_device_stat_from_sys_block_dev_stat() {
+        let dev = BlockStorage {
+            name: "sda".to_string(),
+            size: 3907029168,
+            model: "ST2000DM008-2FR1".to_string(),
+            vendor: "ATA".to_string(),
+            state: "running".to_string(),
+            stat: BlockStorageStat {
+                read_ios: 327,
+                read_merges: 72,
+                read_sectors: 8832,
+                read_ticks: 957,
+                write_ios: 31,
+                write_merges: 1,
+                write_sectors: 206,
+                write_ticks: 775,
+                in_flight: 0,
+                io_ticks: 1620,
+                time_in_queue: 2427,
+                discard_ios: 0,
+                discard_merges: 0,
+                discard_sectors: 0,
+                discard_ticks: 0,
+            },
+        };
+
+        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.stat))
     }
 }

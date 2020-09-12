@@ -11,7 +11,9 @@ mod types;
 use super::{run, Error, OsImpl};
 
 pub use public::*;
-pub use types::{IfaceDev, Ifaces, MountPoint, MountPoints, Process, ProcessState, Processes};
+pub use types::{
+    BlockStorage, BlockStorageStat, IfaceDev, Ifaces, MountPoint, MountPoints, Process, ProcessState, Processes,
+};
 
 pub(crate) use internal::*;
 pub(crate) use sysproc::SysPath;

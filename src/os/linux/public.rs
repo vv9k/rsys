@@ -1,4 +1,5 @@
 use super::*;
+use crate::util::trim_parse_map;
 use std::fs;
 use std::process::Command;
 
@@ -222,6 +223,17 @@ pub fn processes() -> Result<Processes, Error> {
     }
 
     Ok(_pids)
+}
+
+pub fn stat_block_device(name: &str) -> Result<BlockStorage, Error> {
+    Ok(BlockStorage {
+        name: name.to_string(),
+        size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
+        model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
+        vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
+        state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
+        stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
+    })
 }
 
 #[cfg(test)]

@@ -1,8 +1,9 @@
+#![allow(dead_code)]
 use super::Error;
 use std::fs;
 
 #[derive(Clone)]
-pub(crate) enum SysPath {
+pub(crate) enum SysPath<'p> {
     ProcHostname,
     ProcDomainName,
     ProcCpuInfo,
@@ -13,17 +14,17 @@ pub(crate) enum SysPath {
     ProcNetDev,
     ProcPidStat(i32),
     Proc,
-    SysBlockDevSize(String),
-    SysBlockDevStat(String),
-    SysBlockDevModel(String),
-    SysBlockDevVendor(String),
-    SysBlockDevState(String),
-    SysBlockDevDev(String),
-    SysBlockDev(String),
-    SysDevMapperName(String),
-    SysDevMapperUuid(String),
+    SysBlockDevSize(&'p str),
+    SysBlockDevStat(&'p str),
+    SysBlockDevModel(&'p str),
+    SysBlockDevVendor(&'p str),
+    SysBlockDevState(&'p str),
+    SysBlockDevDev(&'p str),
+    SysBlockDev(&'p str),
+    SysDevMapperName(&'p str),
+    SysDevMapperUuid(&'p str),
 }
-impl SysPath {
+impl<'p> SysPath<'p> {
     pub(crate) fn path(self) -> String {
         use SysPath::*;
         match self {
