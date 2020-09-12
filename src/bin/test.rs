@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use rsys::{linux::*, Error, Rsys};
+use rsys::{Error, Rsys};
 
 fn display() -> Result<(), Error> {
     let rsys = Rsys::new();
