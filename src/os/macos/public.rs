@@ -64,7 +64,10 @@ pub fn swap_total() -> Result<usize, Error> {
                 .split_ascii_whitespace()
                 .last()
                 .ok_or_else(|| {
-                    Error::InvalidInputError(format!("line containing active pages was invalid `{}`", line))
+                    Error::InvalidInputError(
+                        line.to_string(),
+                        "line should contain active pages value after whitespace".to_string(),
+                    )
                 })?
                 .trim_end_matches('.')
                 .parse::<u64>()
@@ -76,7 +79,10 @@ pub fn swap_total() -> Result<usize, Error> {
                 .split_ascii_whitespace()
                 .last()
                 .ok_or_else(|| {
-                    Error::InvalidInputError(format!("line containing inactive pages was invalid `{}`", line))
+                    Error::InvalidInputError(
+                        line.to_string(),
+                        "line should contain inactive pages value after whitespace".to_string(),
+                    )
                 })?
                 .trim_end_matches('.')
                 .parse::<u64>()
