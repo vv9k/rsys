@@ -73,14 +73,14 @@ where
 mod tests {
     use super::*;
     #[test]
-    fn extract_meminfo() {
+    fn extracts_meminfo() {
         assert_eq!(_mem_extract(MEMINFO, MEM_TOTAL), Ok(16712671232));
         assert_eq!(_mem_extract(MEMINFO, MEM_FREE), Ok(14993084416));
         assert_eq!(_mem_extract(MEMINFO, SWAP_TOTAL), Ok(0));
         assert_eq!(_mem_extract(MEMINFO, SWAP_FREE), Ok(0));
     }
     #[test]
-    fn extract_cpuinfo() {
+    fn extracts_cpuinfo() {
         assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES), Ok(6));
         assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS), Ok(12));
         assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK), Ok(2053.971));

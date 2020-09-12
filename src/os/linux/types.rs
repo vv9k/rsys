@@ -1,3 +1,5 @@
+#[cfg(test)]
+use super::mocks::*;
 use super::Error;
 use std::any::type_name;
 use std::str::SplitAsciiWhitespace;
@@ -94,9 +96,10 @@ impl IfaceDev {
             });
         }
 
-        Err(Error::InvalidInputError(
-            "Line contains invalid proc/net/dev output".to_string(),
-        ))
+        Err(Error::InvalidInputError(format!(
+            "Line `{}` contains invalid proc/net/dev output",
+            line
+        )))
     }
 }
 
@@ -147,7 +150,6 @@ pub struct Process {
 
 impl Process {
     pub(crate) fn from_stat(stat: &str) -> Result<Process, Error> {
-        println!("{}\n", stat);
         let mut elems = stat.split_ascii_whitespace();
 
         fn next<'l, T, I>(iter: &mut I) -> Result<T, Error>
@@ -200,5 +202,87 @@ impl Process {
             guest_time: next::<u32, SplitAsciiWhitespace>(skip(5, &mut elems))?,
             cguest_time: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn parses_iface_from_net_dev_line() {
+        let lo = IfaceDev {
+            iface: "lo".to_string(),
+            rx_bytes: 17776656,
+            rx_packets: 127989,
+            rx_errs: 0,
+            rx_drop: 0,
+            rx_fifo: 0,
+            rx_frame: 0,
+            rx_compressed: 0,
+            rx_multicast: 0,
+
+            tx_bytes: 17776656,
+            tx_packets: 127989,
+            tx_errs: 0,
+            tx_drop: 0,
+            tx_fifo: 0,
+            tx_frame: 0,
+            tx_compressed: 0,
+            tx_multicast: 0,
+        };
+        let enp = IfaceDev {
+            iface: "enp8s0".to_string(),
+            rx_bytes: 482459368,
+            rx_packets: 349468,
+            rx_errs: 0,
+            rx_drop: 0,
+            rx_fifo: 0,
+            rx_frame: 0,
+            rx_compressed: 0,
+            rx_multicast: 4785,
+
+            tx_bytes: 16133415,
+            tx_packets: 198549,
+            tx_errs: 0,
+            tx_drop: 0,
+            tx_fifo: 0,
+            tx_frame: 0,
+            tx_compressed: 0,
+            tx_multicast: 0,
+        };
+        let mut lines = NET_DEV.split('\n').skip(2);
+
+        assert_eq!(Ok(lo), IfaceDev::from_line(lines.next().unwrap()));
+        assert_eq!(Ok(enp), IfaceDev::from_line(lines.next().unwrap()))
+    }
+
+    #[test]
+    fn parses_process_from_stat() {
+        let process = Process {
+            pid: 69035,
+            name: "(alacritty)".to_string(),
+            state: ProcessState::Sleeping,
+            ppid: 1,
+            pgrp: 69035,
+            session: 69035,
+            tty_nr: 0,
+            utime: 3977,
+            stime: 293,
+            cutime: 0,
+            cstime: 0,
+            priority: 20,
+            nice: 0,
+            num_threads: 26,
+            itrealvalue: 0,
+            starttime: 967628,
+            vsize: 2158927872,
+            rss: 45316,
+            rsslim: 18446744073709551615,
+            nswap: 0,
+            cnswap: 0,
+            guest_time: 0,
+            cguest_time: 0,
+        };
+        assert_eq!(Process::from_stat(PROCESS_STAT), Ok(process))
     }
 }
