@@ -165,7 +165,7 @@ pub fn ifaces() -> Result<Ifaces, Error> {
     Ok(ifaces)
 }
 
-pub fn stat_process(pid: u64) -> Result<Process, Error> {
+pub fn stat_process(pid: i32) -> Result<Process, Error> {
     Process::from_stat(&ProcPath::PidStat(pid).read()?)
 }
 

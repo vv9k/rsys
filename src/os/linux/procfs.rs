@@ -11,7 +11,7 @@ pub(crate) enum ProcPath {
     KernelRelease,
     Mounts,
     NetDev,
-    PidStat(u64),
+    PidStat(i32),
     Proc,
 }
 impl ProcPath {
