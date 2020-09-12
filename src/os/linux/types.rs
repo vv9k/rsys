@@ -1,7 +1,7 @@
 #[cfg(test)]
 use super::mocks::{NET_DEV, PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
 use super::Error;
-use std::any::type_name;
+use crate::util::{next, skip};
 use std::str::SplitAsciiWhitespace;
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -155,36 +155,6 @@ pub struct Process {
 impl Process {
     pub(crate) fn from_stat(stat: &str) -> Result<Process, Error> {
         let mut elems = stat.split_ascii_whitespace();
-
-        fn next<'l, T, I>(iter: &mut I, src: &str) -> Result<T, Error>
-        where
-            T: std::str::FromStr,
-            T::Err: std::fmt::Display,
-            I: Iterator<Item = &'l str>,
-        {
-            if let Some(s) = iter.next() {
-                return s.parse::<T>().map_err(|e| {
-                    Error::InvalidInputError(
-                        src.to_string(),
-                        format!("cannot parse '{}' as '{}' - '{}'", s, type_name::<T>(), e),
-                    )
-                });
-            }
-
-            Err(Error::InvalidInputError(
-                src.to_string(),
-                format!("there was no element of type {}", type_name::<T>()),
-            ))
-        }
-        fn skip<I, T>(n: usize, iter: &mut I) -> &mut I
-        where
-            I: Iterator<Item = T>,
-        {
-            for _ in 0..n {
-                iter.next();
-            }
-            iter
-        }
 
         Ok(Process {
             pid: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,

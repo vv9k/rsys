@@ -46,6 +46,7 @@ extern crate rsys_macro;
 mod api;
 mod error;
 mod os;
+pub(crate) mod util;
 pub use api::Rsys;
 pub use error::RsysError as Error;
 
