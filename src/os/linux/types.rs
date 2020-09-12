@@ -1,5 +1,5 @@
 #[cfg(test)]
-use super::mocks::*;
+use super::mocks::{NET_DEV, PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
 use super::Error;
 use std::any::type_name;
 use std::str::SplitAsciiWhitespace;
@@ -191,6 +191,7 @@ impl Process {
                 // for example: `(tmux: client)` is split into two parts
                 // that have to be glued together.
                 if !s.ends_with(')') {
+                    s.push(' ');
                     s.push_str(&next::<String, SplitAsciiWhitespace>(&mut elems, &stat)?);
                 }
                 s
@@ -299,5 +300,35 @@ mod tests {
             cguest_time: 0,
         };
         assert_eq!(Process::from_stat(PROCESS_STAT), Ok(process))
+    }
+
+    #[test]
+    fn parses_process_with_whitespace_from_stat() {
+        let process = Process {
+            pid: 1483,
+            name: "(tmux: server)".to_string(),
+            state: ProcessState::Sleeping,
+            ppid: 1,
+            pgrp: 1483,
+            session: 1483,
+            tty_nr: 0,
+            utime: 440,
+            stime: 132,
+            cutime: 0,
+            cstime: 0,
+            priority: 20,
+            nice: 0,
+            num_threads: 1,
+            itrealvalue: 0,
+            starttime: 8224,
+            vsize: 12197888,
+            rss: 1380,
+            rsslim: 18446744073709551615,
+            nswap: 0,
+            cnswap: 0,
+            guest_time: 0,
+            cguest_time: 0,
+        };
+        assert_eq!(Process::from_stat(PROCESS_STAT_WHITESPACE_NAME), Ok(process))
     }
 }
