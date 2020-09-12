@@ -38,12 +38,12 @@ pub type MountPoints = Vec<MountPoint>;
 pub type Ifaces = Vec<IfaceDev>;
 
 macro_rules! next_u64 {
-    ($list:ident) => {
+    ($list:ident, $line:ident) => {
         $list
             .next()
             .unwrap()
             .parse::<u64>()
-            .map_err(|e| Error::InvalidInputError(e.to_string()))?
+            .map_err(|e| Error::InvalidInputError($line.to_string(), e.to_string()))?
     };
 }
 
@@ -76,30 +76,30 @@ impl IfaceDev {
             return Ok(IfaceDev {
                 iface: elems.next().unwrap().trim_end_matches(':').to_string(),
 
-                rx_bytes: next_u64!(elems),
-                rx_packets: next_u64!(elems),
-                rx_errs: next_u64!(elems),
-                rx_drop: next_u64!(elems),
-                rx_fifo: next_u64!(elems),
-                rx_frame: next_u64!(elems),
-                rx_compressed: next_u64!(elems),
-                rx_multicast: next_u64!(elems),
+                rx_bytes: next_u64!(elems, line),
+                rx_packets: next_u64!(elems, line),
+                rx_errs: next_u64!(elems, line),
+                rx_drop: next_u64!(elems, line),
+                rx_fifo: next_u64!(elems, line),
+                rx_frame: next_u64!(elems, line),
+                rx_compressed: next_u64!(elems, line),
+                rx_multicast: next_u64!(elems, line),
 
-                tx_bytes: next_u64!(elems),
-                tx_packets: next_u64!(elems),
-                tx_errs: next_u64!(elems),
-                tx_drop: next_u64!(elems),
-                tx_fifo: next_u64!(elems),
-                tx_frame: next_u64!(elems),
-                tx_compressed: next_u64!(elems),
-                tx_multicast: next_u64!(elems),
+                tx_bytes: next_u64!(elems, line),
+                tx_packets: next_u64!(elems, line),
+                tx_errs: next_u64!(elems, line),
+                tx_drop: next_u64!(elems, line),
+                tx_fifo: next_u64!(elems, line),
+                tx_frame: next_u64!(elems, line),
+                tx_compressed: next_u64!(elems, line),
+                tx_multicast: next_u64!(elems, line),
             });
         }
 
-        Err(Error::InvalidInputError(format!(
-            "Line `{}` contains invalid proc/net/dev output",
-            line
-        )))
+        Err(Error::InvalidInputError(
+            line.to_string(),
+            "contains invalid input for IfaceDev".to_string(),
+        ))
     }
 }
 
@@ -152,20 +152,25 @@ impl Process {
     pub(crate) fn from_stat(stat: &str) -> Result<Process, Error> {
         let mut elems = stat.split_ascii_whitespace();
 
-        fn next<'l, T, I>(iter: &mut I) -> Result<T, Error>
+        fn next<'l, T, I>(iter: &mut I, src: &str) -> Result<T, Error>
         where
             T: std::str::FromStr,
             T::Err: std::fmt::Display,
             I: Iterator<Item = &'l str>,
         {
             if let Some(s) = iter.next() {
-                return s.parse::<T>().map_err(|e| Error::InvalidInputError(e.to_string()));
+                return s.parse::<T>().map_err(|e| {
+                    Error::InvalidInputError(
+                        src.to_string(),
+                        format!("cannot parse '{}' as '{}' - '{}'", s, type_name::<T>(), e),
+                    )
+                });
             }
 
-            Err(Error::InvalidInputError(format!(
-                "element is not of type {}",
-                type_name::<T>()
-            )))
+            Err(Error::InvalidInputError(
+                src.to_string(),
+                format!("there was no element of type {}", type_name::<T>()),
+            ))
         }
         fn skip<I, T>(n: usize, iter: &mut I) -> &mut I
         where

@@ -180,7 +180,7 @@ pub fn pids() -> Result<Vec<i32>, Error> {
                 pids.push(
                     sfilename
                         .parse::<i32>()
-                        .map_err(|e| Error::InvalidInputError(e.to_string()))?,
+                        .map_err(|e| Error::InvalidInputError(sfilename.to_string(), e.to_string()))?,
                 );
             }
         }

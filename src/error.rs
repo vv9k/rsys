@@ -10,8 +10,8 @@ pub enum RsysError {
     FileReadError(String, String),
     #[error("Failed to acquire local time - `{0}`")]
     TimeError(String),
-    #[error("Failed to parse value from input - `{0}`")]
-    InvalidInputError(String),
+    #[error("Failed to parse value from input `{0}` - `{1}`")]
+    InvalidInputError(String, String),
 
     // Windows
     #[cfg(target_os = "windows")]
