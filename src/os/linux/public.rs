@@ -7,7 +7,7 @@ use super::mocks::{IP, IP_IFACE, ROUTE, UPTIME};
 
 /// Returns a hostname.
 pub fn hostname() -> Result<String, Error> {
-    Ok(ProcPath::Hostname.read()?.trim().to_string())
+    Ok(SysPath::ProcHostname.read()?.trim().to_string())
 }
 
 /// Internal implementation of parsing uptime from /proc/uptime
@@ -22,7 +22,7 @@ fn _uptime(out: &str) -> Result<u64, Error> {
 
 /// Returns current uptime.
 pub fn uptime() -> Result<u64, Error> {
-    _uptime(&ProcPath::Uptime.read()?)
+    _uptime(&SysPath::ProcUptime.read()?)
 }
 
 /// Returns the processor architecture
@@ -156,7 +156,7 @@ pub fn interfaces() -> Result<Vec<String>, Error> {
 
 /// Returns a domainname read from /proc/sys/kernel/domainname
 pub fn domainname() -> Result<String, Error> {
-    Ok(ProcPath::DomainName.read()?.trim().to_string())
+    Ok(SysPath::ProcDomainName.read()?.trim().to_string())
 }
 
 //################################################################################
@@ -164,13 +164,13 @@ pub fn domainname() -> Result<String, Error> {
 
 /// Returns a kernel version of host os.
 pub fn kernel_version() -> Result<String, Error> {
-    ProcPath::KernelRelease.read()
+    SysPath::ProcKernelRelease.read()
 }
 
 /// Returns MountPoints read from /proc/mounts
 pub fn mounts() -> Result<MountPoints, Error> {
     let mut mps = Vec::new();
-    for line in ProcPath::Mounts.read()?.split('\n') {
+    for line in SysPath::ProcMounts.read()?.split('\n') {
         if let Some(mp) = MountPoint::from_line(line) {
             mps.push(mp);
         }
@@ -181,7 +181,7 @@ pub fn mounts() -> Result<MountPoints, Error> {
 /// Returns Ifaces parsed from /proc/net/dev
 pub fn ifaces() -> Result<Ifaces, Error> {
     let mut ifaces = Vec::new();
-    for line in ProcPath::NetDev.read()?.split('\n') {
+    for line in SysPath::ProcNetDev.read()?.split('\n') {
         if let Ok(iface) = IfaceDev::from_line(&line) {
             ifaces.push(iface)
         }
@@ -191,12 +191,12 @@ pub fn ifaces() -> Result<Ifaces, Error> {
 
 /// Returns detailed Process information parsed from /proc/[pid]/stat
 pub fn stat_process(pid: i32) -> Result<Process, Error> {
-    Process::from_stat(&ProcPath::PidStat(pid).read()?)
+    Process::from_stat(&SysPath::ProcPidStat(pid).read()?)
 }
 
 /// Returns a list of pids read from /proc
 pub fn pids() -> Result<Vec<i32>, Error> {
-    let path = ProcPath::Proc.path();
+    let path = SysPath::Proc.path();
     let mut pids = Vec::new();
     for _entry in fs::read_dir(&path).map_err(|e| Error::FileReadError(path, e.to_string()))? {
         if let Ok(entry) = _entry {

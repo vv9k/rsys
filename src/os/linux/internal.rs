@@ -1,4 +1,4 @@
-use super::{run, Error, ProcPath};
+use super::{run, Error, SysPath};
 use std::fmt::Display;
 use std::process::Command;
 use std::str::FromStr;
@@ -41,7 +41,7 @@ fn _mem_extract(out: &str, line: &str) -> Result<usize, Error> {
 }
 
 pub(crate) fn mem_extract(line: &str) -> Result<usize, Error> {
-    _mem_extract(&ProcPath::MemInfo.read()?, &line)
+    _mem_extract(&SysPath::ProcMemInfo.read()?, &line)
 }
 
 fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T, Error>
@@ -66,7 +66,7 @@ pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T, Error>
 where
     <T as FromStr>::Err: Display,
 {
-    _cpuinfo_extract(&ProcPath::CpuInfo.read()?, &line)
+    _cpuinfo_extract(&SysPath::ProcCpuInfo.read()?, &line)
 }
 
 #[cfg(test)]
