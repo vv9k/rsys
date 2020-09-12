@@ -188,6 +188,15 @@ pub fn pids() -> Result<Vec<i32>, Error> {
     Ok(pids)
 }
 
+pub fn processes() -> Result<Processes, Error> {
+    let mut _pids = Vec::new();
+    for pid in pids()? {
+        _pids.push(stat_process(pid)?);
+    }
+
+    Ok(_pids)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

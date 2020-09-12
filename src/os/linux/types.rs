@@ -36,6 +36,7 @@ impl MountPoint {
 
 pub type MountPoints = Vec<MountPoint>;
 pub type Ifaces = Vec<IfaceDev>;
+pub type Processes = Vec<Process>;
 
 macro_rules! next_u64 {
     ($list:ident, $line:ident) => {
