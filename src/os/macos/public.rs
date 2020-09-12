@@ -50,7 +50,7 @@ pub fn memory_total() -> Result<usize, Error> {
 }
 
 pub fn memory_free() -> Result<usize, Error> {
-    todo!()
+    Ok(0)
 }
 
 pub fn swap_total() -> Result<usize, Error> {
@@ -92,7 +92,7 @@ pub fn swap_total() -> Result<usize, Error> {
 }
 
 pub fn swap_free() -> Result<usize, Error> {
-    todo!()
+    Ok(0)
 }
 
 pub fn default_iface() -> Result<String, Error> {
@@ -109,19 +109,19 @@ pub fn ipv4(iface: &str) -> Result<String, Error> {
 }
 
 pub fn ipv6(_iface: &str) -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 pub fn mac(_iface: &str) -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 pub fn interfaces() -> Result<Vec<String>, Error> {
-    todo!()
+    Ok(vec![])
 }
 
 pub fn domainname() -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 //################################################################################

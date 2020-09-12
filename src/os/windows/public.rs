@@ -32,7 +32,7 @@ pub fn arch() -> Result<String, Error> {
 }
 
 pub fn cpu() -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 // # TODO
@@ -75,28 +75,28 @@ pub fn swap_free() -> Result<usize, Error> {
 }
 
 pub fn default_iface() -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 pub fn ipv4(iface: &str) -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 pub fn ipv6(_iface: &str) -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 pub fn mac(iface: &str) -> Result<String, Error> {
-    todo!()
+    Ok("".to_string())
 }
 
 pub fn interfaces() -> Result<Vec<String>, Error> {
-    todo!()
+    Ok(vec![])
 }
 
 pub fn domainname() -> Result<String, Error> {
     // Ok(net_wksta().wki100_langroup)
-    todo!()
+    Ok("".to_string())
 }
 
 //################################################################################
