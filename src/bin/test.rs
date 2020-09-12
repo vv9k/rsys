@@ -18,8 +18,12 @@ fn display() -> Result<(), Error> {
     println!("IPv4 - {}", rsys.ipv4(&iface)?);
     println!("MAC - {}", rsys.mac(&iface)?);
     println!("INTERFACES - {:#?}", rsys.interfaces()?);
-    println!("MOUNTS - {:?}", mounts()?);
-    println!("IFACES - {:?}", ifaces()?);
+
+    // On linux
+    //println!("MOUNTS - {:?}", mounts()?);
+    //println!("IFACES - {:?}", ifaces()?);
+    //println!("PIDS - {:?}", pids()?);
+    //println!("PROCESSES - {:#?}", processes()?);
 
     Ok(())
 }
