@@ -184,29 +184,38 @@ impl Process {
         }
 
         Ok(Process {
-            pid: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            name: next::<String, SplitAsciiWhitespace>(&mut elems)?,
-            state: ProcessState::from(next::<String, SplitAsciiWhitespace>(&mut elems)?.as_str()),
-            ppid: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            pgrp: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            session: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            tty_nr: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            utime: next::<u64, SplitAsciiWhitespace>(skip(6, &mut elems))?,
-            stime: next::<u64, SplitAsciiWhitespace>(&mut elems)?,
-            cutime: next::<i64, SplitAsciiWhitespace>(&mut elems)?,
-            cstime: next::<i64, SplitAsciiWhitespace>(&mut elems)?,
-            priority: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            nice: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            num_threads: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            itrealvalue: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            starttime: next::<u64, SplitAsciiWhitespace>(&mut elems)?,
-            vsize: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
-            rss: next::<i32, SplitAsciiWhitespace>(&mut elems)?,
-            rsslim: next::<u64, SplitAsciiWhitespace>(&mut elems)?,
-            nswap: next::<u32, SplitAsciiWhitespace>(skip(10, &mut elems))?,
-            cnswap: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
-            guest_time: next::<u32, SplitAsciiWhitespace>(skip(5, &mut elems))?,
-            cguest_time: next::<u32, SplitAsciiWhitespace>(&mut elems)?,
+            pid: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            name: {
+                let mut s = next::<String, SplitAsciiWhitespace>(&mut elems, &stat)?;
+                // Handle case where cmdline parameter contains whitespace.
+                // for example: `(tmux: client)` is split into two parts
+                // that have to be glued together.
+                if !s.ends_with(')') {
+                    s.push_str(&next::<String, SplitAsciiWhitespace>(&mut elems, &stat)?);
+                }
+                s
+            },
+            state: ProcessState::from(next::<String, SplitAsciiWhitespace>(&mut elems, &stat)?.as_str()),
+            ppid: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            pgrp: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            session: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            tty_nr: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            utime: next::<u64, SplitAsciiWhitespace>(skip(6, &mut elems), &stat)?,
+            stime: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            cutime: next::<i64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            cstime: next::<i64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            priority: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            nice: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            num_threads: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            itrealvalue: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            starttime: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            vsize: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            rss: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            rsslim: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            nswap: next::<u32, SplitAsciiWhitespace>(skip(10, &mut elems), &stat)?,
+            cnswap: next::<u32, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            guest_time: next::<u32, SplitAsciiWhitespace>(skip(5, &mut elems), &stat)?,
+            cguest_time: next::<u32, SplitAsciiWhitespace>(&mut elems, &stat)?,
         })
     }
 }
