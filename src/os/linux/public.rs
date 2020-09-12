@@ -1,8 +1,9 @@
-#[cfg(test)]
-use super::mocks::*;
 use super::*;
 use std::fs;
 use std::process::Command;
+
+#[cfg(test)]
+use super::mocks::{IP, IP_IFACE, ROUTE, UPTIME};
 
 pub fn hostname() -> Result<String, Error> {
     Ok(ProcPath::Hostname.read()?.trim().to_string())
