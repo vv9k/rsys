@@ -1,6 +1,7 @@
 #[cfg(test)]
 use super::mocks::*;
 use super::*;
+use std::fs;
 use std::process::Command;
 
 pub fn hostname() -> Result<String, Error> {
@@ -143,6 +144,7 @@ pub fn kernel_version() -> Result<String, Error> {
     ProcPath::KernelRelease.read()
 }
 
+/// Returns MountPoints read from /proc/mounts
 pub fn mounts() -> Result<MountPoints, Error> {
     let mut mps = Vec::new();
     for line in ProcPath::Mounts.read()?.split('\n') {
@@ -153,9 +155,9 @@ pub fn mounts() -> Result<MountPoints, Error> {
     Ok(mps)
 }
 
-fn _ifaces(out: &str) -> Result<Ifaces, Error> {
+pub fn ifaces() -> Result<Ifaces, Error> {
     let mut ifaces = Vec::new();
-    for line in out.split('\n') {
+    for line in ProcPath::NetDev.read()?.split('\n') {
         if let Ok(iface) = IfaceDev::from_line(&line) {
             ifaces.push(iface)
         }
@@ -163,16 +165,27 @@ fn _ifaces(out: &str) -> Result<Ifaces, Error> {
     Ok(ifaces)
 }
 
-pub fn ifaces() -> Result<Ifaces, Error> {
-    _ifaces(&ProcPath::NetDev.read()?)
-}
-
-fn _stat_process(out: &str) -> Result<Process, Error> {
-    Process::from_stat(out)
-}
-
 pub fn stat_process(pid: u64) -> Result<Process, Error> {
-    _stat_process(&ProcPath::PidStat(pid).read()?)
+    Process::from_stat(&ProcPath::PidStat(pid).read()?)
+}
+
+pub fn pids() -> Result<Vec<i32>, Error> {
+    let path = ProcPath::Proc.path();
+    let mut pids = Vec::new();
+    for _entry in fs::read_dir(&path).map_err(|e| Error::FileReadError(path, e.to_string()))? {
+        if let Ok(entry) = _entry {
+            let filename = entry.file_name();
+            let sfilename = filename.as_os_str().to_string_lossy();
+            if sfilename.chars().all(|c| c.is_digit(10)) {
+                pids.push(
+                    sfilename
+                        .parse::<i32>()
+                        .map_err(|e| Error::InvalidInputError(e.to_string()))?,
+                );
+            }
+        }
+    }
+    Ok(pids)
 }
 
 #[cfg(test)]

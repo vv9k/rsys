@@ -12,27 +12,26 @@ pub(crate) enum ProcPath {
     Mounts,
     NetDev,
     PidStat(u64),
+    Proc,
 }
 impl ProcPath {
-    fn path(self) -> &'static str {
+    pub(crate) fn path(self) -> String {
         match self {
-            ProcPath::Hostname => "/proc/sys/kernel/hostname",
-            ProcPath::DomainName => "/proc/sys/kernel/domainname",
-            ProcPath::CpuInfo => "/proc/cpuinfo",
-            ProcPath::MemInfo => "/proc/meminfo",
-            ProcPath::Uptime => "/proc/uptime",
-            ProcPath::KernelRelease => "/proc/sys/kernel/osrelease",
-            ProcPath::Mounts => "/proc/mounts",
-            ProcPath::NetDev => "/proc/net/dev",
-            ProcPath::PidStat(_) => "/proc",
+            ProcPath::Hostname => "/proc/sys/kernel/hostname".to_string(),
+            ProcPath::DomainName => "/proc/sys/kernel/domainname".to_string(),
+            ProcPath::CpuInfo => "/proc/cpuinfo".to_string(),
+            ProcPath::MemInfo => "/proc/meminfo".to_string(),
+            ProcPath::Uptime => "/proc/uptime".to_string(),
+            ProcPath::KernelRelease => "/proc/sys/kernel/osrelease".to_string(),
+            ProcPath::Mounts => "/proc/mounts".to_string(),
+            ProcPath::NetDev => "/proc/net/dev".to_string(),
+            ProcPath::PidStat(n) => format!("/proc/{}/stat", n),
+            ProcPath::Proc => "/proc".to_string(),
         }
     }
 
     pub(crate) fn read(self) -> Result<String, Error> {
-        let path = match self.clone() {
-            ProcPath::PidStat(n) => format!("{}/{}/stat", self.path(), n),
-            _ => self.path().to_string(),
-        };
+        let path = self.path();
         fs::read_to_string(&path).map_err(|e| Error::FileReadError(path, e.to_string()))
     }
 }
