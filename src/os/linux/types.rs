@@ -5,6 +5,7 @@ use std::any::type_name;
 use std::str::SplitAsciiWhitespace;
 
 #[derive(Debug, Default, Eq, PartialEq)]
+/// Represents a line of /proc/mounts
 pub struct MountPoint {
     volume: String,
     path: String,
@@ -12,7 +13,7 @@ pub struct MountPoint {
     options: String,
 }
 impl MountPoint {
-    fn new(volume: &str, path: &str, voltype: &str, options: &str) -> MountPoint {
+    pub fn new(volume: &str, path: &str, voltype: &str, options: &str) -> MountPoint {
         MountPoint {
             volume: volume.to_string(),
             path: path.to_string(),
@@ -49,6 +50,7 @@ macro_rules! next_u64 {
 }
 
 #[derive(Debug, Default, Eq, PartialEq)]
+/// Represents a data line of /proc/net/dev
 pub struct IfaceDev {
     pub iface: String,
 
@@ -123,6 +125,7 @@ impl From<&str> for ProcessState {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+/// Represents a process from /proc/[pid]/stat
 pub struct Process {
     pub pid: i32,
     pub name: String,

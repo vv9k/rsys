@@ -108,6 +108,7 @@ pub fn ipv4(iface: &str) -> Result<String, Error> {
     _ipv4(&out)
 }
 
+/// Returns an IPv6 address of a given iface.
 pub fn ipv6(_iface: &str) -> Result<String, Error> {
     todo!()
 }
