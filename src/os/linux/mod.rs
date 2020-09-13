@@ -12,7 +12,8 @@ use super::{run, Error, OsImpl};
 
 pub use public::*;
 pub use types::{
-    BlockStorage, BlockStorageStat, IfaceDev, Ifaces, MountPoint, MountPoints, Process, ProcessState, Processes,
+    BlockStorage, BlockStorageStat, DeviceMapper, IfaceDev, Ifaces, MountPoint, MountPoints, Partition, Partitions,
+    Process, ProcessState, Processes,
 };
 
 pub(crate) use internal::*;

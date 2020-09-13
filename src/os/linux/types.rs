@@ -38,6 +38,7 @@ impl MountPoint {
 pub type MountPoints = Vec<MountPoint>;
 pub type Ifaces = Vec<IfaceDev>;
 pub type Processes = Vec<Process>;
+pub type Partitions = Vec<Partition>;
 
 macro_rules! next_u64 {
     ($list:ident, $line:ident) => {
@@ -199,12 +200,27 @@ impl Process {
 pub struct BlockStorage {
     pub dev: String,
     pub size: usize,
-    pub bd_model: Option<String>,
-    pub bd_vendor: Option<String>,
-    pub bd_state: Option<String>,
-    pub stat: Option<BlockStorageStat>,
-    pub dm_name: Option<String>,
-    pub dm_uuid: Option<String>,
+    pub stat: BlockStorageStat,
+    pub model: String,
+    pub vendor: String,
+    pub state: String,
+    pub partitions: Partitions,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct DeviceMapper {
+    pub dev: String,
+    pub size: usize,
+    pub stat: BlockStorageStat,
+    pub name: String,
+    pub uuid: String,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct Partition {
+    pub dev: String,
+    pub size: usize,
+    pub stat: BlockStorageStat,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -367,10 +383,10 @@ mod tests {
         let dev = BlockStorage {
             dev: "sda".to_string(),
             size: 3907029168,
-            bd_model: Some("ST2000DM008-2FR1".to_string()),
-            bd_vendor: Some("ATA".to_string()),
-            bd_state: Some("running".to_string()),
-            stat: Some(BlockStorageStat {
+            model: "ST2000DM008-2FR1".to_string(),
+            vendor: "ATA".to_string(),
+            state: "running".to_string(),
+            stat: BlockStorageStat {
                 read_ios: 327,
                 read_merges: 72,
                 read_sectors: 8832,
@@ -386,11 +402,10 @@ mod tests {
                 discard_merges: 0,
                 discard_sectors: 0,
                 discard_ticks: 0,
-            }),
-            dm_name: None,
-            dm_uuid: None,
+            },
+            partitions: vec![],
         };
 
-        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.stat.unwrap()))
+        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.stat))
     }
 }

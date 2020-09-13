@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use super::Error;
 use std::fs;
+use std::path::PathBuf;
 
 #[derive(Clone)]
 pub(crate) enum SysPath<'p> {
@@ -25,9 +26,9 @@ pub(crate) enum SysPath<'p> {
     SysDevMapperUuid(&'p str),
 }
 impl<'p> SysPath<'p> {
-    pub(crate) fn path(self) -> String {
+    pub(crate) fn path(self) -> PathBuf {
         use SysPath::*;
-        match self {
+        let s = match self {
             ProcHostname => "/proc/sys/kernel/hostname".to_string(),
             ProcDomainName => "/proc/sys/kernel/domainname".to_string(),
             ProcCpuInfo => "/proc/cpuinfo".to_string(),
@@ -47,11 +48,21 @@ impl<'p> SysPath<'p> {
             SysBlockDev(d) => format!("/sys/block/{}", d),
             SysDevMapperName(d) => format!("/sys/block/{}/dm/name", d),
             SysDevMapperUuid(d) => format!("/sys/block/{}/dm/uuid", d),
-        }
+        };
+        PathBuf::from(s)
     }
 
     pub(crate) fn read(self) -> Result<String, Error> {
         let path = self.path();
-        fs::read_to_string(&path).map_err(|e| Error::FileReadError(path, e.to_string()))
+        fs::read_to_string(&path)
+            .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
+    }
+
+    pub(crate) fn read_path(self, p: &[&str]) -> Result<String, Error> {
+        let mut path = self.path();
+        for elem in p {
+            path.push(elem);
+        }
+        fs::read_to_string(&path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))
     }
 }

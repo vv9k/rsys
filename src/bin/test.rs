@@ -20,10 +20,14 @@ fn display() -> Result<(), Error> {
     println!("INTERFACES - {:#?}", rsys.interfaces()?);
 
     // On linux
-    //println!("MOUNTS - {:?}", mounts()?);
-    //println!("IFACES - {:?}", ifaces()?);
-    //println!("PIDS - {:?}", pids()?);
-    //println!("PROCESSES - {:#?}", processes()?);
+    //println!("MOUNTS - {:?}", rsys::linux::mounts()?);
+    //println!("IFACES - {:?}", rsys::linux::ifaces()?);
+    //println!("PIDS - {:?}", rsys::linux::pids()?);
+    //println!("PROCESSES - {:#?}", rsys::linux::processes()?);
+    //println!("SDA - {:#?}", rsys::linux::stat_block_device("sda")?);
+    //println!("DM0 - {:#?}", rsys::linux::stat_device_mapper("dm-0")?);
+    //println!("DM1 - {:#?}", rsys::linux::stat_device_mapper("dm-1")?);
+    //println!("DM2 - {:#?}", rsys::linux::stat_device_mapper("dm-2")?);
 
     Ok(())
 }
