@@ -24,6 +24,7 @@ pub(crate) enum SysPath<'p> {
     SysBlockDev(&'p str),
     SysDevMapperName(&'p str),
     SysDevMapperUuid(&'p str),
+    Dev(&'p str),
 }
 impl<'p> SysPath<'p> {
     pub(crate) fn path(self) -> PathBuf {
@@ -48,6 +49,7 @@ impl<'p> SysPath<'p> {
             SysBlockDev(d) => format!("/sys/block/{}", d),
             SysDevMapperName(d) => format!("/sys/block/{}/dm/name", d),
             SysDevMapperUuid(d) => format!("/sys/block/{}/dm/uuid", d),
+            Dev(d) => format!("/dev/{}", d),
         };
         PathBuf::from(s)
     }

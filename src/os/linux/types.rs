@@ -202,6 +202,7 @@ pub struct BlockStorage {
     pub size: usize,
     pub maj: u32,
     pub min: u32,
+    pub block_size: i64,
     pub stat: BlockStorageStat,
     pub model: String,
     pub vendor: String,
@@ -222,6 +223,7 @@ impl BlockStorage {
             size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
             maj,
             min,
+            block_size: block_size(name)?,
             model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
             vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
             state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
@@ -258,6 +260,7 @@ pub struct DeviceMapper {
     pub size: usize,
     pub maj: u32,
     pub min: u32,
+    pub block_size: i64,
     pub stat: BlockStorageStat,
     pub name: String,
     pub uuid: String,
@@ -276,6 +279,7 @@ impl DeviceMapper {
             size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
             maj,
             min,
+            block_size: block_size(name)?,
             stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
             uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
             name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
@@ -289,6 +293,7 @@ pub struct Partition {
     pub size: usize,
     pub maj: u32,
     pub min: u32,
+    pub block_size: i64,
     pub stat: BlockStorageStat,
 }
 impl Partition {
@@ -300,9 +305,16 @@ impl Partition {
             size: trim_parse_map::<usize>(&SysPath::SysBlockDev(device).read_path(&[partition, "size"])?)?,
             maj,
             min,
+            block_size: block_size(partition)?,
             stat: BlockStorageStat::from_stat(&SysPath::SysBlockDev(device).read_path(&[partition, "stat"])?)?,
         })
     }
+}
+
+/// Returns block size of device in bytes
+/// device argument must be a path to block device file descriptor
+pub fn block_size(device: &str) -> Result<i64, Error> {
+    blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -465,8 +477,9 @@ mod tests {
         let dev = BlockStorage {
             dev: "sda".to_string(),
             size: 3907029168,
-            maj: 0,
-            min: 0,
+            maj: 8,
+            min: 1,
+            block_size: 4096,
             model: "ST2000DM008-2FR1".to_string(),
             vendor: "ATA".to_string(),
             state: "running".to_string(),
