@@ -226,6 +226,12 @@ pub fn processes() -> Result<Processes, Error> {
     Ok(_pids)
 }
 
+/// Returns block size of device in bytes
+/// device argument must be a path to block device file descriptor
+pub fn block_size(device: &str) -> Result<i64, Error> {
+    blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
+}
+
 pub fn stat_block_device(name: &str) -> Result<BlockStorage, Error> {
     BlockStorage::from_sys(name)
 }

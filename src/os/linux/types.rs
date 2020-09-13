@@ -2,6 +2,8 @@
 use super::mocks::{NET_DEV, PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME, SYS_BLOCK_DEV_STAT};
 use super::*;
 use crate::util::*;
+use std::fs;
+use std::path::PathBuf;
 use std::str::SplitAsciiWhitespace;
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -254,6 +256,10 @@ impl BlockStorage {
     }
 }
 
+trait FromSysPath<T> {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T, Error>;
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct DeviceMapper {
     pub dev: String,
@@ -264,6 +270,8 @@ pub struct DeviceMapper {
     pub stat: BlockStorageStat,
     pub name: String,
     pub uuid: String,
+    pub slave_parts: Option<Partitions>,
+    pub slave_mds: Option<Vec<MultipleDeviceStorage>>,
 }
 impl DeviceMapper {
     pub(crate) fn from_sys(name: &str) -> Result<DeviceMapper, Error> {
@@ -283,8 +291,119 @@ impl DeviceMapper {
             stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
             uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
             name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
+            slave_parts: find_holder_slave_devices::<Partition>(
+                SysPath::SysBlockDev(name).path(),
+                Hierarchy::Slaves,
+                DevType::Partition,
+                false,
+            ),
+            slave_mds: find_holder_slave_devices::<MultipleDeviceStorage>(
+                SysPath::SysBlockDev(name).path(),
+                Hierarchy::Slaves,
+                DevType::Md,
+                false,
+            ),
         })
     }
+    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<DeviceMapper, Error> {
+        let (maj, min) =
+            parse_maj_min(&SysPath::Custom(path.join("dev").to_string_lossy().to_string()).read()?).unwrap_or_default();
+        let device = path
+            .file_name()
+            .ok_or(Error::InvalidInputError(
+                path.to_string_lossy().to_string(),
+                "Given path doesn't have a file name".to_string(),
+            ))?
+            .to_string_lossy()
+            .to_string();
+        Ok(DeviceMapper {
+            dev: device.clone(),
+            size: trim_parse_map::<usize>(&SysPath::Custom(path.join("size").to_string_lossy().to_string()).read()?)?,
+            maj,
+            min,
+            block_size: block_size(&device)?,
+            stat: BlockStorageStat::from_stat(
+                &SysPath::Custom(path.join("stat").to_string_lossy().to_string()).read()?,
+            )?,
+            name: trim_parse_map::<String>(
+                &SysPath::Custom(path.join("dm").join("name").to_string_lossy().to_string()).read()?,
+            )?,
+            uuid: trim_parse_map::<String>(
+                &SysPath::Custom(path.join("dm").join("uuid").to_string_lossy().to_string()).read()?,
+            )?,
+            slave_mds: if hierarchy {
+                find_holder_slave_devices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, false)
+            } else {
+                None
+            },
+            slave_parts: if hierarchy {
+                find_holder_slave_devices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
+            } else {
+                None
+            },
+        })
+    }
+}
+
+impl FromSysPath<DeviceMapper> for DeviceMapper {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
+        Self::from_sys_path(path, hierarchy)
+    }
+}
+
+#[derive(Clone, Debug)]
+enum Hierarchy {
+    Holders,
+    Slaves,
+}
+
+#[derive(Clone, Debug)]
+enum DevType {
+    Partition,
+    DevMapper,
+    Md,
+}
+impl DevType {
+    fn prefix(self) -> &'static str {
+        match self {
+            DevType::Partition => "sd",
+            DevType::DevMapper => "dm",
+            DevType::Md => "md",
+        }
+    }
+}
+
+fn find_holder_slave_devices<T: FromSysPath<T>>(
+    mut device_path: PathBuf,
+    holder_or_slave: Hierarchy,
+    dev_ty: DevType,
+    hierarchy: bool,
+) -> Option<Vec<T>> {
+    match holder_or_slave {
+        Hierarchy::Holders => device_path.push("holders"),
+        Hierarchy::Slaves => device_path.push("slaves"),
+    };
+
+    let mut devs = Vec::new();
+    let prefix = dev_ty.prefix();
+    if let Ok(dir) = fs::read_dir(device_path.as_path()) {
+        for entry in dir {
+            if let Ok(entry) = entry {
+                if let Some(name) = entry.file_name().to_str() {
+                    if name.starts_with(prefix) {
+                        if let Ok(dev) = T::from_sys_path(device_path.join(name), hierarchy) {
+                            devs.push(dev);
+                        }
+                    }
+                }
+            }
+        }
+        if devs.len() != 0 {
+            return Some(devs);
+        }
+    }
+
+    None
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -295,6 +414,8 @@ pub struct Partition {
     pub min: u32,
     pub block_size: i64,
     pub stat: BlockStorageStat,
+    pub holder_mds: Option<Vec<MultipleDeviceStorage>>,
+    pub holder_dms: Option<Vec<DeviceMapper>>,
 }
 impl Partition {
     pub(crate) fn from_sys(device: &str, partition: &str) -> Result<Partition, Error> {
@@ -307,14 +428,105 @@ impl Partition {
             min,
             block_size: block_size(partition)?,
             stat: BlockStorageStat::from_stat(&SysPath::SysBlockDev(device).read_path(&[partition, "stat"])?)?,
+            holder_mds: find_holder_slave_devices::<MultipleDeviceStorage>(
+                SysPath::SysBlockDev(device).extend(&[partition]).path(),
+                Hierarchy::Holders,
+                DevType::Md,
+                false,
+            ),
+            holder_dms: find_holder_slave_devices::<DeviceMapper>(
+                SysPath::SysBlockDev(device).extend(&[partition]).path(),
+                Hierarchy::Holders,
+                DevType::DevMapper,
+                false,
+            ),
+        })
+    }
+    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Partition, Error> {
+        let (maj, min) =
+            parse_maj_min(&SysPath::Custom(path.join("dev").to_string_lossy().to_string()).read()?).unwrap_or_default();
+        let device = path
+            .file_name()
+            .ok_or(Error::InvalidInputError(
+                path.to_string_lossy().to_string(),
+                "Given file doesn't have a file name".to_string(),
+            ))?
+            .to_string_lossy()
+            .to_string();
+
+        Ok(Partition {
+            dev: device.clone(),
+            size: trim_parse_map::<usize>(&SysPath::Custom(path.join("size").to_string_lossy().to_string()).read()?)?,
+            maj,
+            min,
+            block_size: block_size(&device)?,
+            stat: BlockStorageStat::from_stat(
+                &SysPath::Custom(path.join("stat").to_string_lossy().to_string()).read()?,
+            )?,
+            holder_mds: if hierarchy {
+                find_holder_slave_devices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Holders, DevType::Md, false)
+            } else {
+                None
+            },
+            holder_dms: if hierarchy {
+                find_holder_slave_devices::<DeviceMapper>(path.clone(), Hierarchy::Holders, DevType::DevMapper, false)
+            } else {
+                None
+            },
         })
     }
 }
+impl FromSysPath<Partition> for Partition {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
+        Self::from_sys_path(path, hierarchy)
+    }
+}
 
-/// Returns block size of device in bytes
-/// device argument must be a path to block device file descriptor
-pub fn block_size(device: &str) -> Result<i64, Error> {
-    blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
+#[derive(Debug, Eq, PartialEq)]
+pub struct MultipleDeviceStorage {
+    pub dev: String,
+    pub size: usize,
+    pub maj: u32,
+    pub min: u32,
+    pub block_size: i64,
+    pub stat: BlockStorageStat,
+    pub level: String,
+}
+impl MultipleDeviceStorage {
+    pub(crate) fn from_sys_path(path: PathBuf, _hierarchy: bool) -> Result<MultipleDeviceStorage, Error> {
+        let (maj, min) =
+            parse_maj_min(&SysPath::Custom(path.join("dev").to_string_lossy().to_string()).read()?).unwrap_or_default();
+        let device = path
+            .file_name()
+            .ok_or(Error::InvalidInputError(
+                path.to_string_lossy().to_string(),
+                "Given file doesn't have a file name".to_string(),
+            ))?
+            .to_string_lossy()
+            .to_string();
+
+        Ok(MultipleDeviceStorage {
+            dev: device.clone(),
+            size: trim_parse_map::<usize>(&SysPath::Custom(path.join("size").to_string_lossy().to_string()).read()?)?,
+            maj,
+            min,
+            block_size: block_size(&device)?,
+            stat: BlockStorageStat::from_stat(
+                &SysPath::Custom(path.join("stat").to_string_lossy().to_string()).read()?,
+            )?,
+            level: {
+                let mut level_p = path.clone();
+                level_p.push("md");
+                level_p.push("level");
+                trim_parse_map::<String>(&SysPath::Custom(level_p.to_string_lossy().to_string()).read()?)?
+            },
+        })
+    }
+}
+impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
+        Self::from_sys_path(path, hierarchy)
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]
