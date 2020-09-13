@@ -166,7 +166,7 @@ impl DeviceMapper {
                 SysPath::SysBlockDev(name).path(),
                 Hierarchy::Slaves,
                 DevType::Md,
-                false,
+                true,
             ),
         })
     }
@@ -197,7 +197,7 @@ impl DeviceMapper {
                 &SysPath::Custom(path.join("dm").join("uuid").to_string_lossy().to_string()).read()?,
             )?,
             slave_mds: if hierarchy {
-                find_holder_slave_devices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, false)
+                find_holder_slave_devices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, true)
             } else {
                 None
             },
@@ -301,9 +301,10 @@ pub struct MultipleDeviceStorage {
     pub block_size: i64,
     pub stat: BlockStorageStat,
     pub level: String,
+    pub slave_parts: Option<Partitions>,
 }
 impl MultipleDeviceStorage {
-    pub(crate) fn from_sys_path(path: PathBuf, _hierarchy: bool) -> Result<MultipleDeviceStorage, Error> {
+    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<MultipleDeviceStorage, Error> {
         let (maj, min) =
             parse_maj_min(&SysPath::Custom(path.join("dev").to_string_lossy().to_string()).read()?).unwrap_or_default();
         let device = path
@@ -324,11 +325,13 @@ impl MultipleDeviceStorage {
             stat: BlockStorageStat::from_stat(
                 &SysPath::Custom(path.join("stat").to_string_lossy().to_string()).read()?,
             )?,
-            level: {
-                let mut level_p = path.clone();
-                level_p.push("md");
-                level_p.push("level");
-                trim_parse_map::<String>(&SysPath::Custom(level_p.to_string_lossy().to_string()).read()?)?
+            level: trim_parse_map::<String>(
+                &SysPath::Custom(path.join("md").join("level").to_string_lossy().to_string()).read()?,
+            )?,
+            slave_parts: if hierarchy {
+                find_holder_slave_devices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
+            } else {
+                None
             },
         })
     }
