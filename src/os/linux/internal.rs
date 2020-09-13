@@ -69,6 +69,24 @@ where
     _cpuinfo_extract(&SysPath::ProcCpuInfo.read()?, &line)
 }
 
+// Parses out major and minor number from str like '8:1'
+// and returns a tuple (8, 1)
+pub(crate) fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
+    let mut elems = dev.split(':');
+
+    if let Some(maj) = elems.next() {
+        if let Some(min) = elems.next() {
+            if let Ok(maj) = maj.trim().parse::<u32>() {
+                if let Ok(min) = min.trim().parse::<u32>() {
+                    return Some((maj, min));
+                }
+            }
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -84,5 +102,14 @@ mod tests {
         assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES), Ok(6));
         assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS), Ok(12));
         assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK), Ok(2053.971));
+    }
+    #[test]
+    fn parses_maj_min() {
+        assert_eq!(parse_maj_min("X:5"), None);
+        assert_eq!(parse_maj_min("1:Y"), None);
+        assert_eq!(parse_maj_min("rand:"), None);
+        assert_eq!(parse_maj_min(":xx"), None);
+        assert_eq!(parse_maj_min("xxx"), None);
+        assert_eq!(parse_maj_min("8:1"), Some((8, 1)))
     }
 }

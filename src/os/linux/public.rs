@@ -234,9 +234,12 @@ pub fn stat_block_device(name: &str) -> Result<BlockStorage, Error> {
             "block storage device name must begin with 'sd'".to_string(),
         ));
     }
+    let (maj, min) = parse_maj_min(&SysPath::SysBlockDevDev(name).read()?).unwrap_or_default();
     Ok(BlockStorage {
         dev: name.to_string(),
         size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
+        maj,
+        min,
         model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
         vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
         state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
@@ -252,19 +255,25 @@ pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper, Error> {
             "device mapper name must begin with 'dm'".to_string(),
         ));
     }
+    let (maj, min) = parse_maj_min(&SysPath::SysBlockDevDev(name).read()?).unwrap_or_default();
     Ok(DeviceMapper {
         dev: name.to_string(),
         size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
+        maj,
+        min,
         stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
         uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
         name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
     })
 }
 
-pub fn stat_partition(device: &str, partition: &str) -> Result<Partition, Error> {
+pub(crate) fn stat_partition(device: &str, partition: &str) -> Result<Partition, Error> {
+    let (maj, min) = parse_maj_min(&SysPath::SysBlockDev(device).read_path(&[partition, "dev"])?).unwrap_or_default();
     Ok(Partition {
         dev: partition.to_string(),
         size: trim_parse_map::<usize>(&SysPath::SysBlockDev(device).read_path(&[partition, "size"])?)?,
+        maj,
+        min,
         stat: BlockStorageStat::from_stat(&SysPath::SysBlockDev(device).read_path(&[partition, "stat"])?)?,
     })
 }

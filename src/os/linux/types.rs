@@ -200,6 +200,8 @@ impl Process {
 pub struct BlockStorage {
     pub dev: String,
     pub size: usize,
+    pub maj: u32,
+    pub min: u32,
     pub stat: BlockStorageStat,
     pub model: String,
     pub vendor: String,
@@ -211,6 +213,8 @@ pub struct BlockStorage {
 pub struct DeviceMapper {
     pub dev: String,
     pub size: usize,
+    pub maj: u32,
+    pub min: u32,
     pub stat: BlockStorageStat,
     pub name: String,
     pub uuid: String,
@@ -220,6 +224,8 @@ pub struct DeviceMapper {
 pub struct Partition {
     pub dev: String,
     pub size: usize,
+    pub maj: u32,
+    pub min: u32,
     pub stat: BlockStorageStat,
 }
 
@@ -383,6 +389,8 @@ mod tests {
         let dev = BlockStorage {
             dev: "sda".to_string(),
             size: 3907029168,
+            maj: 0,
+            min: 0,
             model: "ST2000DM008-2FR1".to_string(),
             vendor: "ATA".to_string(),
             state: "running".to_string(),
