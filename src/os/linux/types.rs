@@ -1,7 +1,7 @@
 #[cfg(test)]
 use super::mocks::{NET_DEV, PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME, SYS_BLOCK_DEV_STAT};
-use super::Error;
-use crate::util::{next, skip};
+use super::*;
+use crate::util::*;
 use std::str::SplitAsciiWhitespace;
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -208,6 +208,49 @@ pub struct BlockStorage {
     pub state: String,
     pub partitions: Partitions,
 }
+impl BlockStorage {
+    pub(crate) fn from_sys(name: &str) -> Result<BlockStorage, Error> {
+        if !name.starts_with("sd") {
+            return Err(Error::InvalidInputError(
+                name.to_string(),
+                "block storage device name must begin with 'sd'".to_string(),
+            ));
+        }
+        let (maj, min) = parse_maj_min(&SysPath::SysBlockDevDev(name).read()?).unwrap_or_default();
+        Ok(BlockStorage {
+            dev: name.to_string(),
+            size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
+            maj,
+            min,
+            model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
+            vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
+            state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
+            stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
+            partitions: Self::get_partitions(name)?,
+        })
+    }
+
+    fn get_partitions(device: &str) -> Result<Partitions, Error> {
+        let p = SysPath::SysBlockDev(device).path();
+        let mut partitions = Vec::new();
+        if p.is_dir() {
+            for entry in std::fs::read_dir(p.as_path())
+                .map_err(|e| Error::FileReadError(p.to_string_lossy().to_string(), e.to_string()))?
+            {
+                if let Ok(entr) = entry {
+                    if let Some(file_name) = entr.path().file_name() {
+                        let partition = file_name.to_string_lossy();
+                        if partition.starts_with(device) {
+                            partitions.push(Partition::from_sys(device, partition.as_ref())?);
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(partitions)
+    }
+}
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct DeviceMapper {
@@ -219,6 +262,26 @@ pub struct DeviceMapper {
     pub name: String,
     pub uuid: String,
 }
+impl DeviceMapper {
+    pub(crate) fn from_sys(name: &str) -> Result<DeviceMapper, Error> {
+        if !name.starts_with("dm") {
+            return Err(Error::InvalidInputError(
+                name.to_string(),
+                "device mapper name must begin with 'dm'".to_string(),
+            ));
+        }
+        let (maj, min) = parse_maj_min(&SysPath::SysBlockDevDev(name).read()?).unwrap_or_default();
+        Ok(DeviceMapper {
+            dev: name.to_string(),
+            size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
+            maj,
+            min,
+            stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
+            uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
+            name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
+        })
+    }
+}
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Partition {
@@ -227,6 +290,19 @@ pub struct Partition {
     pub maj: u32,
     pub min: u32,
     pub stat: BlockStorageStat,
+}
+impl Partition {
+    pub(crate) fn from_sys(device: &str, partition: &str) -> Result<Partition, Error> {
+        let (maj, min) =
+            parse_maj_min(&SysPath::SysBlockDev(device).read_path(&[partition, "dev"])?).unwrap_or_default();
+        Ok(Partition {
+            dev: partition.to_string(),
+            size: trim_parse_map::<usize>(&SysPath::SysBlockDev(device).read_path(&[partition, "size"])?)?,
+            maj,
+            min,
+            stat: BlockStorageStat::from_stat(&SysPath::SysBlockDev(device).read_path(&[partition, "stat"])?)?,
+        })
+    }
 }
 
 #[derive(Debug, Eq, PartialEq)]

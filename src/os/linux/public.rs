@@ -1,5 +1,4 @@
 use super::*;
-use crate::util::trim_parse_map;
 use std::fs;
 use std::process::Command;
 
@@ -228,75 +227,11 @@ pub fn processes() -> Result<Processes, Error> {
 }
 
 pub fn stat_block_device(name: &str) -> Result<BlockStorage, Error> {
-    if !name.starts_with("sd") {
-        return Err(Error::InvalidInputError(
-            name.to_string(),
-            "block storage device name must begin with 'sd'".to_string(),
-        ));
-    }
-    let (maj, min) = parse_maj_min(&SysPath::SysBlockDevDev(name).read()?).unwrap_or_default();
-    Ok(BlockStorage {
-        dev: name.to_string(),
-        size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
-        maj,
-        min,
-        model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
-        vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
-        state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
-        stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
-        partitions: get_block_device_partitions(name)?,
-    })
+    BlockStorage::from_sys(name)
 }
 
 pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper, Error> {
-    if !name.starts_with("dm") {
-        return Err(Error::InvalidInputError(
-            name.to_string(),
-            "device mapper name must begin with 'dm'".to_string(),
-        ));
-    }
-    let (maj, min) = parse_maj_min(&SysPath::SysBlockDevDev(name).read()?).unwrap_or_default();
-    Ok(DeviceMapper {
-        dev: name.to_string(),
-        size: trim_parse_map::<usize>(&SysPath::SysBlockDevSize(name).read()?)?,
-        maj,
-        min,
-        stat: BlockStorageStat::from_stat(&SysPath::SysBlockDevStat(name).read()?)?,
-        uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
-        name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
-    })
-}
-
-pub(crate) fn stat_partition(device: &str, partition: &str) -> Result<Partition, Error> {
-    let (maj, min) = parse_maj_min(&SysPath::SysBlockDev(device).read_path(&[partition, "dev"])?).unwrap_or_default();
-    Ok(Partition {
-        dev: partition.to_string(),
-        size: trim_parse_map::<usize>(&SysPath::SysBlockDev(device).read_path(&[partition, "size"])?)?,
-        maj,
-        min,
-        stat: BlockStorageStat::from_stat(&SysPath::SysBlockDev(device).read_path(&[partition, "stat"])?)?,
-    })
-}
-
-fn get_block_device_partitions(device: &str) -> Result<Partitions, Error> {
-    let p = SysPath::SysBlockDev(device).path();
-    let mut partitions = Vec::new();
-    if p.is_dir() {
-        for entry in std::fs::read_dir(p.as_path())
-            .map_err(|e| Error::FileReadError(p.to_string_lossy().to_string(), e.to_string()))?
-        {
-            if let Ok(entr) = entry {
-                if let Some(file_name) = entr.path().file_name() {
-                    let partition = file_name.to_string_lossy();
-                    if partition.starts_with(device) {
-                        partitions.push(stat_partition(device, partition.as_ref())?);
-                    }
-                }
-            }
-        }
-    }
-
-    Ok(partitions)
+    DeviceMapper::from_sys(name)
 }
 
 #[cfg(test)]
