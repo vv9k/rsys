@@ -240,6 +240,10 @@ pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper, Error> {
     DeviceMapper::from_sys(name)
 }
 
+pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom, Error> {
+    ScsiCdrom::from_sys(name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

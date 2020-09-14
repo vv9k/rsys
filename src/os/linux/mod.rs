@@ -14,7 +14,7 @@ pub use public::*;
 pub use types::{
     net::{IfaceDev, Ifaces},
     ps::{Process, ProcessState, Processes},
-    storage::{BlockStorage, BlockStorageStat, DeviceMapper, Partition, Partitions},
+    storage::{BlockStorage, BlockStorageStat, DeviceMapper, Partition, Partitions, ScsiCdrom},
     MountPoint, MountPoints,
 };
 
