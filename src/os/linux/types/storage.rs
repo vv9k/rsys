@@ -33,7 +33,7 @@ impl DevType {
     }
 }
 
-fn find_holder_slave_devices<T: FromSysPath<T>>(
+fn find_subdevices<T: FromSysPath<T>>(
     mut device_path: PathBuf,
     holder_or_slave: Hierarchy,
     dev_ty: DevType,
@@ -236,13 +236,13 @@ impl DeviceMapper {
             info: BlockStorageInfo::from_sys_path(SysPath::SysBlockDev(name).path())?,
             uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
             name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
-            slave_parts: find_holder_slave_devices::<Partition>(
+            slave_parts: find_subdevices::<Partition>(
                 SysPath::SysBlockDev(name).path(),
                 Hierarchy::Slaves,
                 DevType::Partition,
                 false,
             ),
-            slave_mds: find_holder_slave_devices::<MultipleDeviceStorage>(
+            slave_mds: find_subdevices::<MultipleDeviceStorage>(
                 SysPath::SysBlockDev(name).path(),
                 Hierarchy::Slaves,
                 DevType::Md,
@@ -260,12 +260,12 @@ impl DeviceMapper {
                 &SysPath::Custom(path.join("dm").join("uuid").to_string_lossy().to_string()).read()?,
             )?,
             slave_mds: if hierarchy {
-                find_holder_slave_devices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, true)
+                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, true)
             } else {
                 None
             },
             slave_parts: if hierarchy {
-                find_holder_slave_devices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
+                find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
             } else {
                 None
             },
@@ -289,13 +289,13 @@ impl Partition {
     pub(crate) fn from_sys(device: &str, partition: &str) -> Result<Partition, Error> {
         Ok(Partition {
             info: BlockStorageInfo::from_sys_path(SysPath::SysBlockDev(device).extend(&[partition]).path())?,
-            holder_mds: find_holder_slave_devices::<MultipleDeviceStorage>(
+            holder_mds: find_subdevices::<MultipleDeviceStorage>(
                 SysPath::SysBlockDev(device).extend(&[partition]).path(),
                 Hierarchy::Holders,
                 DevType::Md,
                 false,
             ),
-            holder_dms: find_holder_slave_devices::<DeviceMapper>(
+            holder_dms: find_subdevices::<DeviceMapper>(
                 SysPath::SysBlockDev(device).extend(&[partition]).path(),
                 Hierarchy::Holders,
                 DevType::DevMapper,
@@ -308,12 +308,12 @@ impl Partition {
         Ok(Partition {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             holder_mds: if hierarchy {
-                find_holder_slave_devices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Holders, DevType::Md, false)
+                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Holders, DevType::Md, false)
             } else {
                 None
             },
             holder_dms: if hierarchy {
-                find_holder_slave_devices::<DeviceMapper>(path.clone(), Hierarchy::Holders, DevType::DevMapper, false)
+                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, DevType::DevMapper, false)
             } else {
                 None
             },
@@ -340,7 +340,7 @@ impl MultipleDeviceStorage {
                 &SysPath::Custom(path.join("md").join("level").to_string_lossy().to_string()).read()?,
             )?,
             slave_parts: if hierarchy {
-                find_holder_slave_devices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
+                find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
             } else {
                 None
             },
