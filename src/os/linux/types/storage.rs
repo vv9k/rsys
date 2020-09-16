@@ -123,8 +123,7 @@ pub struct BlockStorageInfo {
 }
 impl BlockStorageInfo {
     fn from_sys_path(path: PathBuf) -> Result<BlockStorageInfo, Error> {
-        let (maj, min) =
-            parse_maj_min(&SysPath::Custom(path.join("dev").to_string_lossy().to_string()).read()?).unwrap_or_default();
+        let (maj, min) = parse_maj_min(&SysPath::Custom(path.join("dev")).read()?).unwrap_or_default();
         let device = path
             .file_name()
             .ok_or(Error::InvalidInputError(
@@ -135,13 +134,11 @@ impl BlockStorageInfo {
             .to_string();
         Ok(BlockStorageInfo {
             dev: device.clone(),
-            size: trim_parse_map::<usize>(&SysPath::Custom(path.join("size").to_string_lossy().to_string()).read()?)?,
+            size: trim_parse_map::<usize>(&SysPath::Custom(path.join("size")).read()?)?,
             maj,
             min,
             block_size: block_size(&device)?,
-            stat: BlockStorageStat::from_stat(
-                &SysPath::Custom(path.join("stat").to_string_lossy().to_string()).read()?,
-            )?,
+            stat: BlockStorageStat::from_stat(&SysPath::Custom(path.join("stat")).read()?)?,
         })
     }
 }
@@ -243,12 +240,8 @@ impl FromSysPath<DeviceMapper> for DeviceMapper {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
         Ok(DeviceMapper {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
-            name: trim_parse_map::<String>(
-                &SysPath::Custom(path.join("dm").join("name").to_string_lossy().to_string()).read()?,
-            )?,
-            uuid: trim_parse_map::<String>(
-                &SysPath::Custom(path.join("dm").join("uuid").to_string_lossy().to_string()).read()?,
-            )?,
+            name: trim_parse_map::<String>(&SysPath::Custom(path.join("dm").join("name")).read()?)?,
+            uuid: trim_parse_map::<String>(&SysPath::Custom(path.join("dm").join("uuid")).read()?)?,
             slave_mds: if hierarchy {
                 find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, true)
             } else {
@@ -297,9 +290,7 @@ impl MultipleDeviceStorage {
     pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<MultipleDeviceStorage, Error> {
         Ok(MultipleDeviceStorage {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
-            level: trim_parse_map::<String>(
-                &SysPath::Custom(path.join("md").join("level").to_string_lossy().to_string()).read()?,
-            )?,
+            level: trim_parse_map::<String>(&SysPath::Custom(path.join("md").join("level")).read()?)?,
             slave_parts: if hierarchy {
                 find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
             } else {

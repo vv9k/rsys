@@ -25,7 +25,7 @@ pub(crate) enum SysPath<'p> {
     SysDevMapperName(&'p str),
     SysDevMapperUuid(&'p str),
     Dev(&'p str),
-    Custom(String),
+    Custom(PathBuf),
 }
 impl<'p> SysPath<'p> {
     pub(crate) fn path(self) -> PathBuf {
@@ -51,7 +51,7 @@ impl<'p> SysPath<'p> {
             SysDevMapperName(d) => format!("/sys/block/{}/dm/name", d),
             SysDevMapperUuid(d) => format!("/sys/block/{}/dm/uuid", d),
             Dev(d) => format!("/dev/{}", d),
-            Custom(s) => s.to_string(),
+            Custom(p) => p.to_string_lossy().to_string(),
         };
         PathBuf::from(s)
     }
@@ -67,7 +67,7 @@ impl<'p> SysPath<'p> {
         for elem in p {
             path.push(elem);
         }
-        SysPath::Custom(path.to_string_lossy().to_string())
+        SysPath::Custom(path)
     }
 
     pub(crate) fn read_path(self, p: &[&str]) -> Result<String, Error> {
