@@ -232,8 +232,8 @@ pub fn block_size(device: &str) -> Result<i64, Error> {
     blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
 }
 
-pub fn stat_block_device(name: &str) -> Result<BlockStorage, Error> {
-    BlockStorage::from_sys(name)
+pub fn stat_block_device(name: &str) -> Result<StorageDevice, Error> {
+    StorageDevice::from_sys(name)
 }
 
 pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper, Error> {

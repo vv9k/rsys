@@ -170,22 +170,22 @@ impl ScsiCdrom {
 
 #[derive(Debug, Eq, PartialEq)]
 /// Represents a block storage device.
-pub struct BlockStorage {
+pub struct StorageDevice {
     pub info: BlockStorageInfo,
     pub model: String,
     pub vendor: String,
     pub state: String,
     pub partitions: Partitions,
 }
-impl BlockStorage {
-    pub(crate) fn from_sys(name: &str) -> Result<BlockStorage, Error> {
+impl StorageDevice {
+    pub(crate) fn from_sys(name: &str) -> Result<StorageDevice, Error> {
         if !name.starts_with("sd") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
                 "block storage device name must begin with 'sd'".to_string(),
             ));
         }
-        Ok(BlockStorage {
+        Ok(StorageDevice {
             info: BlockStorageInfo::from_sys_path(SysPath::SysBlockDev(name).path())?,
             model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
             vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
@@ -358,7 +358,7 @@ mod tests {
     use super::*;
     #[test]
     fn parses_block_device_stat_from_sys_block_dev_stat() {
-        let dev = BlockStorage {
+        let dev = StorageDevice {
             model: "ST2000DM008-2FR1".to_string(),
             vendor: "ATA".to_string(),
             state: "running".to_string(),
