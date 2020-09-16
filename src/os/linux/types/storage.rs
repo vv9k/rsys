@@ -15,6 +15,7 @@ trait FromSysPath<T> {
 enum Hierarchy {
     Holders,
     Slaves,
+    None,
 }
 
 #[derive(Clone, Debug)]
@@ -42,6 +43,7 @@ fn find_subdevices<T: FromSysPath<T>>(
     match holder_or_slave {
         Hierarchy::Holders => device_path.push("holders"),
         Hierarchy::Slaves => device_path.push("slaves"),
+        Hierarchy::None => {}
     };
 
     let mut devs = Vec::new();
@@ -190,29 +192,14 @@ impl StorageDevice {
             model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
             vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
             state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
-            partitions: Self::get_partitions(name)?,
+            partitions: find_subdevices::<Partition>(
+                SysPath::SysBlockDev(name).path(),
+                Hierarchy::None,
+                DevType::Partition,
+                false,
+            )
+            .unwrap_or_default(),
         })
-    }
-
-    fn get_partitions(device: &str) -> Result<Partitions, Error> {
-        let p = SysPath::SysBlockDev(device).path();
-        let mut partitions = Vec::new();
-        if p.is_dir() {
-            for entry in std::fs::read_dir(p.as_path())
-                .map_err(|e| Error::FileReadError(p.to_string_lossy().to_string(), e.to_string()))?
-            {
-                if let Ok(entr) = entry {
-                    if let Some(file_name) = entr.path().file_name() {
-                        let partition = file_name.to_string_lossy();
-                        if partition.starts_with(device) {
-                            partitions.push(Partition::from_sys(device, partition.as_ref())?);
-                        }
-                    }
-                }
-            }
-        }
-
-        Ok(partitions)
     }
 }
 
@@ -250,7 +237,10 @@ impl DeviceMapper {
             ),
         })
     }
-    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<DeviceMapper, Error> {
+}
+
+impl FromSysPath<DeviceMapper> for DeviceMapper {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
         Ok(DeviceMapper {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             name: trim_parse_map::<String>(
@@ -273,38 +263,14 @@ impl DeviceMapper {
     }
 }
 
-impl FromSysPath<DeviceMapper> for DeviceMapper {
-    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
-        Self::from_sys_path(path, hierarchy)
-    }
-}
-
 #[derive(Debug, Eq, PartialEq)]
 pub struct Partition {
     pub info: BlockStorageInfo,
     pub holder_mds: Option<Vec<MultipleDeviceStorage>>,
     pub holder_dms: Option<Vec<DeviceMapper>>,
 }
-impl Partition {
-    pub(crate) fn from_sys(device: &str, partition: &str) -> Result<Partition, Error> {
-        Ok(Partition {
-            info: BlockStorageInfo::from_sys_path(SysPath::SysBlockDev(device).extend(&[partition]).path())?,
-            holder_mds: find_subdevices::<MultipleDeviceStorage>(
-                SysPath::SysBlockDev(device).extend(&[partition]).path(),
-                Hierarchy::Holders,
-                DevType::Md,
-                false,
-            ),
-            holder_dms: find_subdevices::<DeviceMapper>(
-                SysPath::SysBlockDev(device).extend(&[partition]).path(),
-                Hierarchy::Holders,
-                DevType::DevMapper,
-                false,
-            ),
-        })
-    }
-    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Partition, Error> {
-        println!("Got p - {:?}", path.as_path().display());
+impl FromSysPath<Partition> for Partition {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
         Ok(Partition {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             holder_mds: if hierarchy {
@@ -318,11 +284,6 @@ impl Partition {
                 None
             },
         })
-    }
-}
-impl FromSysPath<Partition> for Partition {
-    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
-        Self::from_sys_path(path, hierarchy)
     }
 }
 
