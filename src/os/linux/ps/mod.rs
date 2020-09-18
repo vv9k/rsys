@@ -1,7 +1,7 @@
 #[cfg(test)]
 use super::mocks::{PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
 use super::{Error, SysPath};
-use crate::util::*;
+use crate::util::{next, skip};
 use std::{fs, str::SplitAsciiWhitespace};
 
 pub type Processes = Vec<Process>;

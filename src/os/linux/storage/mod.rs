@@ -1,3 +1,4 @@
+mod ffi;
 mod types;
 
 pub use types::*;
@@ -6,15 +7,11 @@ pub use types::*;
 use super::mocks::SYS_BLOCK_DEV_STAT;
 use super::{Error, SysPath};
 use crate::util::{next, trim_parse_map};
-use libc::{fileno, fopen, ioctl, size_t};
-use std::ffi::{CStr, CString};
-use std::fs;
-use std::path::PathBuf;
-use std::str::SplitAsciiWhitespace;
+use ffi::blk_bsz_get;
 
 // Parses out major and minor number from str like '8:1'
 // and returns a tuple (8, 1)
-pub(crate) fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
+fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
     let mut elems = dev.split(':');
 
     if let Some(maj) = elems.next() {
@@ -24,94 +21,6 @@ pub(crate) fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
                     return Some((maj, min));
                 }
             }
-        }
-    }
-
-    None
-}
-
-// FFI stuff
-
-const _IOC_NRBITS: u64 = 8;
-const _IOC_TYPEBITS: u64 = 8;
-const _IOC_SIZEBITS: u64 = 14;
-const _IOC_DIRBITS: u64 = 2;
-
-const _IOC_NRMASK: u64 = (1 << _IOC_NRBITS) - 1;
-const _IOC_TYPEMASK: u64 = (1 << _IOC_TYPEBITS) - 1;
-const _IOC_SIZEMASK: u64 = (1 << _IOC_SIZEBITS) - 1;
-const _IOC_DIRMASK: u64 = (1 << _IOC_DIRBITS) - 1;
-
-const _IOC_NRSHIFT: u64 = 0;
-const _IOC_TYPESHIFT: u64 = _IOC_NRSHIFT + _IOC_NRBITS;
-const _IOC_SIZESHIFT: u64 = _IOC_TYPESHIFT + _IOC_TYPEBITS;
-const _IOC_DIRSHIFT: u64 = _IOC_SIZESHIFT + _IOC_SIZEBITS;
-
-const _IOC_NONE: u64 = 0;
-const _IOC_WRITE: u64 = 1;
-const _IOC_READ: u64 = 2;
-
-#[allow(non_snake_case)]
-const fn _IOC<T: Sized>(dir: u64, ty: u64, nr: u64) -> u64 {
-    ((dir) << _IOC_DIRSHIFT)
-        | ((ty) << _IOC_TYPESHIFT)
-        | ((nr) << _IOC_NRSHIFT)
-        | (std::mem::size_of::<T>() << _IOC_SIZESHIFT) as u64
-}
-
-#[allow(non_snake_case)]
-const fn _IOR<T: Sized>(ty: u64, nr: u64) -> u64 {
-    _IOC::<T>(_IOC_READ, ty, nr)
-}
-
-const BLKBSZGET: u64 = _IOR::<size_t>(0x12, 112);
-
-pub(crate) fn blk_bsz_get(path: &str) -> Result<i64, Error> {
-    let mut size: usize = 0;
-    let path = CString::new(path).map_err(|e| Error::InvalidInputError(path.to_string(), e.to_string()))?;
-    let mode = CStr::from_bytes_with_nul(b"r\0").unwrap();
-
-    let f = unsafe { fopen(path.as_ptr(), mode.as_ptr()) };
-    if f.is_null() {
-        return Err(Error::FileReadError(
-            path.to_string_lossy().to_string(),
-            "failed to get file descriptor from `fopen`".to_string(),
-        ));
-    }
-
-    unsafe { ioctl(fileno(f), BLKBSZGET, &mut size) };
-
-    Ok(size as i64)
-}
-
-fn find_subdevices<T: FromSysPath<T>>(
-    mut device_path: PathBuf,
-    holder_or_slave: Hierarchy,
-    dev_ty: DevType,
-    hierarchy: bool,
-) -> Option<Vec<T>> {
-    match holder_or_slave {
-        Hierarchy::Holders => device_path.push("holders"),
-        Hierarchy::Slaves => device_path.push("slaves"),
-        Hierarchy::None => {}
-    };
-
-    let mut devs = Vec::new();
-    let prefix = dev_ty.prefix();
-    if let Ok(dir) = fs::read_dir(device_path.as_path()) {
-        for entry in dir {
-            if let Ok(entry) = entry {
-                if let Some(name) = entry.file_name().to_str() {
-                    if name.starts_with(prefix) {
-                        if let Ok(dev) = T::from_sys_path(device_path.join(name), hierarchy) {
-                            devs.push(dev);
-                        }
-                    }
-                }
-            }
-        }
-        if devs.len() != 0 {
-            return Some(devs);
         }
     }
 

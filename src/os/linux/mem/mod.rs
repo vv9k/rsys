@@ -15,14 +15,14 @@ const MEM_SHARED: &str = "Shmem:";
 
 #[derive(Debug, Default, Eq, PartialEq, Copy, Clone)]
 pub struct Memory {
-    total: u64,
-    free: u64,
-    available: u64,
-    buffers: u64,
-    cached: u64,
-    active: u64,
-    inactive: u64,
-    shared: u64,
+    pub total: u64,
+    pub free: u64,
+    pub available: u64,
+    pub buffers: u64,
+    pub cached: u64,
+    pub active: u64,
+    pub inactive: u64,
+    pub shared: u64,
 }
 impl Memory {
     pub fn from_proc() -> Result<Memory, Error> {
@@ -56,7 +56,7 @@ impl Memory {
 
 fn _mem_extract(out: &str, line: &str) -> Result<usize, Error> {
     Ok(out
-        .split('\n')
+        .lines()
         .filter(|l| l.starts_with(line))
         .collect::<String>()
         .split_ascii_whitespace()

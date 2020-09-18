@@ -1,7 +1,42 @@
-use super::*;
+use super::{block_size, next, parse_maj_min, trim_parse_map, Error, SysPath};
+use std::{fs, path::PathBuf, str::SplitAsciiWhitespace};
 
 pub(crate) trait FromSysPath<T> {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T, Error>;
+}
+
+fn find_subdevices<T: FromSysPath<T>>(
+    mut device_path: PathBuf,
+    holder_or_slave: Hierarchy,
+    dev_ty: DevType,
+    hierarchy: bool,
+) -> Option<Vec<T>> {
+    match holder_or_slave {
+        Hierarchy::Holders => device_path.push("holders"),
+        Hierarchy::Slaves => device_path.push("slaves"),
+        Hierarchy::None => {}
+    };
+
+    let mut devs = Vec::new();
+    let prefix = dev_ty.prefix();
+    if let Ok(dir) = fs::read_dir(device_path.as_path()) {
+        for entry in dir {
+            if let Ok(entry) = entry {
+                if let Some(name) = entry.file_name().to_str() {
+                    if name.starts_with(prefix) {
+                        if let Ok(dev) = T::from_sys_path(device_path.join(name), hierarchy) {
+                            devs.push(dev);
+                        }
+                    }
+                }
+            }
+        }
+        if devs.len() != 0 {
+            return Some(devs);
+        }
+    }
+
+    None
 }
 
 pub type Partitions = Vec<Partition>;

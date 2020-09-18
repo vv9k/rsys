@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 use super::Error;
-use std::fs;
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
 
 #[derive(Clone)]
 pub(crate) enum SysPath<'p> {
