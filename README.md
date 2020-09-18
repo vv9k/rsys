@@ -13,7 +13,7 @@ Main goals are clear and easy api with as much of the api being os-agnostic.
 
 ```toml
 [dependencies]
-rsys = "0.2"
+rsys = "0.3"
 ```
 
 - `main.rs`
@@ -44,6 +44,11 @@ fn main() -> Result<(), Error> {
     Ok(())
 }
 ```
+
+## TODO
+ - [ ] Finish macos common api
+ - [ ] Finish windows common api
+ - [ ] Add async feature for async file reads and commands etc...
 
 ## License
 [**MIT**](https://gitlab.com/vvvxxx/rsys/-/blob/master/LICENSE)
