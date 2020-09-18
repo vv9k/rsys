@@ -1,71 +1,32 @@
-#[cfg(test)]
-use super::mocks::SYS_BLOCK_DEV_STAT;
-use super::{block_size, next, parse_maj_min, trim_parse_map, Error, SysPath};
-use std::fs;
-use std::path::PathBuf;
-use std::str::SplitAsciiWhitespace;
+use super::*;
 
-pub type Partitions = Vec<Partition>;
-
-trait FromSysPath<T> {
+pub(crate) trait FromSysPath<T> {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T, Error>;
 }
 
+pub type Partitions = Vec<Partition>;
+
 #[derive(Clone, Debug)]
-enum Hierarchy {
+pub(crate) enum Hierarchy {
     Holders,
     Slaves,
     None,
 }
 
 #[derive(Clone, Debug)]
-enum DevType {
+pub(crate) enum DevType {
     Partition,
     DevMapper,
     Md,
 }
 impl DevType {
-    fn prefix(self) -> &'static str {
+    pub(crate) fn prefix(self) -> &'static str {
         match self {
             DevType::Partition => "sd",
             DevType::DevMapper => "dm",
             DevType::Md => "md",
         }
     }
-}
-
-fn find_subdevices<T: FromSysPath<T>>(
-    mut device_path: PathBuf,
-    holder_or_slave: Hierarchy,
-    dev_ty: DevType,
-    hierarchy: bool,
-) -> Option<Vec<T>> {
-    match holder_or_slave {
-        Hierarchy::Holders => device_path.push("holders"),
-        Hierarchy::Slaves => device_path.push("slaves"),
-        Hierarchy::None => {}
-    };
-
-    let mut devs = Vec::new();
-    let prefix = dev_ty.prefix();
-    if let Ok(dir) = fs::read_dir(device_path.as_path()) {
-        for entry in dir {
-            if let Ok(entry) = entry {
-                if let Some(name) = entry.file_name().to_str() {
-                    if name.starts_with(prefix) {
-                        if let Ok(dev) = T::from_sys_path(device_path.join(name), hierarchy) {
-                            devs.push(dev);
-                        }
-                    }
-                }
-            }
-        }
-        if devs.len() != 0 {
-            return Some(devs);
-        }
-    }
-
-    None
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -302,46 +263,5 @@ impl MultipleDeviceStorage {
 impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
         Self::from_sys_path(path, hierarchy)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn parses_block_device_stat_from_sys_block_dev_stat() {
-        let dev = StorageDevice {
-            model: "ST2000DM008-2FR1".to_string(),
-            vendor: "ATA".to_string(),
-            state: "running".to_string(),
-            info: BlockStorageInfo {
-                stat: BlockStorageStat {
-                    read_ios: 327,
-                    read_merges: 72,
-                    read_sectors: 8832,
-                    read_ticks: 957,
-                    write_ios: 31,
-                    write_merges: 1,
-                    write_sectors: 206,
-                    write_ticks: 775,
-                    in_flight: 0,
-                    io_ticks: 1620,
-                    time_in_queue: 2427,
-                    discard_ios: 0,
-                    discard_merges: 0,
-                    discard_sectors: 0,
-                    discard_ticks: 0,
-                },
-
-                dev: "sda".to_string(),
-                size: 3907029168,
-                maj: 8,
-                min: 1,
-                block_size: 4096,
-            },
-            partitions: vec![],
-        };
-
-        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.info.stat))
     }
 }

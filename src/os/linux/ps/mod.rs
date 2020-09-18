@@ -1,7 +1,8 @@
 #[cfg(test)]
 use super::mocks::{PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
-use super::{next, skip, Error};
-use std::str::SplitAsciiWhitespace;
+use super::{Error, SysPath};
+use crate::util::*;
+use std::{fs, str::SplitAsciiWhitespace};
 
 pub type Processes = Vec<Process>;
 
@@ -91,6 +92,43 @@ impl Process {
             cguest_time: next::<u32, SplitAsciiWhitespace>(&mut elems, &stat)?,
         })
     }
+}
+
+/// Returns detailed Process information parsed from /proc/[pid]/stat
+pub fn stat_process(pid: i32) -> Result<Process, Error> {
+    Process::from_stat(&SysPath::ProcPidStat(pid).read()?)
+}
+
+/// Returns a list of pids read from /proc
+pub fn pids() -> Result<Vec<i32>, Error> {
+    let path = SysPath::Proc.path();
+    let mut pids = Vec::new();
+    for _entry in
+        fs::read_dir(&path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))?
+    {
+        if let Ok(entry) = _entry {
+            let filename = entry.file_name();
+            let sfilename = filename.as_os_str().to_string_lossy();
+            if sfilename.chars().all(|c| c.is_digit(10)) {
+                pids.push(
+                    sfilename
+                        .parse::<i32>()
+                        .map_err(|e| Error::InvalidInputError(sfilename.to_string(), e.to_string()))?,
+                );
+            }
+        }
+    }
+    Ok(pids)
+}
+
+/// Returns all processes currently seen in /proc parsed as Processes
+pub fn processes() -> Result<Processes, Error> {
+    let mut _pids = Vec::new();
+    for pid in pids()? {
+        _pids.push(stat_process(pid)?);
+    }
+
+    Ok(_pids)
 }
 
 #[cfg(test)]

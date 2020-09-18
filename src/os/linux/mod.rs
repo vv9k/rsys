@@ -1,24 +1,31 @@
 //! Linux specific api
 #![cfg(target_os = "linux")]
 
-mod internal;
 #[cfg(test)]
 pub(crate) mod mocks;
-mod public;
+
+mod cpu;
+mod mem;
+mod misc;
+mod net;
+mod ps;
+mod storage;
 mod sysproc;
-mod types;
 
 use super::{run, Error, OsImpl};
 
-pub use public::*;
-pub use types::{
-    net::{IfaceDev, Ifaces},
-    ps::{Process, ProcessState, Processes},
-    storage::{BlockStorageStat, DeviceMapper, Partition, Partitions, ScsiCdrom, StorageDevice},
-    MountPoint, MountPoints,
+pub use {
+    cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
+    mem::{memory, memory_free, memory_total, swap_free, swap_total, Memory},
+    misc::{arch, domainname, hostname, kernel_version, mounts, uptime, MountPoint, MountPoints},
+    net::{default_iface, ifaces, interfaces, ipv4, ipv6, mac, IfaceDev, Ifaces},
+    ps::{pids, processes, stat_process, Process, ProcessState, Processes},
+    storage::{
+        stat_block_device, stat_device_mapper, stat_scsi_cdrom, BlockStorageStat, DeviceMapper, Partition, Partitions,
+        ScsiCdrom, StorageDevice,
+    },
 };
 
-pub(crate) use internal::*;
 pub(crate) use sysproc::SysPath;
 
 #[derive(Default, OsImpl)]
