@@ -1,4 +1,4 @@
-mod ffi;
+mod system;
 mod types;
 
 pub use types::*;
@@ -7,7 +7,7 @@ pub use types::*;
 use super::mocks::SYS_BLOCK_DEV_STAT;
 use super::{Error, SysPath};
 use crate::util::{next, trim_parse_map};
-use ffi::blk_bsz_get;
+use system::blk_bsz_get;
 
 // Parses out major and minor number from str like '8:1'
 // and returns a tuple (8, 1)
