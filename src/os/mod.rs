@@ -7,13 +7,13 @@ pub mod windows;
 
 pub(crate) mod os_impl;
 
-use super::error::RsysError as Error;
+use super::{error::Result, error::RsysError as Error};
 pub(crate) use os_impl::OsImpl;
 use std::process::Command;
 use std::str;
 
 // Internal function for mapping errors on command execution
-fn run(cmd: &mut Command) -> Result<String, Error> {
+fn run(cmd: &mut Command) -> Result<String> {
     match cmd.output() {
         Ok(out) => match str::from_utf8(&out.stdout) {
             Ok(out) => Ok(out.trim_end_matches('\n').to_string()),

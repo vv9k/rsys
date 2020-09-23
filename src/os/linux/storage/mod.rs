@@ -5,7 +5,7 @@ pub use types::*;
 
 #[cfg(test)]
 use super::mocks::SYS_BLOCK_DEV_STAT;
-use super::{Error, SysPath};
+use super::{Error, SysPath, _Result as Result};
 use crate::util::{next, trim_parse_map};
 use system::blk_bsz_get;
 
@@ -29,23 +29,23 @@ fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
 
 /// Returns block size of device in bytes
 /// device argument must be a path to block device file descriptor
-pub fn block_size(device: &str) -> Result<i64, Error> {
+pub fn block_size(device: &str) -> Result<i64> {
     blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
 }
 
-pub fn stat_block_device(name: &str) -> Result<StorageDevice, Error> {
+pub fn stat_block_device(name: &str) -> Result<StorageDevice> {
     StorageDevice::from_sys(name)
 }
 
-pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper, Error> {
+pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper> {
     DeviceMapper::from_sys(name)
 }
 
-pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom, Error> {
+pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom> {
     ScsiCdrom::from_sys(name)
 }
 
-pub fn stat_multiple_device_storage(name: &str) -> Result<MultipleDeviceStorage, Error> {
+pub fn stat_multiple_device_storage(name: &str) -> Result<MultipleDeviceStorage> {
     MultipleDeviceStorage::from_sys(name)
 }
 

@@ -1,6 +1,6 @@
 #[cfg(test)]
 use super::mocks::MEMINFO;
-use super::{Error, SysPath};
+use super::{Error, SysPath, _Result as Result};
 
 const MEM_TOTAL: &str = "MemTotal:";
 const MEM_FREE: &str = "MemFree:";
@@ -25,7 +25,7 @@ pub struct Memory {
     pub shared: u64,
 }
 impl Memory {
-    pub fn from_proc() -> Result<Memory, Error> {
+    pub fn from_proc() -> Result<Memory> {
         let mut mem = Memory::default();
         for line in SysPath::ProcMemInfo.read()?.lines() {
             let mut elems = line.split_ascii_whitespace();
@@ -54,7 +54,7 @@ impl Memory {
     }
 }
 
-fn _mem_extract(out: &str, line: &str) -> Result<usize, Error> {
+fn _mem_extract(out: &str, line: &str) -> Result<usize> {
     Ok(out
         .lines()
         .filter(|l| l.starts_with(line))
@@ -68,32 +68,32 @@ fn _mem_extract(out: &str, line: &str) -> Result<usize, Error> {
         * 1024 as usize)
 }
 
-pub(crate) fn mem_extract(line: &str) -> Result<usize, Error> {
+pub(crate) fn mem_extract(line: &str) -> Result<usize> {
     _mem_extract(&SysPath::ProcMemInfo.read()?, &line)
 }
 
 /// Returns total memory.
-pub fn memory_total() -> Result<usize, Error> {
+pub fn memory_total() -> Result<usize> {
     mem_extract(MEM_TOTAL)
 }
 
 /// Returns free memory
-pub fn memory_free() -> Result<usize, Error> {
+pub fn memory_free() -> Result<usize> {
     mem_extract(MEM_FREE)
 }
 
 /// Returns total swap space.
-pub fn swap_total() -> Result<usize, Error> {
+pub fn swap_total() -> Result<usize> {
     mem_extract(SWAP_TOTAL)
 }
 
 /// Returns free swap space.
-pub fn swap_free() -> Result<usize, Error> {
+pub fn swap_free() -> Result<usize> {
     mem_extract(SWAP_FREE)
 }
 
 /// Returns detailed information about memory
-pub fn memory() -> Result<Memory, Error> {
+pub fn memory() -> Result<Memory> {
     Memory::from_proc()
 }
 

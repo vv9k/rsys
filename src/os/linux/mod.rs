@@ -12,7 +12,7 @@ mod ps;
 mod storage;
 mod sysproc;
 
-use super::{run, Error, OsImpl};
+use super::{run, Error, OsImpl, Result as _Result};
 
 pub use {
     cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
@@ -22,7 +22,8 @@ pub use {
     ps::{pids, processes, stat_process, Process, ProcessState, Processes},
     storage::{
         stat_block_device, stat_device_mapper, stat_multiple_device_storage, stat_scsi_cdrom, BlockStorageStat,
-        DeviceMapper, Partition, Partitions, ScsiCdrom, StorageDevice,
+        DeviceMapper, DeviceMappers, MultipleDeviceStorage, MultipleDeviceStorages, Partition, Partitions, ScsiCdrom,
+        ScsiCdroms, StorageDevice, StorageDevices,
     },
 };
 

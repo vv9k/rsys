@@ -1,8 +1,14 @@
-use super::{block_size, next, parse_maj_min, trim_parse_map, Error, SysPath};
+use super::{block_size, next, parse_maj_min, trim_parse_map, Error, Result, SysPath};
 use std::{fs, path::PathBuf, str::SplitAsciiWhitespace};
 
+pub type Partitions = Vec<Partition>;
+pub type DeviceMappers = Vec<DeviceMapper>;
+pub type StorageDevices = Vec<StorageDevice>;
+pub type ScsiCdroms = Vec<ScsiCdrom>;
+pub type MultipleDeviceStorages = Vec<MultipleDeviceStorage>;
+
 pub(crate) trait FromSysPath<T> {
-    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T, Error>;
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T>;
 }
 
 fn find_subdevices<T: FromSysPath<T>>(
@@ -38,8 +44,6 @@ fn find_subdevices<T: FromSysPath<T>>(
 
     None
 }
-
-pub type Partitions = Vec<Partition>;
 
 #[derive(Clone, Debug)]
 pub(crate) enum Hierarchy {
@@ -85,7 +89,7 @@ pub struct BlockStorageStat {
     pub discard_ticks: u64,
 }
 impl BlockStorageStat {
-    pub(crate) fn from_stat(stat: &str) -> Result<BlockStorageStat, Error> {
+    pub(crate) fn from_stat(stat: &str) -> Result<BlockStorageStat> {
         let mut elems = stat.split_ascii_whitespace();
 
         Ok(BlockStorageStat {
@@ -118,7 +122,7 @@ pub struct BlockStorageInfo {
     pub stat: BlockStorageStat,
 }
 impl BlockStorageInfo {
-    fn from_sys_path(path: PathBuf) -> Result<BlockStorageInfo, Error> {
+    fn from_sys_path(path: PathBuf) -> Result<BlockStorageInfo> {
         let (maj, min) = parse_maj_min(&SysPath::Custom(path.join("dev")).read()?).unwrap_or_default();
         let device = path
             .file_name()
@@ -147,7 +151,7 @@ pub struct ScsiCdrom {
     pub state: String,
 }
 impl ScsiCdrom {
-    pub(crate) fn from_sys(name: &str) -> Result<ScsiCdrom, Error> {
+    pub(crate) fn from_sys(name: &str) -> Result<ScsiCdrom> {
         if !name.starts_with("sr") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -173,7 +177,7 @@ pub struct StorageDevice {
     pub partitions: Partitions,
 }
 impl StorageDevice {
-    pub(crate) fn from_sys(name: &str) -> Result<StorageDevice, Error> {
+    pub(crate) fn from_sys(name: &str) -> Result<StorageDevice> {
         if !name.starts_with("sd") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -202,10 +206,10 @@ pub struct DeviceMapper {
     pub name: String,
     pub uuid: String,
     pub slave_parts: Option<Partitions>,
-    pub slave_mds: Option<Vec<MultipleDeviceStorage>>,
+    pub slave_mds: Option<MultipleDeviceStorages>,
 }
 impl DeviceMapper {
-    pub(crate) fn from_sys(name: &str) -> Result<DeviceMapper, Error> {
+    pub(crate) fn from_sys(name: &str) -> Result<DeviceMapper> {
         if !name.starts_with("dm") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -233,7 +237,7 @@ impl DeviceMapper {
 }
 
 impl FromSysPath<DeviceMapper> for DeviceMapper {
-    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self> {
         Ok(DeviceMapper {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             name: trim_parse_map::<String>(&SysPath::Custom(path.join("dm").join("name")).read()?)?,
@@ -255,11 +259,11 @@ impl FromSysPath<DeviceMapper> for DeviceMapper {
 #[derive(Debug, Eq, PartialEq)]
 pub struct Partition {
     pub info: BlockStorageInfo,
-    pub holder_mds: Option<Vec<MultipleDeviceStorage>>,
-    pub holder_dms: Option<Vec<DeviceMapper>>,
+    pub holder_mds: Option<MultipleDeviceStorages>,
+    pub holder_dms: Option<DeviceMappers>,
 }
 impl FromSysPath<Partition> for Partition {
-    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self> {
         Ok(Partition {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             holder_mds: if hierarchy {
@@ -281,10 +285,10 @@ pub struct MultipleDeviceStorage {
     pub info: BlockStorageInfo,
     pub level: String,
     pub slave_parts: Option<Partitions>,
-    pub holder_devices: Option<Vec<DeviceMapper>>,
+    pub holder_devices: Option<DeviceMappers>,
 }
 impl MultipleDeviceStorage {
-    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<MultipleDeviceStorage, Error> {
+    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<MultipleDeviceStorage> {
         Ok(MultipleDeviceStorage {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             level: trim_parse_map::<String>(&SysPath::Custom(path.join("md").join("level")).read()?)?,
@@ -301,7 +305,7 @@ impl MultipleDeviceStorage {
         })
     }
 
-    pub(crate) fn from_sys(name: &str) -> Result<MultipleDeviceStorage, Error> {
+    pub(crate) fn from_sys(name: &str) -> Result<MultipleDeviceStorage> {
         if !name.starts_with("md") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -312,7 +316,7 @@ impl MultipleDeviceStorage {
     }
 }
 impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
-    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self, Error> {
+    fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self> {
         Self::from_sys_path(path, hierarchy)
     }
 }

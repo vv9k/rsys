@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use super::Error;
+use super::{Error, _Result as Result};
 use std::{fs, path::PathBuf};
 
 #[derive(Clone)]
@@ -57,7 +57,7 @@ impl<'p> SysPath<'p> {
         PathBuf::from(s)
     }
 
-    pub(crate) fn read(self) -> Result<String, Error> {
+    pub(crate) fn read(self) -> Result<String> {
         let path = self.path();
         fs::read_to_string(&path)
             .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
@@ -71,7 +71,7 @@ impl<'p> SysPath<'p> {
         SysPath::Custom(path)
     }
 
-    pub(crate) fn read_path(self, p: &[&str]) -> Result<String, Error> {
+    pub(crate) fn read_path(self, p: &[&str]) -> Result<String> {
         let mut path = self.path();
         for elem in p {
             path.push(elem);

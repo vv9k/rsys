@@ -18,3 +18,5 @@ pub enum RsysError {
     #[error("Failed to communicate with Win32 api. Error code: `{0}`, Reason: `{1}`")]
     WinApiError(u32, String),
 }
+
+pub type Result<T> = std::result::Result<T, RsysError>;

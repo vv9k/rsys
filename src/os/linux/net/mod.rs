@@ -1,6 +1,6 @@
 #[cfg(test)]
 use super::mocks::{IP, IP_IFACE, NET_DEV, ROUTE};
-use super::{run, Error, SysPath};
+use super::{run, Error, SysPath, _Result as Result};
 use std::process::Command;
 
 pub type Ifaces = Vec<IfaceDev>;
@@ -39,7 +39,7 @@ pub struct IfaceDev {
     pub tx_multicast: u64,
 }
 impl IfaceDev {
-    pub(crate) fn from_line(line: &str) -> Result<IfaceDev, Error> {
+    pub(crate) fn from_line(line: &str) -> Result<IfaceDev> {
         let mut elems = line.split_ascii_whitespace().take(17);
         if elems.clone().count() >= 17 {
             return Ok(IfaceDev {
@@ -72,7 +72,7 @@ impl IfaceDev {
     }
 }
 
-pub(crate) fn ip(iface: &str) -> Result<serde_json::Value, Error> {
+pub(crate) fn ip(iface: &str) -> Result<serde_json::Value> {
     let mut _ip = Command::new("ip");
     let mut cmd = if iface == "" {
         _ip.arg("-j").arg("address").arg("show")
@@ -87,7 +87,7 @@ pub(crate) fn ip(iface: &str) -> Result<serde_json::Value, Error> {
 // API
 
 /// Internal implementation of parsing default interface out from `route` command output
-fn _default_iface(out: &str) -> Result<String, Error> {
+fn _default_iface(out: &str) -> Result<String> {
     Ok(out
         .split('\n')
         .filter(|l| l.starts_with("default"))
@@ -99,13 +99,13 @@ fn _default_iface(out: &str) -> Result<String, Error> {
 }
 
 /// Returns a default interface.
-pub fn default_iface() -> Result<String, Error> {
+pub fn default_iface() -> Result<String> {
     let mut cmd = Command::new("route");
     _default_iface(&run(&mut cmd)?)
 }
 
 /// Internal implementation of parsing ipv4 value out from ip command output
-fn _ipv4(out: &serde_json::Value) -> Result<String, Error> {
+fn _ipv4(out: &serde_json::Value) -> Result<String> {
     let ip = &out[0]["addr_info"][0]["local"];
     if ip.is_string() {
         // It's ok to unwrap here because we know it's a string
@@ -119,18 +119,18 @@ fn _ipv4(out: &serde_json::Value) -> Result<String, Error> {
 }
 
 /// Returns an IPv4 address of a given iface.
-pub fn ipv4(iface: &str) -> Result<String, Error> {
+pub fn ipv4(iface: &str) -> Result<String> {
     let out = ip(&iface)?;
     _ipv4(&out)
 }
 
 /// Returns an IPv6 address of a given iface.
-pub fn ipv6(_iface: &str) -> Result<String, Error> {
+pub fn ipv6(_iface: &str) -> Result<String> {
     todo!()
 }
 
 /// Internal implementation of parsing mac value out from `ip addr show <iface>` command output
-fn _mac(out: &serde_json::Value) -> Result<String, Error> {
+fn _mac(out: &serde_json::Value) -> Result<String> {
     let mac = &out[0]["address"];
     if mac.is_string() {
         // It's ok to unwrap here because we know it's a string
@@ -144,13 +144,13 @@ fn _mac(out: &serde_json::Value) -> Result<String, Error> {
 }
 
 /// Returns a mac address of given iface
-pub fn mac(iface: &str) -> Result<String, Error> {
+pub fn mac(iface: &str) -> Result<String> {
     let out = ip(&iface)?;
     _mac(&out)
 }
 
 /// Internal implementation of parsing interfaces out from `ip address show` command output
-fn _interfaces(out: &serde_json::Value) -> Result<Vec<String>, Error> {
+fn _interfaces(out: &serde_json::Value) -> Result<Vec<String>> {
     // It's ok to unwrap here because we check that out is an array and all non-string values are filtered out
     if !out.is_array() {
         return Err(Error::CommandParseError("invalid 'ip' command output".to_string()));
@@ -165,13 +165,13 @@ fn _interfaces(out: &serde_json::Value) -> Result<Vec<String>, Error> {
 }
 
 /// Returns a list of interfaces names.
-pub fn interfaces() -> Result<Vec<String>, Error> {
+pub fn interfaces() -> Result<Vec<String>> {
     let out = ip("")?;
     _interfaces(&out)
 }
 
 /// Returns Ifaces parsed from /proc/net/dev
-pub fn ifaces() -> Result<Ifaces, Error> {
+pub fn ifaces() -> Result<Ifaces> {
     let mut ifaces = Vec::new();
     for line in SysPath::ProcNetDev.read()?.split('\n') {
         if let Ok(iface) = IfaceDev::from_line(&line) {

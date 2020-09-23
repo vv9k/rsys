@@ -1,6 +1,6 @@
 #[cfg(test)]
 use super::mocks::UPTIME;
-use super::{run, Error, SysPath};
+use super::{run, Error, SysPath, _Result as Result};
 use std::process::Command;
 
 #[derive(Debug, Default, Eq, PartialEq)]
@@ -40,12 +40,12 @@ pub type MountPoints = Vec<MountPoint>;
 // API
 
 /// Returns a hostname.
-pub fn hostname() -> Result<String, Error> {
+pub fn hostname() -> Result<String> {
     Ok(SysPath::ProcHostname.read()?.trim().to_string())
 }
 
 /// Internal implementation of parsing uptime from /proc/uptime
-fn _uptime(out: &str) -> Result<u64, Error> {
+fn _uptime(out: &str) -> Result<u64> {
     Ok(out
         .split_ascii_whitespace()
         .take(1)
@@ -55,27 +55,27 @@ fn _uptime(out: &str) -> Result<u64, Error> {
 }
 
 /// Returns current uptime.
-pub fn uptime() -> Result<u64, Error> {
+pub fn uptime() -> Result<u64> {
     _uptime(&SysPath::ProcUptime.read()?)
 }
 
 /// Returns the processor architecture
-pub fn arch() -> Result<String, Error> {
+pub fn arch() -> Result<String> {
     run(Command::new("uname").arg("-m"))
 }
 
 /// Returns a domainname read from /proc/sys/kernel/domainname
-pub fn domainname() -> Result<String, Error> {
+pub fn domainname() -> Result<String> {
     Ok(SysPath::ProcDomainName.read()?.trim().to_string())
 }
 
 /// Returns a kernel version of host os.
-pub fn kernel_version() -> Result<String, Error> {
+pub fn kernel_version() -> Result<String> {
     SysPath::ProcKernelRelease.read()
 }
 
 /// Returns MountPoints read from /proc/mounts
-pub fn mounts() -> Result<MountPoints, Error> {
+pub fn mounts() -> Result<MountPoints> {
     let mut mps = Vec::new();
     for line in SysPath::ProcMounts.read()?.split('\n') {
         if let Some(mp) = MountPoint::from_line(line) {

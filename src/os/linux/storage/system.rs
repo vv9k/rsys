@@ -1,4 +1,4 @@
-use super::Error;
+use super::{Error, Result};
 use libc::{fileno, fopen, ioctl, size_t};
 use std::ffi::{CStr, CString};
 
@@ -36,7 +36,7 @@ const fn _IOR<T: Sized>(ty: u64, nr: u64) -> u64 {
 
 const BLKBSZGET: u64 = _IOR::<size_t>(0x12, 112);
 
-pub(crate) fn blk_bsz_get(path: &str) -> Result<i64, Error> {
+pub(crate) fn blk_bsz_get(path: &str) -> Result<i64> {
     let mut size: usize = 0;
     let path = CString::new(path).map_err(|e| Error::InvalidInputError(path.to_string(), e.to_string()))?;
     let mode = CStr::from_bytes_with_nul(b"r\0").unwrap();

@@ -1,6 +1,6 @@
 #[cfg(test)]
 use super::mocks::{PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
-use super::{Error, SysPath};
+use super::{Error, SysPath, _Result as Result};
 use crate::util::{next, skip};
 use std::{fs, str::SplitAsciiWhitespace};
 
@@ -53,7 +53,7 @@ pub struct Process {
 }
 
 impl Process {
-    pub(crate) fn from_stat(stat: &str) -> Result<Process, Error> {
+    pub(crate) fn from_stat(stat: &str) -> Result<Process> {
         let mut elems = stat.split_ascii_whitespace();
 
         Ok(Process {
@@ -95,12 +95,12 @@ impl Process {
 }
 
 /// Returns detailed Process information parsed from /proc/[pid]/stat
-pub fn stat_process(pid: i32) -> Result<Process, Error> {
+pub fn stat_process(pid: i32) -> Result<Process> {
     Process::from_stat(&SysPath::ProcPidStat(pid).read()?)
 }
 
 /// Returns a list of pids read from /proc
-pub fn pids() -> Result<Vec<i32>, Error> {
+pub fn pids() -> Result<Vec<i32>> {
     let path = SysPath::Proc.path();
     let mut pids = Vec::new();
     for _entry in
@@ -122,7 +122,7 @@ pub fn pids() -> Result<Vec<i32>, Error> {
 }
 
 /// Returns all processes currently seen in /proc parsed as Processes
-pub fn processes() -> Result<Processes, Error> {
+pub fn processes() -> Result<Processes> {
     let mut _pids = Vec::new();
     for pid in pids()? {
         _pids.push(stat_process(pid)?);

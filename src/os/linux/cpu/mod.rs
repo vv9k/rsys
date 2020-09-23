@@ -1,6 +1,6 @@
 #[cfg(test)]
 use super::mocks::CPUINFO;
-use super::{Error, SysPath};
+use super::{Error, SysPath, _Result as Result};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -9,7 +9,7 @@ pub(crate) const CPU_CORES: &str = "cpu cores";
 pub(crate) const SIBLINGS: &str = "siblings";
 pub(crate) const CPU_CLOCK: &str = "cpu MHz";
 
-fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T, Error>
+fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T>
 where
     <T as FromStr>::Err: Display,
 {
@@ -27,7 +27,7 @@ where
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T, Error>
+pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
 where
     <T as FromStr>::Err: Display,
 {
@@ -35,22 +35,22 @@ where
 }
 
 /// Returns the name of first seen cpu in /proc/cpuinfo
-pub fn cpu() -> Result<String, Error> {
+pub fn cpu() -> Result<String> {
     cpuinfo_extract::<String>(MODEL_NAME)
 }
 
 /// Returns cpu clock of first core in /proc/cpuinfo file.
-pub fn cpu_clock() -> Result<f32, Error> {
+pub fn cpu_clock() -> Result<f32> {
     cpuinfo_extract::<f32>(CPU_CLOCK)
 }
 
 /// Returns total cpu cores available.
-pub fn cpu_cores() -> Result<u16, Error> {
+pub fn cpu_cores() -> Result<u16> {
     cpuinfo_extract::<u16>(CPU_CORES)
 }
 
 /// Returns total logical cores available.
-pub fn logical_cores() -> Result<u16, Error> {
+pub fn logical_cores() -> Result<u16> {
     cpuinfo_extract::<u16>(SIBLINGS)
 }
 
