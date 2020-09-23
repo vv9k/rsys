@@ -7,7 +7,7 @@ pub mod windows;
 
 pub(crate) mod os_impl;
 
-use super::{error::Result, error::RsysError as Error};
+use super::{error::RsysError as Error, error::RsysResult as Result};
 pub(crate) use os_impl::OsImpl;
 use std::process::Command;
 use std::str;

@@ -19,4 +19,4 @@ pub enum RsysError {
     WinApiError(u32, String),
 }
 
-pub type Result<T> = std::result::Result<T, RsysError>;
+pub type RsysResult<T> = std::result::Result<T, RsysError>;
