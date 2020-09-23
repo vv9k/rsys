@@ -1,10 +1,10 @@
 use super::*;
 
-pub fn hostname() -> Result<String, Error> {
+pub fn hostname() -> Result<String> {
     sysctl(SYSCTL_HOSTNAME)
 }
 
-pub fn uptime() -> Result<u64, Error> {
+pub fn uptime() -> Result<u64> {
     let boot = sysctl(SYSCTL_BOOTTIME)?;
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -16,44 +16,44 @@ pub fn uptime() -> Result<u64, Error> {
     Ok(now - boottime)
 }
 
-pub fn arch() -> Result<String, Error> {
+pub fn arch() -> Result<String> {
     run(Command::new("uname").arg("-m"))
 }
 
-pub fn cpu() -> Result<String, Error> {
+pub fn cpu() -> Result<String> {
     sysctl(SYSCTL_CPU)
 }
 
-pub fn cpu_clock() -> Result<f32, Error> {
+pub fn cpu_clock() -> Result<f32> {
     Ok(sysctl(CPU_FREQUENCY)?
         .parse::<u64>()
         .map_err(|e| Error::CommandParseError(e.to_string()))
         .map(|v| (v / 1_000_000) as f32)?)
 }
 
-pub fn cpu_cores() -> Result<u16, Error> {
+pub fn cpu_cores() -> Result<u16> {
     Ok(sysctl(CPU_CORES)?
         .parse::<u16>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn logical_cores() -> Result<u16, Error> {
+pub fn logical_cores() -> Result<u16> {
     Ok(sysctl(LOGICAL_CORES)?
         .parse::<u16>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn memory_total() -> Result<usize, Error> {
+pub fn memory_total() -> Result<usize> {
     Ok(sysctl(SYSCTL_MEMSIZE)?
         .parse::<usize>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?)
 }
 
-pub fn memory_free() -> Result<usize, Error> {
+pub fn memory_free() -> Result<usize> {
     Ok(0)
 }
 
-pub fn swap_total() -> Result<usize, Error> {
+pub fn swap_total() -> Result<usize> {
     let (mut active, mut inactive) = (0, 0);
     let (mut was_active, mut was_inactive) = (false, false);
     let pagesize = vm_pagesize()?;
@@ -97,11 +97,11 @@ pub fn swap_total() -> Result<usize, Error> {
     Ok(((active + inactive) * pagesize as u64) as usize)
 }
 
-pub fn swap_free() -> Result<usize, Error> {
+pub fn swap_free() -> Result<usize> {
     Ok(0)
 }
 
-pub fn default_iface() -> Result<String, Error> {
+pub fn default_iface() -> Result<String> {
     let out = run(Command::new("route").arg("get").arg("default"))?;
     if let Some(ifc_line) = out.split('\n').find(|l| l.trim().starts_with(INTERFACE)) {
         return Ok(ifc_line.trim()[INTERFACE_LEN..].trim_end_matches('\n').to_string());
@@ -110,23 +110,23 @@ pub fn default_iface() -> Result<String, Error> {
     Ok("".to_string())
 }
 
-pub fn ipv4(iface: &str) -> Result<String, Error> {
+pub fn ipv4(iface: &str) -> Result<String> {
     run(Command::new("ipconfig").arg("getifaddr").arg(iface))
 }
 
-pub fn ipv6(_iface: &str) -> Result<String, Error> {
+pub fn ipv6(_iface: &str) -> Result<String> {
     Ok("".to_string())
 }
 
-pub fn mac(_iface: &str) -> Result<String, Error> {
+pub fn mac(_iface: &str) -> Result<String> {
     Ok("".to_string())
 }
 
-pub fn interfaces() -> Result<Vec<String>, Error> {
+pub fn interfaces() -> Result<Vec<String>> {
     Ok(vec![])
 }
 
-pub fn domainname() -> Result<String, Error> {
+pub fn domainname() -> Result<String> {
     Ok("".to_string())
 }
 
@@ -134,6 +134,6 @@ pub fn domainname() -> Result<String, Error> {
 // UNIQUE
 
 /// Returns a model of host machine.
-pub fn model() -> Result<String, Error> {
+pub fn model() -> Result<String> {
     sysctl(SYSCTL_MODEL)
 }

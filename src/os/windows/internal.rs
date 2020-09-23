@@ -1,10 +1,11 @@
 use super::*;
+use crate::Result;
 
 pub(crate) fn last_error() -> u32 {
     unsafe { GetLastError() }
 }
 
-pub(crate) fn utf16_buf_to_string(buf: &[u16]) -> Result<String, Error> {
+pub(crate) fn utf16_buf_to_string(buf: &[u16]) -> Result<String> {
     Ok(OsString::from_wide(&buf)
         .to_string_lossy()
         .to_string()
@@ -14,7 +15,7 @@ pub(crate) fn utf16_buf_to_string(buf: &[u16]) -> Result<String, Error> {
         .to_string())
 }
 
-pub(crate) fn last_error_msg() -> Result<(u32, String), Error> {
+pub(crate) fn last_error_msg() -> Result<(u32, String)> {
     let mut out_buf: Vec<u16> = vec![0; BUF_SIZE];
     let mut last_id = 0;
     unsafe {
@@ -42,7 +43,7 @@ pub(crate) fn system_info() -> SYSTEM_INFO {
     }
 }
 
-pub(crate) fn memory_status() -> Result<MEMORYSTATUSEX, Error> {
+pub(crate) fn memory_status() -> Result<MEMORYSTATUSEX> {
     unsafe {
         let mut info = mem::zeroed::<MEMORYSTATUSEX>();
         info.dwLength = mem::size_of::<MEMORYSTATUSEX>() as u32;
@@ -65,7 +66,7 @@ pub(crate) fn memory_status() -> Result<MEMORYSTATUSEX, Error> {
 //     }
 // }
 
-pub(crate) fn logical_processor_information() -> Result<Vec<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>, Error> {
+pub(crate) fn logical_processor_information() -> Result<Vec<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>> {
     unsafe {
         let x = mem::zeroed::<SYSTEM_LOGICAL_PROCESSOR_INFORMATION>();
         let mut info = vec![x; BUF_SIZE];
@@ -79,7 +80,7 @@ pub(crate) fn logical_processor_information() -> Result<Vec<SYSTEM_LOGICAL_PROCE
     }
 }
 
-pub(crate) fn is_cpu_hyperthreaded() -> Result<bool, Error> {
+pub(crate) fn is_cpu_hyperthreaded() -> Result<bool> {
     unsafe { Ok(logical_processor_information()?[0].u.ProcessorCore().Flags == 1) }
 }
 
@@ -88,7 +89,7 @@ pub(crate) fn pagesize() -> u32 {
     system_info().dwPageSize
 }
 
-pub(crate) fn reg_val<T>(key: HKEY, subkey: &str, val: &str) -> Result<T, Error> {
+pub(crate) fn reg_val<T>(key: HKEY, subkey: &str, val: &str) -> Result<T> {
     unsafe {
         let mut hkey = mem::zeroed::<HKEY>();
         let mut subkey = subkey.encode_utf16().collect::<Vec<u16>>();
