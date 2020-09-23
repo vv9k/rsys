@@ -5,6 +5,13 @@ pub mod macos;
 #[cfg(target_os = "windows")]
 pub mod windows;
 
+#[cfg(target_os = "linux")]
+pub(crate) use linux::OsImplExt;
+#[cfg(target_os = "macos")]
+pub(crate) use macos::OsImplExt;
+#[cfg(target_os = "windows")]
+pub(crate) use windows::OsImplExt;
+
 pub(crate) mod os_impl;
 
 use crate::{Error, Result};
