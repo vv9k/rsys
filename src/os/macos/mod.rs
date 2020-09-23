@@ -3,7 +3,8 @@ mod internal;
 mod os_impl_ext;
 mod public;
 
-use super::{run, Error, OsImpl};
+use super::{run, OsImpl};
+use crate::Result;
 use std::{
     process::Command,
     str,

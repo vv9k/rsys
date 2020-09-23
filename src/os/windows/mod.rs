@@ -3,11 +3,14 @@ mod internal;
 mod os_impl_ext;
 mod public;
 
-use super::{Error, OsImpl};
-use std::ffi::OsString;
-use std::mem;
-use std::os::windows::ffi::OsStringExt;
-use std::ptr::{null, null_mut};
+use super::OsImpl;
+use crate::Result;
+use std::{
+    ffi::OsString,
+    mem,
+    os::windows::ffi::OsStringExt,
+    ptr::{null, null_mut},
+};
 use winapi::{
     shared::{minwindef::HKEY, winerror::ERROR_SUCCESS},
     um::{
