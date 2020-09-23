@@ -3,8 +3,8 @@ Crate for aquiring information about host machine and operating system
 in a os-agnostic fashion.  
  
 The common api is available through Rsys struct which compiles conditionally with
-required methods. The error type is available at the root of this crate for convienience
-while os-specific functions are hidden in submodules corresponding to each os.  
+required methods. The error and result type is available at the root of this crate for convienience
+while all the methods exposed by Rsys struct are also available in each os module.  
 
 Main goals are clear and easy api with as much of the api being os-agnostic.
   
@@ -13,7 +13,7 @@ Main goals are clear and easy api with as much of the api being os-agnostic.
 
 ```toml
 [dependencies]
-rsys = "0.3"
+rsys = "0.4"
 ```
 
 - `main.rs`
@@ -35,11 +35,15 @@ fn main() -> Result<(), Error> {
     println!("IPv4 - {}", rsys.ipv4(&iface)?);
     println!("MAC - {}", rsys.mac(&iface)?);
     println!("INTERFACES - {:#?}", rsys.interfaces()?);
+
     
     // Or use functions in each module
     if cfg!(target_os = "linux") {
         println!("KERNEL VERSION - {}", rsys::linux::kernel_version()?);
         println!("HOSTNAME - {}", rsys::linux::hostname()?);
+
+        // Os-specific functions are also available as methods
+        println!("MEMORY - {:#?}", rsys.memory());
     }
     Ok(())
 }
