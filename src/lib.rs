@@ -17,7 +17,7 @@
 //! ```
 //!
 //! - `main.rs`
-//! ```rust
+//! ```no_run
 //! use rsys::{Result, Rsys};
 //! fn main() -> Result<()> {
 //!     // You can either use api through Rsys object
