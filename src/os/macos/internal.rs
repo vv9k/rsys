@@ -1,5 +1,5 @@
 use super::{run, Command, VM_PAGESIZE};
-use crate::Result;
+use crate::{Error, Result};
 
 pub(crate) fn sysctl(property: &str) -> Result<String> {
     run(Command::new("sysctl").arg("-n").arg(property))

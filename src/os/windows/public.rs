@@ -1,5 +1,4 @@
 use super::*;
-use crate::Result;
 
 pub fn hostname() -> Result<String> {
     let mut out_buf: Vec<u16> = vec![0; BUF_SIZE];

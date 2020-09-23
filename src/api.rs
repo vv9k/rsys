@@ -30,13 +30,19 @@ impl Rsys {
     #[cfg(target_os = "macos")]
     /// Creates a new instance of Rsys
     pub fn new() -> Self {
-        Self(Box::new(Macos::new()) as Box<dyn OsImpl>)
+        Self(
+            Box::new(Macos::new()) as Box<dyn OsImpl>,
+            Box::new(Macos::new()) as Box<dyn OsImplExt>,
+        )
     }
 
     #[cfg(target_os = "windows")]
     /// Creates a new instance of Rsys
     pub fn new() -> Self {
-        Self(Box::new(Windows::new()) as Box<dyn OsImpl>)
+        Self(
+            Box::new(Windows::new()) as Box<dyn OsImpl>,
+            Box::new(Windows::new()) as Box<dyn OsImplExt>,
+        )
     }
 
     /// Returns a hostname.

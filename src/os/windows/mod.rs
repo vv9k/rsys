@@ -4,7 +4,7 @@ mod os_impl_ext;
 mod public;
 
 use super::OsImpl;
-use crate::Result;
+use crate::{Error, Result};
 use std::{
     ffi::OsString,
     mem,

@@ -1,5 +1,4 @@
 use super::*;
-use crate::Result;
 
 pub(crate) fn last_error() -> u32 {
     unsafe { GetLastError() }
