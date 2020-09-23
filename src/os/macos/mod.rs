@@ -1,13 +1,17 @@
 //! MacOS specific api
 mod internal;
+mod os_impl_ext;
 mod public;
 
 use super::{run, Error, OsImpl};
-use std::process::Command;
-use std::str;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    process::Command,
+    str,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 pub(crate) use internal::*;
+pub use os_impl_ext::OsImplExt;
 pub use public::*;
 
 const SYSCTL_CPU: &str = "machdep.cpu.brand_string";
@@ -28,3 +32,4 @@ const PAGES_INACTIVE: &str = "Pages inactive:";
 
 #[derive(Default, OsImpl)]
 pub(crate) struct Macos {}
+impl OsImplExt for Macos {}

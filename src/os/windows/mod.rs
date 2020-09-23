@@ -1,5 +1,6 @@
 //! Windows specific api
 mod internal;
+mod os_impl_ext;
 mod public;
 
 use super::{Error, OsImpl};
@@ -30,6 +31,7 @@ use winapi::{
 };
 
 pub(crate) use internal::*;
+pub use os_impl_ext::OsImplExt;
 pub use public::*;
 
 const BUF_SIZE: usize = 4096;
@@ -42,3 +44,4 @@ const MAX_COMPUTERNAME_LENGTH: u32 = 31;
 
 #[derive(Default, OsImpl)]
 pub(crate) struct Windows {}
+impl OsImplExt for Windows {}
