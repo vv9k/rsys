@@ -1,8 +1,8 @@
 #[cfg(test)]
 use super::mocks::CPUINFO;
-use super::{Error, SysPath, _Result as Result};
-use std::fmt::Display;
-use std::str::FromStr;
+use super::SysPath;
+use crate::{Error, Result};
+use std::{fmt::Display, str::FromStr};
 
 pub(crate) const MODEL_NAME: &str = "model name";
 pub(crate) const CPU_CORES: &str = "cpu cores";

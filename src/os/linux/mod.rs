@@ -12,7 +12,8 @@ mod ps;
 mod storage;
 mod sysproc;
 
-use super::{run, Error, OsImpl, Result as _Result};
+use super::{run, OsImpl};
+use crate::Error;
 
 pub use {
     cpu::{cpu, cpu_clock, cpu_cores, logical_cores},

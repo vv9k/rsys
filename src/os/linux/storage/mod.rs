@@ -5,8 +5,8 @@ pub use types::*;
 
 #[cfg(test)]
 use super::mocks::SYS_BLOCK_DEV_STAT;
-use super::{Error, SysPath, _Result as Result};
-use crate::util::{next, trim_parse_map};
+use super::SysPath;
+use crate::Result;
 use system::blk_bsz_get;
 
 // Parses out major and minor number from str like '8:1'

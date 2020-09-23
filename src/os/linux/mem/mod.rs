@@ -1,6 +1,7 @@
 #[cfg(test)]
 use super::mocks::MEMINFO;
-use super::{Error, SysPath, _Result as Result};
+use super::SysPath;
+use crate::{Error, Result};
 
 const MEM_TOTAL: &str = "MemTotal:";
 const MEM_FREE: &str = "MemFree:";

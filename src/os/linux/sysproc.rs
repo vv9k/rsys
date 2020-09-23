@@ -1,5 +1,6 @@
 #![allow(dead_code)]
-use super::{Error, _Result as Result};
+
+use crate::{Error, Result};
 use std::{fs, path::PathBuf};
 
 #[derive(Clone)]

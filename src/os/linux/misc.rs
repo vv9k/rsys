@@ -1,6 +1,7 @@
 #[cfg(test)]
 use super::mocks::UPTIME;
-use super::{run, Error, SysPath, _Result as Result};
+use super::{run, SysPath};
+use crate::{Error, Result};
 use std::process::Command;
 
 #[derive(Debug, Default, Eq, PartialEq)]

@@ -1,6 +1,7 @@
 #[cfg(test)]
 use super::mocks::{IP, IP_IFACE, NET_DEV, ROUTE};
-use super::{run, Error, SysPath, _Result as Result};
+use super::{run, SysPath};
+use crate::{Error, Result};
 use std::process::Command;
 
 pub type Ifaces = Vec<IfaceDev>;

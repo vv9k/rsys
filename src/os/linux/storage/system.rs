@@ -1,4 +1,4 @@
-use super::{Error, Result};
+use crate::{Error, Result};
 use libc::{fileno, fopen, ioctl, size_t};
 use std::ffi::{CStr, CString};
 

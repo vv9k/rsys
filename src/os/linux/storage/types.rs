@@ -1,4 +1,8 @@
-use super::{block_size, next, parse_maj_min, trim_parse_map, Error, Result, SysPath};
+use super::{block_size, parse_maj_min, SysPath};
+use crate::{
+    util::{next, trim_parse_map},
+    Error, Result,
+};
 use std::{fs, path::PathBuf, str::SplitAsciiWhitespace};
 
 pub type Partitions = Vec<Partition>;

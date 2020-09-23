@@ -48,7 +48,7 @@ mod error;
 mod os;
 pub(crate) mod util;
 pub use api::Rsys;
-pub use error::{RsysError as Error, RsysResult};
+pub use error::{RsysError as Error, RsysResult as Result};
 
 #[cfg(target_os = "linux")]
 pub use os::linux;

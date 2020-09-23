@@ -7,10 +7,9 @@ pub mod windows;
 
 pub(crate) mod os_impl;
 
-use super::{error::RsysError as Error, error::RsysResult as Result};
+use crate::{Error, Result};
 pub(crate) use os_impl::OsImpl;
-use std::process::Command;
-use std::str;
+use std::{process::Command, str};
 
 // Internal function for mapping errors on command execution
 fn run(cmd: &mut Command) -> Result<String> {
