@@ -15,7 +15,7 @@ categories = ["os"]
 [dependencies]
 thiserror = "1"
 serde_json = "1"
-rsys_macro = "0.1"
+rsys_macro = { path = "./rsys-macro/" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2"
