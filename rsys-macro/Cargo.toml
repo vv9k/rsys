@@ -1,12 +1,12 @@
 [package]
 name = "rsys_macro"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Wojciech <wojciech@wkepka.dev>"]
 edition = "2018"
 license = "MIT"
 description = "rsys macro library"
-homepage = "https://gitlab.com/vvvxxx/rsys_macro"
-repository = "https://gitlab.com/vvvxxx/rsys_macro"
+homepage = "https://github.com.com/wojciechkepka/rsys"
+repository = "https://github.com.com/wojciechkepka/rsys"
 keywords = ["rsys", "macro"]
 categories = ["os"]
 
