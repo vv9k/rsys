@@ -21,8 +21,8 @@ pub use {
     net::{default_iface, ifaces, interfaces, ipv4, ipv6, mac, IfaceDev, Ifaces},
     ps::{pids, processes, stat_process, Process, ProcessState, Processes},
     storage::{
-        stat_block_device, stat_device_mapper, stat_scsi_cdrom, BlockStorageStat, DeviceMapper, Partition, Partitions,
-        ScsiCdrom, StorageDevice,
+        stat_block_device, stat_device_mapper, stat_multiple_device_storage, stat_scsi_cdrom, BlockStorageStat,
+        DeviceMapper, Partition, Partitions, ScsiCdrom, StorageDevice,
     },
 };
 

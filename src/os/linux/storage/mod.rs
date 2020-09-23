@@ -45,6 +45,10 @@ pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom, Error> {
     ScsiCdrom::from_sys(name)
 }
 
+pub fn stat_multiple_device_storage(name: &str) -> Result<MultipleDeviceStorage, Error> {
+    MultipleDeviceStorage::from_sys(name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

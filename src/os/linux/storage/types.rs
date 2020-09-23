@@ -281,6 +281,7 @@ pub struct MultipleDeviceStorage {
     pub info: BlockStorageInfo,
     pub level: String,
     pub slave_parts: Option<Partitions>,
+    pub holder_devices: Option<Vec<DeviceMapper>>,
 }
 impl MultipleDeviceStorage {
     pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<MultipleDeviceStorage, Error> {
@@ -292,7 +293,22 @@ impl MultipleDeviceStorage {
             } else {
                 None
             },
+            holder_devices: if hierarchy {
+                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, DevType::DevMapper, false)
+            } else {
+                None
+            },
         })
+    }
+
+    pub(crate) fn from_sys(name: &str) -> Result<MultipleDeviceStorage, Error> {
+        if !name.starts_with("md") {
+            return Err(Error::InvalidInputError(
+                name.to_string(),
+                "multiple device storage name must begin with 'md'".to_string(),
+            ));
+        }
+        MultipleDeviceStorage::from_sys_path(SysPath::SysClassBlock(name).path(), true)
     }
 }
 impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
