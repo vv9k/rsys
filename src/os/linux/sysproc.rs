@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use crate::{Error, Result};
-use std::{fs, path::PathBuf};
+use std::{fmt::Display, fs, path::PathBuf, str::FromStr};
 
 #[derive(Clone)]
 pub(crate) enum SysPath<'p> {
@@ -61,6 +61,23 @@ impl<'p> SysPath<'p> {
     pub(crate) fn read(self) -> Result<String> {
         let path = self.path();
         fs::read_to_string(&path)
+            .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
+    }
+
+    pub(crate) fn read_as<T: FromStr>(self) -> Result<T>
+    where
+        <T as FromStr>::Err: Display,
+    {
+        let path = self.path();
+        let data = fs::read_to_string(&path)
+            .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))?;
+
+        T::from_str(data.trim()).map_err(|e| Error::InvalidInputError(data, e.to_string()))
+    }
+
+    pub(crate) fn read_dir(self) -> Result<fs::ReadDir> {
+        let path = self.path();
+        fs::read_dir(&path)
             .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
     }
 
