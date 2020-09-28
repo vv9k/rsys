@@ -1,13 +1,13 @@
 [package]
 name = "rsys"
-version = "0.4.1"
-authors = ["Wojciech <wojciech@wkepka.dev>"]
+version = "0.4.2"
+authors = ["Wojciech Kępka <wojciech@wkepka.dev"]
 edition = "2018"
 license = "MIT"
 description = "Crate for system and hardware information parsing"
 readme = "README.md"
-homepage = "https://gitlab.com/vvvxxx/rsys"
-repository = "https://gitlab.com/vvvxxx/rsys"
+homepage = "https://github.com/wojciechkepka/rsys"
+repository = "https://github.com/wojciechkepka/rsys"
 keywords = ["os", "information", "macos", "linux", "system"]
 categories = ["os"]
 
@@ -18,7 +18,8 @@ serialize = ["serde"]
 [dependencies]
 thiserror = "1"
 serde_json = "1"
-rsys_macro = { path = "./rsys-macro/" }
+#rsys_macro = { path = "./rsys-macro/" }
+rsys_macro = "0.1.2"
 serde = {version = "1", optional = true, features = ["derive"]}
 cfg-if = "0.1"
 
