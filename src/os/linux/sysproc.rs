@@ -25,6 +25,8 @@ pub(crate) enum SysPath<'p> {
     SysClassBlock(&'p str),
     SysDevMapperName(&'p str),
     SysDevMapperUuid(&'p str),
+    SysDevicesSystemCpu(),
+    SysDevicesSystemCpuCore(u32),
     Dev(&'p str),
     Custom(PathBuf),
 }
@@ -52,6 +54,8 @@ impl<'p> SysPath<'p> {
             SysClassBlock(d) => format!("/sys/class/block/{}", d),
             SysDevMapperName(d) => format!("/sys/block/{}/dm/name", d),
             SysDevMapperUuid(d) => format!("/sys/block/{}/dm/uuid", d),
+            SysDevicesSystemCpu() => "/sys/devices/system/cpu".to_string(),
+            SysDevicesSystemCpuCore(d) => format!("/sys/devices/system/cpu/cpu{}", d),
             Dev(d) => format!("/dev/{}", d),
             Custom(p) => p.to_string_lossy().to_string(),
         };
