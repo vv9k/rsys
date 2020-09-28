@@ -3,6 +3,8 @@
 use crate::{Error, Result};
 use std::{fmt::Display, fs, path::PathBuf, str::FromStr};
 
+/// SysPath is an abstraction around procfs and sysfs. Allows for easy reading and parsing
+/// of values in system paths.
 #[derive(Clone)]
 pub(crate) enum SysPath<'p> {
     ProcHostname,
@@ -62,12 +64,14 @@ impl<'p> SysPath<'p> {
         PathBuf::from(s)
     }
 
+    /// Reads path to a string returning FileReadError on error
     pub(crate) fn read(self) -> Result<String> {
         let path = self.path();
         fs::read_to_string(&path)
             .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
     }
 
+    /// Reads path and parses it as T otherwise returns FileReadError or InvalidInputError on error
     pub(crate) fn read_as<T: FromStr>(self) -> Result<T>
     where
         <T as FromStr>::Err: Display,
@@ -79,25 +83,19 @@ impl<'p> SysPath<'p> {
         T::from_str(data.trim()).map_err(|e| Error::InvalidInputError(data, e.to_string()))
     }
 
+    /// Returns iterator over entries of this path
     pub(crate) fn read_dir(self) -> Result<fs::ReadDir> {
         let path = self.path();
         fs::read_dir(&path)
             .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
     }
 
+    /// Extends path with new elements returning a custom SysPath
     pub(crate) fn extend(self, p: &[&str]) -> Self {
         let mut path = self.path();
         for elem in p {
             path.push(elem);
         }
         SysPath::Custom(path)
-    }
-
-    pub(crate) fn read_path(self, p: &[&str]) -> Result<String> {
-        let mut path = self.path();
-        for elem in p {
-            path.push(elem);
-        }
-        fs::read_to_string(&path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))
     }
 }

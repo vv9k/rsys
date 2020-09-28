@@ -33,18 +33,26 @@ pub fn block_size(device: &str) -> Result<i64> {
     blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
 }
 
+/// Parses a StorageDevice object from system. If the provided name
+/// doesn't start with `sd` returns an error.
 pub fn stat_block_device(name: &str) -> Result<StorageDevice> {
     StorageDevice::from_sys(name)
 }
 
+/// Parses a DeviceMapper object from system. If the provided name
+/// doesn't start with `dm` returns an error.
 pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper> {
     DeviceMapper::from_sys(name)
 }
 
+/// Parses a ScsiCdrom object from system. If the provided name
+/// doesn't start with `sr` returns an error.
 pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom> {
     ScsiCdrom::from_sys(name)
 }
 
+/// Parses a MultipleDeviceStorage object from system. If the provided name
+/// doesn't start with `md` returns an error.
 pub fn stat_multiple_device_storage(name: &str) -> Result<MultipleDeviceStorage> {
     MultipleDeviceStorage::from_sys(name)
 }
