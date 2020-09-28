@@ -5,12 +5,15 @@ use crate::{
     util::{next, skip},
     Error, Result,
 };
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 use std::{fs, str::SplitAsciiWhitespace};
 
 pub type Processes = Vec<Process>;
 
 //#TODO: Add more states
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub enum ProcessState {
     Sleeping,
     Zombie,
@@ -28,6 +31,7 @@ impl From<&str> for ProcessState {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a process from /proc/[pid]/stat
 pub struct Process {
     pub pid: i32,

@@ -2,6 +2,8 @@
 use super::mocks::MEMINFO;
 use super::SysPath;
 use crate::{Error, Result};
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 
 const MEM_TOTAL: &str = "MemTotal:";
 const MEM_FREE: &str = "MemFree:";
@@ -15,6 +17,7 @@ const MEM_INACTIVE: &str = "Inactive:";
 const MEM_SHARED: &str = "Shmem:";
 
 #[derive(Debug, Default, Eq, PartialEq, Copy, Clone)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Memory {
     pub total: u64,
     pub free: u64,

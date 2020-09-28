@@ -3,6 +3,8 @@ use crate::{
     util::{next, trim_parse_map},
     Error, Result,
 };
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf, str::SplitAsciiWhitespace};
 
 pub type Partitions = Vec<Partition>;
@@ -50,6 +52,7 @@ fn find_subdevices<T: FromSysPath<T>>(
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub(crate) enum Hierarchy {
     Holders,
     Slaves,
@@ -57,6 +60,7 @@ pub(crate) enum Hierarchy {
 }
 
 #[derive(Clone, Debug)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub(crate) enum DevType {
     Partition,
     DevMapper,
@@ -73,6 +77,7 @@ impl DevType {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents stats of a block storage device
 /// read from /sys/block/<device>/stat
 pub struct BlockStorageStat {
@@ -117,6 +122,7 @@ impl BlockStorageStat {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct BlockStorageInfo {
     pub dev: String,
     pub size: usize,
@@ -148,6 +154,7 @@ impl BlockStorageInfo {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct ScsiCdrom {
     pub info: BlockStorageInfo,
     pub model: String,
@@ -172,6 +179,7 @@ impl ScsiCdrom {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a block storage device.
 pub struct StorageDevice {
     pub info: BlockStorageInfo,
@@ -205,6 +213,7 @@ impl StorageDevice {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct DeviceMapper {
     pub info: BlockStorageInfo,
     pub name: String,
@@ -261,6 +270,7 @@ impl FromSysPath<DeviceMapper> for DeviceMapper {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Partition {
     pub info: BlockStorageInfo,
     pub holder_mds: Option<MultipleDeviceStorages>,
@@ -285,6 +295,7 @@ impl FromSysPath<Partition> for Partition {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct MultipleDeviceStorage {
     pub info: BlockStorageInfo,
     pub level: String,
