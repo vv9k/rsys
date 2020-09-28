@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use rsys::{Result, Rsys};
+use rsys::{linux::cores, Result, Rsys};
 
 #[cfg(target_os = "linux")]
 fn main() -> Result<()> {
@@ -8,6 +8,7 @@ fn main() -> Result<()> {
     println!("HOSTNAME - {}", rsys::linux::hostname()?);
     println!("MEMORY - {:#?}", rsys.memory()?);
     println!("KERNEL_VERSION - {}", rsys.kernel_version()?);
+    println!("{:#?}", rsys::linux::processor()?);
     Ok(())
 }
 

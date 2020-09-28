@@ -17,7 +17,7 @@ use super::{run, OsImpl};
 use crate::Result;
 
 pub use {
-    cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
+    cpu::{cores, cpu, cpu_clock, cpu_cores, logical_cores, processor, Core},
     mem::{memory, memory_free, memory_total, swap_free, swap_total, Memory},
     misc::{arch, domainname, hostname, kernel_version, mounts, uptime, MountPoint, MountPoints},
     net::{default_iface, ifaces, interfaces, ipv4, ipv6, mac, IfaceDev, Ifaces},

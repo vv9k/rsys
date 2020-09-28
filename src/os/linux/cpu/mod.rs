@@ -1,10 +1,15 @@
+pub(crate) mod types;
+
 #[cfg(test)]
 use super::mocks::CPUINFO;
-use super::SysPath;
+pub(crate) use super::SysPath;
 use crate::{Error, Result};
 use std::{fmt::Display, str::FromStr};
+pub use types::*;
 
 pub(crate) const MODEL_NAME: &str = "model name";
+pub(crate) const CACHE_SIZE: &str = "cache size";
+pub(crate) const BOGOMIPS: &str = "bogomips";
 pub(crate) const CPU_CORES: &str = "cpu cores";
 pub(crate) const SIBLINGS: &str = "siblings";
 pub(crate) const CPU_CLOCK: &str = "cpu MHz";
@@ -34,6 +39,29 @@ where
     _cpuinfo_extract(&SysPath::ProcCpuInfo.read()?, &line)
 }
 
+fn core_ids() -> Result<Vec<u32>> {
+    let mut core_ids = Vec::new();
+    for entry in SysPath::SysDevicesSystemCpu().read_dir()? {
+        if let Ok(entry) = entry {
+            let file_name = entry.file_name().to_string_lossy().to_string();
+            if file_name.starts_with("cpu") {
+                if let Some(digits) = file_name.split("cpu").last() {
+                    if let Some(digit) = digits.chars().next() {
+                        if digit.is_digit(10) {
+                            core_ids.push(
+                                u32::from_str_radix(digits, 10)
+                                    .map_err(|e| Error::InvalidInputError(file_name, e.to_string()))?,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(core_ids)
+}
+
 /// Returns the name of first seen cpu in /proc/cpuinfo
 pub fn cpu() -> Result<String> {
     cpuinfo_extract::<String>(MODEL_NAME)
@@ -52,6 +80,22 @@ pub fn cpu_cores() -> Result<u16> {
 /// Returns total logical cores available.
 pub fn logical_cores() -> Result<u16> {
     cpuinfo_extract::<u16>(SIBLINGS)
+}
+
+/// Returns Core objects with frequencies
+pub fn cores() -> Result<Cores> {
+    let mut cores = Vec::new();
+    for id in core_ids()? {
+        cores.push(Core::from_sys(id)?);
+    }
+
+    Ok(cores)
+}
+
+/// Returns a Processor object containing gathered information
+/// about host machine processor.
+pub fn processor() -> Result<Processor> {
+    Processor::from_sys()
 }
 
 #[cfg(test)]
