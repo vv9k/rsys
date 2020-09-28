@@ -1,6 +1,7 @@
 #[cfg(target_os = "linux")]
 use crate::linux::{
-    DeviceMapper, Linux, Memory, MountPoints, MultipleDeviceStorage, Process, Processes, ScsiCdrom, StorageDevice,
+    Cores, DeviceMapper, Linux, Memory, MountPoints, MultipleDeviceStorage, Process, Processes, Processor, ScsiCdrom,
+    StorageDevice,
 };
 #[cfg(target_os = "macos")]
 use crate::macos::Macos;
@@ -215,48 +216,78 @@ impl Rsys {
     }
 
     #[cfg(target_os = "linux")]
+    /// Parses a StorageDevice object from system. If the provided name
+    /// doesn't start with `sd` returns an error.
     pub fn stat_block_device(&self, name: &str) -> Result<StorageDevice> {
         self.1.stat_block_device(name)
     }
 
     #[cfg(target_os = "linux")]
+    /// Parses a DeviceMapper object from system. If the provided name
+    /// doesn't start with `dm` returns an error.
     pub fn stat_scsi_cdrom(&self, name: &str) -> Result<ScsiCdrom> {
         self.1.stat_scsi_cdrom(name)
     }
 
     #[cfg(target_os = "linux")]
+    /// Parses a ScsiCdrom object from system. If the provided name
+    /// doesn't start with `sr` returns an error.
     pub fn stat_device_mapper(&self, name: &str) -> Result<DeviceMapper> {
         self.1.stat_device_mapper(name)
     }
 
     #[cfg(target_os = "linux")]
+    /// Parses a MultipleDeviceStorage object from system. If the provided name
+    /// doesn't start with `md` returns an error.
     pub fn stat_multiple_device_storage(&self, name: &str) -> Result<MultipleDeviceStorage> {
         self.1.stat_multiple_device_storage(name)
     }
 
     #[cfg(target_os = "linux")]
+    /// Returns block size of device in bytes
+    pub fn block_size(&self, name: &str) -> Result<i64> {
+        self.1.block_size(name)
+    }
+
+    #[cfg(target_os = "linux")]
+    /// Returns detailed information about memory
     pub fn memory(&self) -> Result<Memory> {
         self.1.memory()
     }
 
     #[cfg(target_os = "linux")]
+    /// Returns detailed Process information parsed from /proc/[pid]/stat
     pub fn stat_process(&self, pid: i32) -> Result<Process> {
         self.1.stat_process(pid)
     }
     #[cfg(target_os = "linux")]
+    /// Returns a list of pids read from /proc
     pub fn pids(&self) -> Result<Vec<i32>> {
         self.1.pids()
     }
     #[cfg(target_os = "linux")]
+    /// Returns all processes currently seen in /proc parsed as Processes
     pub fn processes(&self) -> Result<Processes> {
         self.1.processes()
     }
     #[cfg(target_os = "linux")]
+    /// Returns kernel version of host os.
     pub fn kernel_version(&self) -> Result<String> {
         self.1.kernel_version()
     }
     #[cfg(target_os = "linux")]
+    /// Returns MountPoints read from /proc/mounts
     pub fn mounts(&self) -> Result<MountPoints> {
         self.1.mounts()
+    }
+    #[cfg(target_os = "linux")]
+    /// Returns virtual Cores of host cpu
+    pub fn cores(&self) -> Result<Cores> {
+        self.1.cores()
+    }
+    #[cfg(target_os = "linux")]
+    /// Returns a Processor object containing gathered information about host cpu
+    pub fn processor(&self) -> Result<Processor> {
+        self.1.processor()
     }
 }

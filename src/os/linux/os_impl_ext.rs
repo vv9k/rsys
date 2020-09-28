@@ -24,7 +24,6 @@ pub trait OsImplExt {
     fn stat_multiple_device_storage(&self, name: &str) -> Result<MultipleDeviceStorage>;
 
     /// Returns block size of device in bytes
-    /// device argument must be a path to block device file descriptor
     fn block_size(&self, name: &str) -> Result<i64>;
 
     //
