@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use rsys::{linux::cores, Result, Rsys};
+use rsys::{Result, Rsys};
 
 #[cfg(target_os = "linux")]
 fn main() -> Result<()> {
