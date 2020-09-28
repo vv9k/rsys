@@ -1,4 +1,8 @@
 # rsys
+[![Build Status](https://travis-ci.com/wojciechkepka/rsys.svg?branch=master)](https://travis-ci.com/wojciechkepka/rsys)
+[![crates.io](https://img.shields.io/crates/v/rsys)](https://crates.io/crates/rsys)
+[![crates.io](https://img.shields.io/crates/l/rsys)](https://github.com/wojciechkepka/rsys/blob/master/LICENSE)
+[![Docs](https://img.shields.io/badge/docs-master-brightgreen)](https://docs.rs/rsys)  
 Crate for aquiring information about host machine and operating system
 in a os-agnostic fashion.  
  
