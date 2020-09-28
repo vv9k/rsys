@@ -13,4 +13,5 @@ before_install:
 install:
   - cargo clippy -- -Wclippy::all
   - cargo fmt -- --check
-  - cargo test
+  - cargo test --all-features
+  - cargo doc --all-features
