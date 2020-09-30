@@ -44,16 +44,19 @@ fn core_ids() -> Result<Vec<u32>> {
     for entry in SysPath::SysDevicesSystemCpu().read_dir()? {
         if let Ok(entry) = entry {
             let file_name = entry.file_name().to_string_lossy().to_string();
-            if file_name.starts_with("cpu") {
-                if let Some(digits) = file_name.split("cpu").last() {
-                    if let Some(digit) = digits.chars().next() {
-                        if digit.is_digit(10) {
-                            core_ids.push(
-                                u32::from_str_radix(digits, 10)
-                                    .map_err(|e| Error::InvalidInputError(file_name, e.to_string()))?,
-                            );
-                        }
+            if !file_name.starts_with("cpu") {
+                continue;
+            }
+            if let Some(digits) = file_name.split("cpu").last() {
+                if let Some(digit) = digits.chars().next() {
+                    if !digit.is_digit(10) {
+                        continue;
                     }
+
+                    core_ids.push(
+                        u32::from_str_radix(digits, 10)
+                            .map_err(|e| Error::InvalidInputError(file_name, e.to_string()))?,
+                    );
                 }
             }
         }
