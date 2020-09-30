@@ -1,6 +1,6 @@
 [package]
 name = "rsys"
-version = "0.4.2"
+version = "0.4.3"
 authors = ["Wojciech Kępka <wojciech@wkepka.dev"]
 edition = "2018"
 license = "MIT"
@@ -18,8 +18,8 @@ serialize = ["serde"]
 [dependencies]
 thiserror = "1"
 serde_json = "1"
-#rsys_macro = { path = "./rsys-macro/" }
-rsys_macro = "0.1.2"
+rsys_macro = { path = "./rsys-macro/" }
+#rsys_macro = "0.1.2"
 serde = {version = "1", optional = true, features = ["derive"]}
 cfg-if = "0.1"
 
