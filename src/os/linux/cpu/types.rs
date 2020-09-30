@@ -23,6 +23,7 @@ impl Processor {
                 proc.bogomips = Self::bogomips_from(line)?;
             } else if line.starts_with(CACHE_SIZE) {
                 proc.cache_size = Self::cache_size_from(line)?;
+                break;
             }
         }
         Ok(proc)
