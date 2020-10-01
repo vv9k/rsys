@@ -1,0 +1,3 @@
+[submodule "rsys-cli"]
+	path = rsys-cli
+	url = https://github.com/wojciechkepka/rsys-cli
