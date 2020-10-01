@@ -50,6 +50,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "rsys-cli"
+version = "0.1.0"
+dependencies = [
+ "rsys",
+]
+
+[[package]]
 name = "rsys_macro"
 version = "0.1.2"
 dependencies = [
