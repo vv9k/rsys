@@ -15,11 +15,6 @@ categories = ["os"]
 default = []
 serialize = ["serde"]
 
-[workspace]
-members = [
-    "rsys-cli"
-]
-
 [dependencies]
 thiserror = "1"
 serde_json = "1"
