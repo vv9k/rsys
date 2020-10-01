@@ -7,20 +7,26 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf, str::SplitAsciiWhitespace};
 
+/// Multiple partitions
 pub type Partitions = Vec<Partition>;
+/// Multiple device mappers
 pub type DeviceMappers = Vec<DeviceMapper>;
+/// Multiple storage devices
 pub type StorageDevices = Vec<StorageDevice>;
+/// Multiple scsi cdroms
 pub type ScsiCdroms = Vec<ScsiCdrom>;
+/// Multiple device storages
 pub type MultipleDeviceStorages = Vec<MultipleDeviceStorage>;
 
+/// Helper trait for generic parsing of storage devices from /sys/block/<dev>
 pub(crate) trait FromSysPath<T> {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T>;
+    fn prefix() -> &'static str;
 }
 
 fn find_subdevices<T: FromSysPath<T>>(
     mut device_path: PathBuf,
     holder_or_slave: Hierarchy,
-    dev_ty: DevType,
     hierarchy: bool,
 ) -> Option<Vec<T>> {
     match holder_or_slave {
@@ -30,7 +36,7 @@ fn find_subdevices<T: FromSysPath<T>>(
     };
 
     let mut devs = Vec::new();
-    let prefix = dev_ty.prefix();
+    let prefix = T::prefix();
     if let Ok(dir) = fs::read_dir(device_path.as_path()) {
         for entry in dir {
             if let Ok(entry) = entry {
@@ -53,48 +59,51 @@ fn find_subdevices<T: FromSysPath<T>>(
 
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+/// Helper enum for generic function find_subdevices based on which
+/// it decides to parse slaves or holders or nothing.
 pub(crate) enum Hierarchy {
     Holders,
     Slaves,
     None,
 }
 
-#[derive(Clone, Debug)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-pub(crate) enum DevType {
-    Partition,
-    DevMapper,
-    Md,
-}
-impl DevType {
-    pub(crate) fn prefix(self) -> &'static str {
-        match self {
-            DevType::Partition => "sd",
-            DevType::DevMapper => "dm",
-            DevType::Md => "md",
-        }
-    }
-}
-
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-/// Represents stats of a block storage device
-/// read from /sys/block/<device>/stat
+/// Provides several statistics about the state of block device.
+/// This information is gathered from /sys/block/<dev>/stat
 pub struct BlockStorageStat {
+    /// Count of read I/O requests
     pub read_ios: usize,
+    /// Count of merged read I/O requests
     pub read_merges: usize,
+    /// Count of sectors read from this block device. One sector is 512-bytes big.
     pub read_sectors: usize,
+    /// Milliseconds that I/O requests have waited on this block device
+    /// while processing read requests.
     pub read_ticks: u64,
+    /// Count of write I/O requests
     pub write_ios: usize,
+    /// Count of merged write I/O requests
     pub write_merges: usize,
+    /// Count of sectors written to this block device. One sector is 512-bytes big.
     pub write_sectors: usize,
+    /// Count of milliseconds that I/O requests have waited on this block device
+    /// while processing write requests.
     pub write_ticks: u64,
+    /// Number of I/O requests that have been issued to the device driver
+    /// but have not yet completed.
     pub in_flight: usize,
+    /// Count of milliseconds that this device had I/O requests queued for.
     pub io_ticks: u64,
     pub time_in_queue: u64,
+    /// Count of discard I/O requests
     pub discard_ios: usize,
+    /// Count of merged discard I/O requests
     pub discard_merges: usize,
+    /// Count of sectors discarded from this block device. One sector is 512-bytes big.
     pub discard_sectors: usize,
+    /// Count of milliseconds that I/O requests have waited on this block device
+    /// while processing discard requests.
     pub discard_ticks: u64,
 }
 impl BlockStorageStat {
@@ -123,12 +132,19 @@ impl BlockStorageStat {
 
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+/// Common information of each type of storage device.
 pub struct BlockStorageInfo {
+    /// Device name like "sda"
     pub dev: String,
+    /// Size in bytes
     pub size: usize,
+    /// Major number identifies the driver associated with this device
     pub maj: u32,
+    /// Minor number
     pub min: u32,
+    /// Size of one block
     pub block_size: i64,
+    /// I/O stats of this device
     pub stat: BlockStorageStat,
 }
 impl BlockStorageInfo {
@@ -155,6 +171,7 @@ impl BlockStorageInfo {
 
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+/// Represents a scsi cdrom
 pub struct ScsiCdrom {
     pub info: BlockStorageInfo,
     pub model: String,
@@ -201,13 +218,8 @@ impl StorageDevice {
             model: trim_parse_map::<String>(&SysPath::SysBlockDevModel(name).read()?)?,
             vendor: trim_parse_map::<String>(&SysPath::SysBlockDevVendor(name).read()?)?,
             state: trim_parse_map::<String>(&SysPath::SysBlockDevState(name).read()?)?,
-            partitions: find_subdevices::<Partition>(
-                SysPath::SysBlockDev(name).path(),
-                Hierarchy::None,
-                DevType::Partition,
-                false,
-            )
-            .unwrap_or_default(),
+            partitions: find_subdevices::<Partition>(SysPath::SysBlockDev(name).path(), Hierarchy::None, false)
+                .unwrap_or_default(),
         })
     }
 }
@@ -233,16 +245,10 @@ impl DeviceMapper {
             info: BlockStorageInfo::from_sys_path(SysPath::SysBlockDev(name).path())?,
             uuid: trim_parse_map::<String>(&SysPath::SysDevMapperUuid(name).read()?)?,
             name: trim_parse_map::<String>(&SysPath::SysDevMapperName(name).read()?)?,
-            slave_parts: find_subdevices::<Partition>(
-                SysPath::SysBlockDev(name).path(),
-                Hierarchy::Slaves,
-                DevType::Partition,
-                false,
-            ),
+            slave_parts: find_subdevices::<Partition>(SysPath::SysBlockDev(name).path(), Hierarchy::Slaves, false),
             slave_mds: find_subdevices::<MultipleDeviceStorage>(
                 SysPath::SysBlockDev(name).path(),
                 Hierarchy::Slaves,
-                DevType::Md,
                 true,
             ),
         })
@@ -256,16 +262,19 @@ impl FromSysPath<DeviceMapper> for DeviceMapper {
             name: trim_parse_map::<String>(&SysPath::Custom(path.join("dm").join("name")).read()?)?,
             uuid: trim_parse_map::<String>(&SysPath::Custom(path.join("dm").join("uuid")).read()?)?,
             slave_mds: if hierarchy {
-                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, DevType::Md, true)
+                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, true)
             } else {
                 None
             },
             slave_parts: if hierarchy {
-                find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
+                find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, false)
             } else {
                 None
             },
         })
+    }
+    fn prefix() -> &'static str {
+        "dm"
     }
 }
 
@@ -281,16 +290,20 @@ impl FromSysPath<Partition> for Partition {
         Ok(Partition {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             holder_mds: if hierarchy {
-                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Holders, DevType::Md, false)
+                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Holders, false)
             } else {
                 None
             },
             holder_dms: if hierarchy {
-                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, DevType::DevMapper, false)
+                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, false)
             } else {
                 None
             },
         })
+    }
+
+    fn prefix() -> &'static str {
+        "sd"
     }
 }
 
@@ -308,12 +321,12 @@ impl MultipleDeviceStorage {
             info: BlockStorageInfo::from_sys_path(path.clone())?,
             level: trim_parse_map::<String>(&SysPath::Custom(path.join("md").join("level")).read()?)?,
             slave_parts: if hierarchy {
-                find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, DevType::Partition, false)
+                find_subdevices::<Partition>(path.clone(), Hierarchy::Slaves, false)
             } else {
                 None
             },
             holder_devices: if hierarchy {
-                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, DevType::DevMapper, false)
+                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, false)
             } else {
                 None
             },
@@ -333,5 +346,8 @@ impl MultipleDeviceStorage {
 impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self> {
         Self::from_sys_path(path, hierarchy)
+    }
+    fn prefix() -> &'static str {
+        "md"
     }
 }
