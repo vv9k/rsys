@@ -1,6 +1,6 @@
 [package]
 name = "rsys"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["Wojciech Kępka <wojciech@wkepka.dev"]
 edition = "2018"
 license = "MIT"
