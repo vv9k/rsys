@@ -291,7 +291,7 @@ impl Rsys {
         self.1.processor()
     }
     #[cfg(target_os = "linux")]
-    /// Returns a Processor object containing gathered information about host cpu
+    /// Returns network interfaces on host os
     pub fn ifaces(&self) -> Result<Interfaces> {
         self.1.ifaces()
     }

@@ -70,7 +70,7 @@ pub trait OsImplExt {
     // net
     //
 
-    /// Returns Ifaces parsed from /proc/net/dev
+    /// Returns network interfaces on host os
     fn ifaces(&self) -> Result<Interfaces>;
 }
 
