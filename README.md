@@ -17,7 +17,7 @@ Main goals are clear and easy api with as much of the api being os-agnostic.
 
 ```toml
 [dependencies]
-rsys = "0.4"
+rsys = "0.5"
 ```
 
 - `main.rs`
