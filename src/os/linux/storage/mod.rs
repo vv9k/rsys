@@ -5,7 +5,7 @@ pub use types::*;
 
 #[cfg(test)]
 use super::mocks::SYS_BLOCK_DEV_STAT;
-use super::SysPath;
+use super::{storage::stat, SysPath};
 use crate::Result;
 use system::blk_bsz_get;
 
@@ -36,25 +36,40 @@ pub fn block_size(device: &str) -> Result<i64> {
 /// Parses a StorageDevice object from system. If the provided name
 /// doesn't start with `sd` returns an error.
 pub fn stat_block_device(name: &str) -> Result<StorageDevice> {
-    StorageDevice::from_sys(name)
+    stat::<StorageDevice>(name)
 }
 
 /// Parses a DeviceMapper object from system. If the provided name
 /// doesn't start with `dm` returns an error.
 pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper> {
-    DeviceMapper::from_sys(name)
+    stat::<DeviceMapper>(name)
 }
 
 /// Parses a ScsiCdrom object from system. If the provided name
 /// doesn't start with `sr` returns an error.
 pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom> {
-    ScsiCdrom::from_sys(name)
+    stat::<ScsiCdrom>(name)
 }
 
 /// Parses a MultipleDeviceStorage object from system. If the provided name
 /// doesn't start with `md` returns an error.
 pub fn stat_multiple_device_storage(name: &str) -> Result<MultipleDeviceStorage> {
-    MultipleDeviceStorage::from_sys(name)
+    stat::<MultipleDeviceStorage>(name)
+}
+
+/// Parses multiple storage devices of type T from filesystem
+pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>() -> Result<Vec<T>> {
+    let mut devices = Vec::new();
+    for entry in SysPath::SysBlock.read_dir()? {
+        if let Ok(entry) = entry {
+            let filename = entry.file_name().to_string_lossy().to_string();
+            if filename.starts_with(T::prefix()) {
+                devices.push(stat::<T>(&entry.file_name().to_string_lossy().to_string())?);
+            }
+        }
+    }
+
+    Ok(devices)
 }
 
 #[cfg(test)]

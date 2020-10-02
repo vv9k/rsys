@@ -182,8 +182,8 @@ pub struct ScsiCdrom {
     pub vendor: String,
     pub state: String,
 }
-impl ScsiCdrom {
-    pub(crate) fn from_sys(name: &str) -> Result<ScsiCdrom> {
+impl FromSysName<ScsiCdrom> for ScsiCdrom {
+    fn from_sys(name: &str) -> Result<ScsiCdrom> {
         if !name.starts_with("sr") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -214,8 +214,9 @@ pub struct StorageDevice {
     pub state: String,
     pub partitions: Partitions,
 }
-impl StorageDevice {
-    pub(crate) fn from_sys(name: &str) -> Result<StorageDevice> {
+impl FromSysName<StorageDevice> for StorageDevice {
+    fn from_sys(name: &str) -> Result<StorageDevice> {
+        println!("{}", name);
         if !name.starts_with("sd") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -247,8 +248,8 @@ pub struct DeviceMapper {
     pub slave_parts: Option<Partitions>,
     pub slave_mds: Option<MultipleDeviceStorages>,
 }
-impl DeviceMapper {
-    pub(crate) fn from_sys(name: &str) -> Result<DeviceMapper> {
+impl FromSysName<DeviceMapper> for DeviceMapper {
+    fn from_sys(name: &str) -> Result<DeviceMapper> {
         if !name.starts_with("dm") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
@@ -324,6 +325,14 @@ impl BlockStorageDeviceName for Partition {
     }
 }
 
+pub(crate) fn stat<T: FromSysName<T>>(name: &str) -> Result<T> {
+    T::from_sys(name)
+}
+
+pub trait FromSysName<T> {
+    fn from_sys(name: &str) -> Result<T>;
+}
+
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct MultipleDeviceStorage {
@@ -349,15 +358,16 @@ impl MultipleDeviceStorage {
             },
         })
     }
-
-    pub(crate) fn from_sys(name: &str) -> Result<MultipleDeviceStorage> {
+}
+impl FromSysName<MultipleDeviceStorage> for MultipleDeviceStorage {
+    fn from_sys(name: &str) -> Result<MultipleDeviceStorage> {
         if !name.starts_with("md") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
                 "multiple device storage name must begin with 'md'".to_string(),
             ));
         }
-        MultipleDeviceStorage::from_sys_path(SysPath::SysClassBlock(name).path(), true)
+        MultipleDeviceStorage::from_sys_path(SysPath::SysClassBlockDev(name).path(), true)
     }
 }
 impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
