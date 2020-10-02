@@ -2,9 +2,12 @@
 use super::mocks::UPTIME;
 use super::{run, SysPath};
 use crate::{Error, Result};
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 use std::process::Command;
 
 #[derive(Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a line of /proc/mounts
 pub struct MountPoint {
     volume: String,

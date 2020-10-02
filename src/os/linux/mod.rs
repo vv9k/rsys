@@ -25,8 +25,8 @@ pub use {
     ps::{pids, processes, stat_process, Process, ProcessState, Processes},
     storage::{
         block_size, stat_block_device, stat_device_mapper, stat_multiple_device_storage, stat_scsi_cdrom,
-        BlockStorageStat, DeviceMapper, DeviceMappers, MultipleDeviceStorage, MultipleDeviceStorages, Partition,
-        Partitions, ScsiCdrom, ScsiCdroms, StorageDevice, StorageDevices,
+        BlockStorageDeviceName, BlockStorageStat, DeviceMapper, DeviceMappers, MultipleDeviceStorage,
+        MultipleDeviceStorages, Partition, Partitions, ScsiCdrom, ScsiCdroms, StorageDevice, StorageDevices,
     },
 };
 

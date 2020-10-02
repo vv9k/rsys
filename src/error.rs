@@ -12,6 +12,8 @@ pub enum RsysError {
     TimeError(String),
     #[error("Failed to parse value from input `{0}` - `{1}`")]
     InvalidInputError(String, String),
+    #[error("Failed to serialize `{0}` - `{1}`")]
+    SerializeError(String, String),
 
     // Windows
     #[cfg(target_os = "windows")]
