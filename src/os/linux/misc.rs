@@ -1,10 +1,8 @@
-#[cfg(test)]
-use super::mocks::UPTIME;
-use super::{run, SysPath};
-use crate::{Error, Result};
+//! Other api
+use super::SysPath;
+use crate::Result;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 
 #[derive(Debug, Default, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
@@ -45,41 +43,6 @@ pub struct MountPoints(Vec<MountPoint>);
 //--------------------------------------------------------------------------------
 // API
 
-/// Returns a hostname.
-pub fn hostname() -> Result<String> {
-    Ok(SysPath::ProcHostname.read()?.trim().to_string())
-}
-
-/// Internal implementation of parsing uptime from /proc/uptime
-fn _uptime(out: &str) -> Result<u64> {
-    Ok(out
-        .split_ascii_whitespace()
-        .take(1)
-        .collect::<String>()
-        .parse::<f64>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))? as u64)
-}
-
-/// Returns current uptime.
-pub fn uptime() -> Result<u64> {
-    _uptime(&SysPath::ProcUptime.read()?)
-}
-
-/// Returns the processor architecture
-pub fn arch() -> Result<String> {
-    run(Command::new("uname").arg("-m"))
-}
-
-/// Returns a domainname read from /proc/sys/kernel/domainname
-pub fn domainname() -> Result<String> {
-    Ok(SysPath::ProcDomainName.read()?.trim().to_string())
-}
-
-/// Returns a kernel version of host os.
-pub fn kernel_version() -> Result<String> {
-    SysPath::ProcKernelRelease.read()
-}
-
 /// Returns MountPoints read from /proc/mounts
 pub fn mounts() -> Result<MountPoints> {
     let mut mps = Vec::new();
@@ -89,13 +52,4 @@ pub fn mounts() -> Result<MountPoints> {
         }
     }
     Ok(MountPoints(mps))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn gets_uptime() {
-        assert_eq!(_uptime(UPTIME), Ok(5771))
-    }
 }

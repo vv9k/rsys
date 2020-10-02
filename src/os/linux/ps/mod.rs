@@ -1,3 +1,4 @@
+//! All about processes
 #[cfg(test)]
 use super::mocks::{PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
 use super::SysPath;

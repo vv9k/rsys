@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug, PartialEq, Eq)]
+/// Error type used by this crate
 pub enum RsysError {
     #[error("Failed to execute command - `{0}`")]
     CommandRunError(String),
@@ -21,4 +22,6 @@ pub enum RsysError {
     WinApiError(u32, String),
 }
 
+/// Helper result definition for less repetition in type signatures
+/// used throughout this crate
 pub type RsysResult<T> = std::result::Result<T, RsysError>;

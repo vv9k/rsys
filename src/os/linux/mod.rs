@@ -3,36 +3,76 @@
 
 #[cfg(test)]
 pub(crate) mod mocks;
+#[cfg(test)]
+use mocks::UPTIME;
 
-mod cpu;
+pub mod cpu;
 #[cfg(feature = "display")]
 mod display;
-mod mem;
-mod misc;
-mod net;
+pub mod mem;
+pub mod misc;
+pub mod net;
 mod os_impl_ext;
-mod ps;
-mod storage;
+pub mod ps;
+pub mod storage;
 mod sysproc;
 
 use super::{run, OsImpl};
-use crate::Result;
+use crate::{Error, Result};
+use std::process::Command;
 
-pub use {
-    cpu::{cores, cpu, cpu_clock, cpu_cores, logical_cores, processor, Core, Cores, Processor},
-    mem::{memory, memory_free, memory_total, swap_free, swap_total, Memory},
-    misc::{arch, domainname, hostname, kernel_version, mounts, uptime, MountPoint, MountPoints},
-    net::{default_iface, ifaces, interfaces, ipv4, ipv6, mac, IfaceStat, Interface, Interfaces},
+pub(crate) use {
+    cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
+    mem::{memory_free, memory_total, swap_free, swap_total},
+    net::{default_iface, interfaces, ipv4, ipv6, mac},
     os_impl_ext::OsImplExt,
-    ps::{pids, processes, stat_process, Process, ProcessState, Processes},
-    storage::{
-        block_size, stat_block_device, stat_device_mapper, stat_multiple_device_storage, stat_scsi_cdrom,
-        BlockStorageDeviceName, BlockStorageInfo, BlockStorageStat, DeviceMapper, DeviceMappers, MultipleDeviceStorage,
-        MultipleDeviceStorages, Partition, Partitions, ScsiCdrom, ScsiCdroms, StorageDevice, StorageDevices,
-    },
 };
 
 pub(crate) use sysproc::SysPath;
 
+/// Returns a hostname.
+pub fn hostname() -> Result<String> {
+    Ok(SysPath::ProcHostname.read()?.trim().to_string())
+}
+
+/// Internal implementation of parsing uptime from /proc/uptime
+fn _uptime(out: &str) -> Result<u64> {
+    Ok(out
+        .split_ascii_whitespace()
+        .take(1)
+        .collect::<String>()
+        .parse::<f64>()
+        .map_err(|e| Error::CommandParseError(e.to_string()))? as u64)
+}
+
+/// Returns current uptime.
+pub fn uptime() -> Result<u64> {
+    _uptime(&SysPath::ProcUptime.read()?)
+}
+
+/// Returns the processor architecture
+pub fn arch() -> Result<String> {
+    run(Command::new("uname").arg("-m"))
+}
+
+/// Returns a domainname read from /proc/sys/kernel/domainname
+pub fn domainname() -> Result<String> {
+    Ok(SysPath::ProcDomainName.read()?.trim().to_string())
+}
+
+/// Returns a kernel version of host os.
+pub fn kernel_version() -> Result<String> {
+    SysPath::ProcKernelRelease.read()
+}
+
 #[derive(Default, OsImpl)]
 pub(crate) struct Linux {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn gets_uptime() {
+        assert_eq!(_uptime(UPTIME), Ok(5771))
+    }
+}

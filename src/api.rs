@@ -1,7 +1,12 @@
 #[cfg(target_os = "linux")]
 use crate::linux::{
-    Cores, DeviceMapper, Interfaces, Linux, Memory, MountPoints, MultipleDeviceStorage, Process, Processes, Processor,
-    ScsiCdrom, StorageDevice,
+    cpu::{Cores, Processor},
+    mem::Memory,
+    misc::MountPoints,
+    net::Interfaces,
+    ps::{Process, Processes},
+    storage::{DeviceMapper, MultipleDeviceStorage, ScsiCdrom, StorageDevice},
+    Linux,
 };
 #[cfg(target_os = "macos")]
 use crate::macos::Macos;

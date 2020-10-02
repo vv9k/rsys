@@ -1,8 +1,14 @@
 #![cfg(feature = "display")]
 
 use super::{
-    BlockStorageInfo, BlockStorageStat, Core, DeviceMapper, IfaceStat, Interface, Interfaces, Memory, MountPoint,
-    MountPoints, MultipleDeviceStorage, Partition, Process, ProcessState, Processor, ScsiCdrom, StorageDevice,
+    cpu::{Core, Processor},
+    mem::Memory,
+    misc::{MountPoint, MountPoints},
+    net::{IfaceStat, Interface, Interfaces},
+    ps::{Process, ProcessState},
+    storage::{
+        BlockStorageInfo, BlockStorageStat, DeviceMapper, MultipleDeviceStorage, Partition, ScsiCdrom, StorageDevice,
+    },
 };
 use std::fmt::{self, Formatter};
 

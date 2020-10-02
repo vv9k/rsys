@@ -1,4 +1,4 @@
-use super::*;
+use super::{cpu::*, kernel_version, mem::*, misc::*, net::*, ps::*, storage::*, Linux};
 use crate::Result;
 
 /// Trait extending Rsys functionality with linux specific api
