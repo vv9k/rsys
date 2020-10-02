@@ -51,7 +51,7 @@ fn find_subdevices<T: FromSysPath<T> + BlockStorageDeviceName>(
                 }
             }
         }
-        if devs.len() != 0 {
+        if !devs.is_empty() {
             return Some(devs);
         }
     }
@@ -154,10 +154,12 @@ impl BlockStorageInfo {
         let (maj, min) = parse_maj_min(&SysPath::Custom(path.join("dev")).read()?).unwrap_or_default();
         let device = path
             .file_name()
-            .ok_or(Error::InvalidInputError(
-                path.to_string_lossy().to_string(),
-                "Given path doesn't have a file name".to_string(),
-            ))?
+            .ok_or_else(|| {
+                Error::InvalidInputError(
+                    path.to_string_lossy().to_string(),
+                    "Given path doesn't have a file name".to_string(),
+                )
+            })?
             .to_string_lossy()
             .to_string();
         Ok(BlockStorageInfo {
@@ -309,7 +311,7 @@ impl FromSysPath<Partition> for Partition {
                 None
             },
             holder_dms: if hierarchy {
-                find_subdevices::<DeviceMapper>(path.clone(), Hierarchy::Holders, false)
+                find_subdevices::<DeviceMapper>(path, Hierarchy::Holders, false)
             } else {
                 None
             },

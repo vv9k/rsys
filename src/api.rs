@@ -23,32 +23,38 @@ use std::env;
 /// Main interface that allows for os-agnostic api.
 pub struct Rsys(Box<dyn OsImpl>, Box<dyn OsImplExt>);
 
-impl Rsys {
-    #[cfg(target_os = "linux")]
-    /// Creates a new instance of Rsys
-    pub fn new() -> Self {
+#[cfg(target_os = "linux")]
+impl Default for Rsys {
+    fn default() -> Self {
         Self(
             Box::new(Linux::new()) as Box<dyn OsImpl>,
             Box::new(Linux::new()) as Box<dyn OsImplExt>,
         )
     }
-
-    #[cfg(target_os = "macos")]
-    /// Creates a new instance of Rsys
-    pub fn new() -> Self {
+}
+#[cfg(target_os = "macos")]
+impl Default for Rsys {
+    fn default() -> Self {
         Self(
             Box::new(Macos::new()) as Box<dyn OsImpl>,
             Box::new(Macos::new()) as Box<dyn OsImplExt>,
         )
     }
-
-    #[cfg(target_os = "windows")]
-    /// Creates a new instance of Rsys
-    pub fn new() -> Self {
+}
+#[cfg(target_os = "windows")]
+impl Default for Rsys {
+    fn default() -> Self {
         Self(
             Box::new(Windows::new()) as Box<dyn OsImpl>,
             Box::new(Windows::new()) as Box<dyn OsImplExt>,
         )
+    }
+}
+
+impl Rsys {
+    /// Creates a new instance of Rsys
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Returns a hostname.

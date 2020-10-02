@@ -17,7 +17,7 @@ fn _ipv4(name: &str) -> Result<Option<String>> {
 /// Returns a default interface. If there are no interfaces in /proc/net/arp
 /// returns an empty string.
 pub fn default_iface() -> Result<String> {
-    if let Some(line) = SysPath::ProcNetArp.read()?.lines().skip(1).next() {
+    if let Some(line) = SysPath::ProcNetArp.read()?.lines().nth(2) {
         if let Some(name) = line.split_ascii_whitespace().last() {
             return Ok(name.to_string());
         }
