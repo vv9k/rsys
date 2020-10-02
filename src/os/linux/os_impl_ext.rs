@@ -65,6 +65,13 @@ pub trait OsImplExt {
 
     /// Returns a Processor object containing gathered information about host cpu
     fn processor(&self) -> Result<Processor>;
+
+    //
+    // net
+    //
+
+    /// Returns Ifaces parsed from /proc/net/dev
+    fn ifaces(&self) -> Result<Ifaces>;
 }
 
 impl OsImplExt for Linux {
@@ -116,7 +123,9 @@ impl OsImplExt for Linux {
         processes()
     }
 
+    //
     // other
+    //
 
     fn kernel_version(&self) -> Result<String> {
         kernel_version()
@@ -126,7 +135,9 @@ impl OsImplExt for Linux {
         mounts()
     }
 
+    //
     // cpu
+    //
 
     fn cores(&self) -> Result<Cores> {
         cores()
@@ -134,5 +145,13 @@ impl OsImplExt for Linux {
 
     fn processor(&self) -> Result<Processor> {
         processor()
+    }
+
+    //
+    // net
+    //
+
+    fn ifaces(&self) -> Result<Ifaces> {
+        ifaces()
     }
 }

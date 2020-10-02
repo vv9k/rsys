@@ -1,7 +1,7 @@
 #[cfg(target_os = "linux")]
 use crate::linux::{
-    Cores, DeviceMapper, Linux, Memory, MountPoints, MultipleDeviceStorage, Process, Processes, Processor, ScsiCdrom,
-    StorageDevice,
+    Cores, DeviceMapper, Ifaces, Linux, Memory, MountPoints, MultipleDeviceStorage, Process, Processes, Processor,
+    ScsiCdrom, StorageDevice,
 };
 #[cfg(target_os = "macos")]
 use crate::macos::Macos;
@@ -289,5 +289,10 @@ impl Rsys {
     /// Returns a Processor object containing gathered information about host cpu
     pub fn processor(&self) -> Result<Processor> {
         self.1.processor()
+    }
+    #[cfg(target_os = "linux")]
+    /// Returns a Processor object containing gathered information about host cpu
+    pub fn ifaces(&self) -> Result<Ifaces> {
+        self.1.ifaces()
     }
 }

@@ -2,6 +2,8 @@ use super::{cores, SysPath, BOGOMIPS, CACHE_SIZE, MODEL_NAME};
 use crate::{Error, Result};
 use std::str::FromStr;
 pub type Cores = Vec<Core>;
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]

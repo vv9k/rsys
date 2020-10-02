@@ -2,9 +2,14 @@
 use super::mocks::{IP, IP_IFACE, NET_DEV, ROUTE};
 use super::{run, SysPath};
 use crate::{Error, Result};
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
 use std::process::Command;
 
-pub type Ifaces = Vec<IfaceDev>;
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+/// A wrapper around multiple interface devices parsed from /proc/net/dev
+pub struct Ifaces(pub Vec<IfaceDev>);
 
 macro_rules! next_u64 {
     ($list:ident, $line:ident) => {
@@ -16,7 +21,8 @@ macro_rules! next_u64 {
     };
 }
 
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a data line of /proc/net/dev
 pub struct IfaceDev {
     pub iface: String,
@@ -179,7 +185,7 @@ pub fn ifaces() -> Result<Ifaces> {
             ifaces.push(iface)
         }
     }
-    Ok(ifaces)
+    Ok(Ifaces(ifaces))
 }
 
 #[cfg(test)]
