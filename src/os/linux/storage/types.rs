@@ -21,10 +21,12 @@ pub type MultipleDeviceStorages = Vec<MultipleDeviceStorage>;
 /// Helper trait for generic parsing of storage devices from /sys/block/<dev>
 pub(crate) trait FromSysPath<T> {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<T>;
+}
+pub trait BlockStorageDeviceName {
     fn prefix() -> &'static str;
 }
 
-fn find_subdevices<T: FromSysPath<T>>(
+fn find_subdevices<T: FromSysPath<T> + BlockStorageDeviceName>(
     mut device_path: PathBuf,
     holder_or_slave: Hierarchy,
     hierarchy: bool,
@@ -194,6 +196,11 @@ impl ScsiCdrom {
         })
     }
 }
+impl BlockStorageDeviceName for ScsiCdrom {
+    fn prefix() -> &'static str {
+        "sr"
+    }
+}
 
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
@@ -221,6 +228,11 @@ impl StorageDevice {
             partitions: find_subdevices::<Partition>(SysPath::SysBlockDev(name).path(), Hierarchy::None, false)
                 .unwrap_or_default(),
         })
+    }
+}
+impl BlockStorageDeviceName for StorageDevice {
+    fn prefix() -> &'static str {
+        "sd"
     }
 }
 
@@ -273,6 +285,8 @@ impl FromSysPath<DeviceMapper> for DeviceMapper {
             },
         })
     }
+}
+impl BlockStorageDeviceName for DeviceMapper {
     fn prefix() -> &'static str {
         "dm"
     }
@@ -301,7 +315,8 @@ impl FromSysPath<Partition> for Partition {
             },
         })
     }
-
+}
+impl BlockStorageDeviceName for Partition {
     fn prefix() -> &'static str {
         "sd"
     }
@@ -347,6 +362,8 @@ impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
     fn from_sys_path(path: PathBuf, hierarchy: bool) -> Result<Self> {
         Self::from_sys_path(path, hierarchy)
     }
+}
+impl BlockStorageDeviceName for MultipleDeviceStorage {
     fn prefix() -> &'static str {
         "md"
     }
