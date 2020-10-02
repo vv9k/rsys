@@ -85,6 +85,14 @@ impl Core {
             Frequency::Current => p = p.extend(&["scaling_cur_freq"]),
             Frequency::Maximal => p = p.extend(&["scaling_max_freq"]),
         };
+        if !p.clone().path().exists() {
+            p = SysPath::SysDevicesSystemCpuCore(id).extend(&["cpufreq"]);
+            match which {
+                Frequency::Minimal => p = p.extend(&["cpuinfo_min_freq"]),
+                Frequency::Current => p = p.extend(&["cpuinfo_cur_freq"]),
+                Frequency::Maximal => p = p.extend(&["cpuinfo_max_freq"]),
+            };
+        }
 
         p.read_as::<u64>()
     }
