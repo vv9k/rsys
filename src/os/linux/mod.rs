@@ -5,6 +5,8 @@
 pub(crate) mod mocks;
 
 mod cpu;
+#[cfg(feature = "display")]
+mod display;
 mod mem;
 mod misc;
 mod net;
@@ -25,7 +27,7 @@ pub use {
     ps::{pids, processes, stat_process, Process, ProcessState, Processes},
     storage::{
         block_size, stat_block_device, stat_device_mapper, stat_multiple_device_storage, stat_scsi_cdrom,
-        BlockStorageDeviceName, BlockStorageStat, DeviceMapper, DeviceMappers, MultipleDeviceStorage,
+        BlockStorageDeviceName, BlockStorageInfo, BlockStorageStat, DeviceMapper, DeviceMappers, MultipleDeviceStorage,
         MultipleDeviceStorages, Partition, Partitions, ScsiCdrom, ScsiCdroms, StorageDevice, StorageDevices,
     },
 };
