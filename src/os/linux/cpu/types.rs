@@ -94,6 +94,10 @@ impl Core {
             };
         }
 
+        if !p.clone().path().exists() {
+            return Ok(0);
+        }
+
         p.read_as::<u64>()
     }
 
