@@ -1,8 +1,8 @@
 #![cfg(feature = "display")]
 
 use super::{
-    BlockStorageInfo, BlockStorageStat, Core, DeviceMapper, IfaceDev, Ifaces, Memory, MountPoint, MountPoints,
-    MultipleDeviceStorage, Partition, Process, ProcessState, Processor, ScsiCdrom, StorageDevice,
+    BlockStorageInfo, BlockStorageStat, Core, DeviceMapper, IfaceStat, Interface, Interfaces, Memory, MountPoint,
+    MountPoints, MultipleDeviceStorage, Partition, Process, ProcessState, Processor, ScsiCdrom, StorageDevice,
 };
 use std::fmt::{self, Formatter};
 
@@ -76,12 +76,17 @@ impl fmt::Display for MountPoints {
         write!(f, "{:?}", self)
     }
 }
-impl fmt::Display for IfaceDev {
+impl fmt::Display for Interface {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
-impl fmt::Display for Ifaces {
+impl fmt::Display for Interfaces {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+impl fmt::Display for IfaceStat {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }

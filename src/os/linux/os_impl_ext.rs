@@ -71,7 +71,7 @@ pub trait OsImplExt {
     //
 
     /// Returns Ifaces parsed from /proc/net/dev
-    fn ifaces(&self) -> Result<Ifaces>;
+    fn ifaces(&self) -> Result<Interfaces>;
 }
 
 impl OsImplExt for Linux {
@@ -151,7 +151,7 @@ impl OsImplExt for Linux {
     // net
     //
 
-    fn ifaces(&self) -> Result<Ifaces> {
+    fn ifaces(&self) -> Result<Interfaces> {
         ifaces()
     }
 }
