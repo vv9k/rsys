@@ -38,7 +38,9 @@ impl MountPoint {
     }
 }
 
-pub type MountPoints = Vec<MountPoint>;
+#[derive(Debug, Default, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+pub struct MountPoints(Vec<MountPoint>);
 
 //--------------------------------------------------------------------------------
 // API
@@ -86,7 +88,7 @@ pub fn mounts() -> Result<MountPoints> {
             mps.push(mp);
         }
     }
-    Ok(mps)
+    Ok(MountPoints(mps))
 }
 
 #[cfg(test)]
