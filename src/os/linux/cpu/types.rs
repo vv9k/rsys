@@ -4,6 +4,7 @@ use std::str::FromStr;
 pub type Cores = Vec<Core>;
 
 #[derive(Debug, Default)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// A structure representing host machine cpu
 pub struct Processor {
     pub cores: Cores,
@@ -50,6 +51,7 @@ impl Processor {
 }
 
 #[derive(Debug, Default)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a virtual core in a cpu
 pub struct Core {
     pub id: u32,
