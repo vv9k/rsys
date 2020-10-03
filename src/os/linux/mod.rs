@@ -62,7 +62,7 @@ pub fn domainname() -> Result<String> {
 
 /// Returns a kernel version of host os.
 pub fn kernel_version() -> Result<String> {
-    SysPath::ProcKernelRelease.read()
+    SysPath::ProcKernelRelease.read().map(|s| s.trim().to_string())
 }
 
 #[derive(Default, OsImpl)]
