@@ -216,7 +216,6 @@ pub struct StorageDevice {
 }
 impl FromSysName<StorageDevice> for StorageDevice {
     fn from_sys(name: &str) -> Result<StorageDevice> {
-        println!("{}", name);
         if !name.starts_with("sd") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
