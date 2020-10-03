@@ -26,6 +26,7 @@ pub enum ProcessState {
     Wakekill,
     Waking,
     Parked,
+    Idle,
     Unknown,
 }
 impl From<&str> for ProcessState {
@@ -42,6 +43,7 @@ impl From<&str> for ProcessState {
             Some('K') => Wakekill,
             Some('W') => Waking,
             Some('P') => Parked,
+            Some('I') => Idle,
             _ => Unknown,
         }
     }
