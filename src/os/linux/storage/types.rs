@@ -80,7 +80,7 @@ pub(crate) enum Hierarchy {
     None,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Provides several statistics about the state of block device.
 /// This information is gathered from /sys/block/<dev>/stat
@@ -143,7 +143,7 @@ impl BlockStorageStat {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Common information of each type of storage device.
 pub struct BlockStorageInfo {
@@ -190,7 +190,7 @@ impl BlockStorageInfo {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a scsi cdrom
 pub struct ScsiCdrom {
@@ -221,7 +221,7 @@ impl BlockStorageDeviceName for ScsiCdrom {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a block storage device.
 pub struct StorageDevice {
@@ -260,7 +260,7 @@ impl BlockStorageDeviceName for StorageDevice {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct DeviceMapper {
     pub info: BlockStorageInfo,
@@ -322,7 +322,7 @@ impl BlockStorageDeviceName for DeviceMapper {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Partition {
     pub info: BlockStorageInfo,
@@ -352,7 +352,7 @@ impl BlockStorageDeviceName for Partition {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct MultipleDeviceStorage {
     pub info: BlockStorageInfo,
