@@ -80,19 +80,19 @@ impl OsImplExt for Linux {
     //
 
     fn stat_block_device(&self, name: &str) -> Result<StorageDevice> {
-        stat_block_device(name)
+        stat_block_device(name, true)
     }
 
     fn stat_device_mapper(&self, name: &str) -> Result<DeviceMapper> {
-        stat_device_mapper(name)
+        stat_device_mapper(name, true)
     }
 
     fn stat_scsi_cdrom(&self, name: &str) -> Result<ScsiCdrom> {
-        stat_scsi_cdrom(name)
+        stat_scsi_cdrom(name, true)
     }
 
     fn stat_multiple_device_storage(&self, name: &str) -> Result<MultipleDeviceStorage> {
-        stat_multiple_device_storage(name)
+        stat_multiple_device_storage(name, true)
     }
 
     fn block_size(&self, name: &str) -> Result<i64> {

@@ -35,36 +35,43 @@ pub fn block_size(device: &str) -> Result<i64> {
 
 /// Parses a StorageDevice object from system. If the provided name
 /// doesn't start with `sd` returns an error.
-pub fn stat_block_device(name: &str) -> Result<StorageDevice> {
-    stat::<StorageDevice>(name)
+///
+/// parse_stats decides whether or not to parse statistics for slave/holder devices,
+/// when this parameter is on and there are a lot of devices on host os the output
+/// might get quite large.
+pub fn stat_block_device(name: &str, parse_stats: bool) -> Result<StorageDevice> {
+    stat::<StorageDevice>(name, parse_stats)
 }
 
 /// Parses a DeviceMapper object from system. If the provided name
 /// doesn't start with `dm` returns an error.
-pub fn stat_device_mapper(name: &str) -> Result<DeviceMapper> {
-    stat::<DeviceMapper>(name)
+pub fn stat_device_mapper(name: &str, parse_stats: bool) -> Result<DeviceMapper> {
+    stat::<DeviceMapper>(name, parse_stats)
 }
 
 /// Parses a ScsiCdrom object from system. If the provided name
 /// doesn't start with `sr` returns an error.
-pub fn stat_scsi_cdrom(name: &str) -> Result<ScsiCdrom> {
-    stat::<ScsiCdrom>(name)
+pub fn stat_scsi_cdrom(name: &str, parse_stats: bool) -> Result<ScsiCdrom> {
+    stat::<ScsiCdrom>(name, parse_stats)
 }
 
 /// Parses a MultipleDeviceStorage object from system. If the provided name
 /// doesn't start with `md` returns an error.
-pub fn stat_multiple_device_storage(name: &str) -> Result<MultipleDeviceStorage> {
-    stat::<MultipleDeviceStorage>(name)
+pub fn stat_multiple_device_storage(name: &str, parse_stats: bool) -> Result<MultipleDeviceStorage> {
+    stat::<MultipleDeviceStorage>(name, parse_stats)
 }
 
 /// Parses multiple storage devices of type T from filesystem
-pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>() -> Result<Vec<T>> {
+pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: bool) -> Result<Vec<T>> {
     let mut devices = Vec::new();
     for entry in SysPath::SysBlock.read_dir()? {
         if let Ok(entry) = entry {
             let filename = entry.file_name().to_string_lossy().to_string();
             if filename.starts_with(T::prefix()) {
-                devices.push(stat::<T>(&entry.file_name().to_string_lossy().to_string())?);
+                devices.push(stat::<T>(
+                    &entry.file_name().to_string_lossy().to_string(),
+                    parse_stats,
+                )?);
             }
         }
     }
@@ -82,7 +89,7 @@ mod tests {
             vendor: "ATA".to_string(),
             state: "running".to_string(),
             info: BlockStorageInfo {
-                stat: BlockStorageStat {
+                stat: Some(BlockStorageStat {
                     read_ios: 327,
                     read_merges: 72,
                     read_sectors: 8832,
@@ -98,7 +105,7 @@ mod tests {
                     discard_merges: 0,
                     discard_sectors: 0,
                     discard_ticks: 0,
-                },
+                }),
 
                 dev: "sda".to_string(),
                 size: 3907029168,
@@ -109,7 +116,10 @@ mod tests {
             partitions: vec![],
         };
 
-        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(dev.info.stat))
+        assert_eq!(
+            BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT),
+            Ok(dev.info.stat.unwrap())
+        )
     }
     #[test]
     fn parses_maj_min() {
