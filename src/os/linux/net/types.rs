@@ -44,6 +44,12 @@ impl Interface {
             ipv6: ipv6(name)?,
         })
     }
+
+    /// Updates rx/tx stats
+    pub fn update(&mut self) -> Result<()> {
+        self.stat = IfaceStat::from_proc(&self.name)?;
+        Ok(())
+    }
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
