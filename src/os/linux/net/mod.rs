@@ -3,12 +3,41 @@ mod types;
 use super::mocks::NET_DEV;
 use super::SysPath;
 use crate::{Error, Result};
+use nix::{
+    ifaddrs::getifaddrs,
+    sys::socket::{InetAddr, SockAddr},
+};
 pub use types::*;
 
-fn _ipv4(name: &str) -> Result<Option<String>> {
-    for line in SysPath::ProcNetArp.read()?.lines() {
-        if line.ends_with(name) {
-            return Ok(line.split_ascii_whitespace().next().map(|s| s.to_string()));
+fn _ip(name: &str, v6: bool) -> Result<Option<String>> {
+    for iface in getifaddrs()
+        .map_err(|e| Error::FfiError(format!("getting ipv4 address of interface {}", name), e.to_string()))?
+        .into_iter()
+        .filter(|iface| iface.interface_name == name)
+    {
+        if let Some(addr) = iface.address {
+            match addr {
+                SockAddr::Inet(ip) => match ip {
+                    InetAddr::V4(_) if !v6 => {
+                        let s = addr.to_str();
+                        // skip :<port>
+                        if let Some(last_idx) = s.rfind(':') {
+                            return Ok(Some(s[..last_idx].to_string()));
+                        }
+                        return Ok(Some(s));
+                    }
+                    InetAddr::V6(_) if v6 => {
+                        let s = addr.to_str();
+                        // skip [ ]:<port>
+                        if let Some(last_idx) = s.rfind(']') {
+                            return Ok(Some(s[1..last_idx].to_string()));
+                        }
+                        return Ok(Some(s));
+                    }
+                    _ => continue,
+                },
+                _ => continue,
+            }
         }
     }
     Ok(None)
@@ -28,16 +57,20 @@ pub fn default_iface() -> Result<String> {
 /// Returns an IPv4 address of a given iface. If the interface is not
 /// found in /proc/net/arp returns "127.0.0.1"
 pub fn ipv4(iface: &str) -> Result<String> {
-    if let Some(ip) = _ipv4(&iface)? {
+    if let Some(ip) = _ip(&iface, false)? {
         Ok(ip)
     } else {
-        Ok("127.0.0.1".to_string())
+        Ok("0.0.0.0".to_string())
     }
 }
 
 /// Returns an IPv6 address of a given iface.
-pub fn ipv6(_iface: &str) -> Result<String> {
-    todo!()
+pub fn ipv6(iface: &str) -> Result<String> {
+    if let Some(ip) = _ip(&iface, true)? {
+        Ok(ip)
+    } else {
+        Ok("::0".to_string())
+    }
 }
 
 /// Returns a mac address of given iface

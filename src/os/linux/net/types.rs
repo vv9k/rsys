@@ -1,4 +1,4 @@
-use super::{ipv4, Error, Result, SysPath};
+use super::{ipv4, ipv6, Error, Result, SysPath};
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
@@ -15,6 +15,8 @@ pub struct Interface {
     pub name: String,
     /// IPv4 address of this interface
     pub ipv4: String,
+    /// IPv6 address of this interface
+    pub ipv6: String,
     /// Stats of this interface from /proc/net/dev
     pub stat: IfaceStat,
     /// Maximum transmission unit
@@ -39,6 +41,7 @@ impl Interface {
                 .read_as::<u64>()
                 .unwrap_or_else(|_| 0),
             ipv4: ipv4(name)?,
+            ipv6: ipv6(name)?,
         })
     }
 }
