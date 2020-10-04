@@ -5,7 +5,7 @@ pub type Cores = Vec<Core>;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// A structure representing host machine cpu
 pub struct Processor {
@@ -52,7 +52,7 @@ impl Processor {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a virtual core in a cpu
 pub struct Core {
