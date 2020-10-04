@@ -102,6 +102,19 @@ pub fn ifaces() -> Result<Interfaces> {
     Ok(Interfaces(ifaces))
 }
 
+pub fn iface(name: &str) -> Result<Option<Interface>> {
+    for entry in SysPath::SysClassNet.read_dir()? {
+        if let Ok(entry) = entry {
+            if let Some(filename) = entry.file_name().to_str() {
+                if filename == name {
+                    return Ok(Some(Interface::from_sys(filename)?));
+                }
+            }
+        }
+    }
+    Ok(None)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
