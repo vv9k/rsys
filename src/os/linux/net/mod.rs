@@ -60,7 +60,7 @@ pub fn ipv4(iface: &str) -> Result<String> {
     if let Some(ip) = _ip(&iface, false)? {
         Ok(ip)
     } else {
-        Ok("0.0.0.0".to_string())
+        Ok("".to_string())
     }
 }
 
@@ -69,7 +69,7 @@ pub fn ipv6(iface: &str) -> Result<String> {
     if let Some(ip) = _ip(&iface, true)? {
         Ok(ip)
     } else {
-        Ok("::0".to_string())
+        Ok("".to_string())
     }
 }
 
