@@ -36,6 +36,7 @@ const fn _IOR<T: Sized>(ty: u64, nr: u64) -> u64 {
 
 const BLKBSZGET: u64 = _IOR::<size_t>(0x12, 112);
 
+#[cfg(not(target_arch = "arm"))]
 pub(crate) fn blk_bsz_get(path: &str) -> Result<i64> {
     let mut size: usize = 0;
     let path = CString::new(path).map_err(|e| Error::InvalidInputError(path.to_string(), e.to_string()))?;
@@ -50,6 +51,25 @@ pub(crate) fn blk_bsz_get(path: &str) -> Result<i64> {
     }
 
     unsafe { ioctl(fileno(f), BLKBSZGET, &mut size) };
+
+    Ok(size as i64)
+}
+
+#[cfg(target_arch = "arm")]
+pub(crate) fn blk_bsz_get(path: &str) -> Result<i64> {
+    let mut size: usize = 0;
+    let path = CString::new(path).map_err(|e| Error::InvalidInputError(path.to_string(), e.to_string()))?;
+    let mode = CStr::from_bytes_with_nul(b"r\0").unwrap();
+
+    let f = unsafe { fopen(path.as_ptr(), mode.as_ptr()) };
+    if f.is_null() {
+        return Err(Error::FileReadError(
+            path.to_string_lossy().to_string(),
+            "failed to get file descriptor from `fopen`".to_string(),
+        ));
+    }
+
+    unsafe { ioctl(fileno(f), BLKBSZGET as u32, &mut size) };
 
     Ok(size as i64)
 }
