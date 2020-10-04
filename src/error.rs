@@ -15,6 +15,8 @@ pub enum RsysError {
     InvalidInputError(String, String),
     #[error("Failed to serialize `{0}` - `{1}`")]
     SerializeError(String, String),
+    #[error("Failed while calling system api - context: `{0}`, error: `{1}`")]
+    FfiError(String, String),
 
     // Windows
     #[cfg(target_os = "windows")]
