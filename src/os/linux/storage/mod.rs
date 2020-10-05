@@ -79,6 +79,20 @@ pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: 
     Ok(devices)
 }
 
+pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
+    let mut infos = Vec::new();
+    for entry in SysPath::SysClassBlock.read_dir()? {
+        if let Ok(entry) = entry {
+            let dev_name = entry.file_name().to_string_lossy().to_string();
+            infos.push(BlockStorageInfo::from_sys_path(
+                SysPath::SysClassBlock.extend(&[&dev_name]).path(),
+                true,
+            )?);
+        }
+    }
+    Ok(infos)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

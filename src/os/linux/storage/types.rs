@@ -161,7 +161,7 @@ pub struct BlockStorageInfo {
     pub stat: Option<BlockStorageStat>,
 }
 impl BlockStorageInfo {
-    fn from_sys_path(path: PathBuf, parse_stat: bool) -> Result<BlockStorageInfo> {
+    pub(crate) fn from_sys_path(path: PathBuf, parse_stat: bool) -> Result<BlockStorageInfo> {
         let (maj, min) = parse_maj_min(&SysPath::Custom(path.join("dev")).read()?).unwrap_or_default();
         let device = path
             .file_name()
