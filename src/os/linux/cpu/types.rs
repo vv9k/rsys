@@ -98,7 +98,7 @@ impl Core {
             return Ok(0);
         }
 
-        /// Value is in KHz so we multiply it by 1000
+        // Value is in KHz so we multiply it by 1000
         p.read_as::<u64>().map(|f| f * 1000)
     }
 
