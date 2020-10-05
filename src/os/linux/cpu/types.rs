@@ -98,7 +98,8 @@ impl Core {
             return Ok(0);
         }
 
-        p.read_as::<u64>()
+        /// Value is in KHz so we multiply it by 1000
+        p.read_as::<u64>().map(|f| f * 1000)
     }
 
     /// Updates all frequencies of this core to currently available values
