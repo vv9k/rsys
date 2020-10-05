@@ -46,7 +46,7 @@ fn _ip(name: &str, v6: bool) -> Result<Option<String>> {
 /// Returns a default interface. If there are no interfaces in /proc/net/arp
 /// returns an empty string.
 pub fn default_iface() -> Result<String> {
-    if let Some(line) = SysPath::ProcNetArp.read()?.lines().nth(2) {
+    if let Some(line) = SysPath::ProcNetArp.read()?.lines().nth(1) {
         if let Some(name) = line.split_ascii_whitespace().last() {
             return Ok(name.to_string());
         }
