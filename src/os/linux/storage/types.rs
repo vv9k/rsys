@@ -159,7 +159,7 @@ pub struct BlockStorageInfo {
     pub block_size: i64,
     /// I/O stats of this device
     pub stat: Option<BlockStorageStat>,
-    path: PathBuf,
+    pub(crate) path: PathBuf,
 }
 impl BlockStorageInfo {
     pub(crate) fn from_sys_path(path: PathBuf, parse_stat: bool) -> Result<BlockStorageInfo> {

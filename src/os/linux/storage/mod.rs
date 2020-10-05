@@ -96,8 +96,10 @@ pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
     #[test]
     fn parses_block_device_stat_from_sys_block_dev_stat() {
+        let path = PathBuf::new();
         let dev = StorageDevice {
             model: "ST2000DM008-2FR1".to_string(),
             vendor: "ATA".to_string(),
@@ -121,6 +123,7 @@ mod tests {
                     discard_ticks: 0,
                 }),
 
+                path,
                 dev: "sda".to_string(),
                 size: 3907029168,
                 maj: 8,
