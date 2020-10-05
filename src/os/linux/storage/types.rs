@@ -159,6 +159,7 @@ pub struct BlockStorageInfo {
     pub block_size: i64,
     /// I/O stats of this device
     pub stat: Option<BlockStorageStat>,
+    path: PathBuf,
 }
 impl BlockStorageInfo {
     pub(crate) fn from_sys_path(path: PathBuf, parse_stat: bool) -> Result<BlockStorageInfo> {
@@ -186,7 +187,14 @@ impl BlockStorageInfo {
             } else {
                 None
             },
+            path,
         })
+    }
+    pub fn update_stats(&mut self) -> Result<()> {
+        self.stat = Some(BlockStorageStat::from_stat(
+            &SysPath::Custom(self.path.join("stat")).read()?,
+        )?);
+        Ok(())
     }
 }
 
