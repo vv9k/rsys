@@ -4,7 +4,7 @@ use crate::linux::{
     mem::Memory,
     misc::MountPoints,
     net::Interfaces,
-    ps::{Process, Processes},
+    ps::{ProcessStat, Processes},
     storage::{DeviceMapper, MultipleDeviceStorage, ScsiCdrom, StorageDevice},
     Linux,
 };
@@ -268,7 +268,7 @@ impl Rsys {
 
     #[cfg(target_os = "linux")]
     /// Returns detailed Process information parsed from /proc/[pid]/stat
-    pub fn stat_process(&self, pid: i32) -> Result<Process> {
+    pub fn stat_process(&self, pid: i32) -> Result<ProcessStat> {
         self.1.stat_process(pid)
     }
     #[cfg(target_os = "linux")]

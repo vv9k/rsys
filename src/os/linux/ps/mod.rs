@@ -51,8 +51,57 @@ impl From<&str> for ProcessState {
 
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
-/// Represents a process from /proc/[pid]/stat
+pub struct Task {
+    pub cmdline: String,
+    pub stat: ProcessStat,
+}
+impl Task {
+    pub(crate) fn from_sys_path(path: SysPath) -> Result<Task> {
+        Ok(Task {
+            cmdline: path
+                .clone()
+                .extend(&["cmdline"])
+                .read()
+                .map(|s| s.trim_end_matches('\x00').to_string())?,
+            stat: ProcessStat::from_sys_path(path)?,
+        })
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Process {
+    pub cmdline: String,
+    pub stat: ProcessStat,
+}
+impl Process {
+    pub fn new(pid: i32) -> Result<Process> {
+        let p = SysPath::ProcPid(pid);
+        Ok(Process {
+            cmdline: p
+                .clone()
+                .extend(&["cmdline"])
+                .read()
+                .map(|s| s.trim_end_matches('\x00').to_string())?,
+            stat: ProcessStat::from_sys_path(p)?,
+        })
+    }
+
+    pub fn tasks(&self) -> Result<Vec<Task>> {
+        let mut tasks = Vec::new();
+        for entry in SysPath::ProcPid(self.stat.pid).extend(&["task"]).read_dir()? {
+            if let Ok(entry) = entry {
+                tasks.push(Task::from_sys_path(SysPath::Custom(entry.path()))?);
+            }
+        }
+        Ok(tasks)
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+/// Represents a process stat from /proc/[pid]/stat
+pub struct ProcessStat {
     pub pid: i32,
     pub name: String,
     pub state: ProcessState,
@@ -76,13 +125,14 @@ pub struct Process {
     pub cnswap: u32,
     pub guest_time: u32,
     pub cguest_time: u32,
+    pub processor: u32,
 }
 
-impl Process {
-    pub(crate) fn from_stat(stat: &str) -> Result<Process> {
+impl ProcessStat {
+    pub(crate) fn from_stat(stat: &str) -> Result<ProcessStat> {
         let mut elems = stat.split_ascii_whitespace();
 
-        Ok(Process {
+        Ok(ProcessStat {
             pid: next::<i32, SplitAsciiWhitespace>(&mut elems, &stat)?,
             name: {
                 let mut s = next::<String, SplitAsciiWhitespace>(&mut elems, &stat)?;
@@ -114,9 +164,14 @@ impl Process {
             rsslim: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
             nswap: next::<u32, SplitAsciiWhitespace>(skip(10, &mut elems), &stat)?,
             cnswap: next::<u32, SplitAsciiWhitespace>(&mut elems, &stat)?,
-            guest_time: next::<u32, SplitAsciiWhitespace>(skip(5, &mut elems), &stat)?,
+            processor: next::<u32, SplitAsciiWhitespace>(skip(1, &mut elems), &stat)?,
+            guest_time: next::<u32, SplitAsciiWhitespace>(skip(3, &mut elems), &stat)?,
             cguest_time: next::<u32, SplitAsciiWhitespace>(&mut elems, &stat)?,
         })
+    }
+
+    pub(crate) fn from_sys_path(path: SysPath) -> Result<ProcessStat> {
+        ProcessStat::from_stat(&path.extend(&["stat"]).read()?)
     }
 
     pub fn update(&mut self) -> Result<()> {
@@ -149,8 +204,8 @@ impl Process {
 }
 
 /// Returns detailed Process information parsed from /proc/[pid]/stat
-pub fn stat_process(pid: i32) -> Result<Process> {
-    Process::from_stat(&SysPath::ProcPidStat(pid).read()?)
+pub fn stat_process(pid: i32) -> Result<ProcessStat> {
+    ProcessStat::from_stat(&SysPath::ProcPidStat(pid).read()?)
 }
 
 /// Returns a list of pids read from /proc
@@ -177,12 +232,12 @@ pub fn pids() -> Result<Vec<i32>> {
 
 /// Returns all processes currently seen in /proc parsed as Processes
 pub fn processes() -> Result<Processes> {
-    let mut _pids = Vec::new();
+    let mut ps = Vec::new();
     for pid in pids()? {
-        _pids.push(stat_process(pid)?);
+        ps.push(Process::new(pid)?);
     }
 
-    Ok(_pids)
+    Ok(ps)
 }
 
 #[cfg(test)]
@@ -190,7 +245,7 @@ mod tests {
     use super::*;
     #[test]
     fn parses_process_from_stat() {
-        let process = Process {
+        let process = ProcessStat {
             pid: 69035,
             name: "(alacritty)".to_string(),
             state: ProcessState::Sleeping,
@@ -214,13 +269,14 @@ mod tests {
             cnswap: 0,
             guest_time: 0,
             cguest_time: 0,
+            processor: 6,
         };
-        assert_eq!(Process::from_stat(PROCESS_STAT), Ok(process))
+        assert_eq!(ProcessStat::from_stat(PROCESS_STAT), Ok(process))
     }
 
     #[test]
     fn parses_process_with_whitespace_from_stat() {
-        let process = Process {
+        let process = ProcessStat {
             pid: 1483,
             name: "(tmux: server)".to_string(),
             state: ProcessState::Sleeping,
@@ -244,7 +300,8 @@ mod tests {
             cnswap: 0,
             guest_time: 0,
             cguest_time: 0,
+            processor: 6,
         };
-        assert_eq!(Process::from_stat(PROCESS_STAT_WHITESPACE_NAME), Ok(process))
+        assert_eq!(ProcessStat::from_stat(PROCESS_STAT_WHITESPACE_NAME), Ok(process))
     }
 }

@@ -38,7 +38,7 @@ pub trait OsImplExt {
     //
 
     /// Returns detailed Process information parsed from /proc/[pid]/stat
-    fn stat_process(&self, pid: i32) -> Result<Process>;
+    fn stat_process(&self, pid: i32) -> Result<ProcessStat>;
 
     /// Returns a list of pids read from /proc
     fn pids(&self) -> Result<Vec<i32>>;
@@ -111,7 +111,7 @@ impl OsImplExt for Linux {
     // ps
     //
 
-    fn stat_process(&self, pid: i32) -> Result<Process> {
+    fn stat_process(&self, pid: i32) -> Result<ProcessStat> {
         stat_process(pid)
     }
 

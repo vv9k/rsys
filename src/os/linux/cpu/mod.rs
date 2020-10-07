@@ -101,6 +101,11 @@ pub fn processor() -> Result<Processor> {
     Processor::from_sys()
 }
 
+pub fn clock_tick() -> Result<Option<i64>> {
+    nix::unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK)
+        .map_err(|e| Error::FfiError("getting clock tick of cpu".to_string(), e.to_string()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

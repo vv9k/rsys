@@ -5,7 +5,7 @@ use super::{
     mem::Memory,
     misc::{MountPoint, MountPoints},
     net::{IfaceStat, Interface, Interfaces},
-    ps::{Process, ProcessState},
+    ps::{Process, ProcessStat, ProcessState},
     storage::{
         BlockStorageInfo, BlockStorageStat, DeviceMapper, MultipleDeviceStorage, Partition, ScsiCdrom, StorageDevice,
     },
@@ -43,6 +43,11 @@ impl fmt::Display for Memory {
     }
 }
 impl fmt::Display for Process {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+impl fmt::Display for ProcessStat {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}", self)
     }
