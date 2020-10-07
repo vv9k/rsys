@@ -1,6 +1,9 @@
 use super::{cores, SysPath, BOGOMIPS, CACHE_SIZE, MODEL_NAME};
-use crate::{Error, Result};
-use std::str::FromStr;
+use crate::{
+    util::{next, skip},
+    Error, Result,
+};
+use std::str::{FromStr, SplitAsciiWhitespace};
 pub type Cores = Vec<Core>;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
@@ -49,6 +52,47 @@ impl Processor {
     /// Returns core count of this processor
     pub fn core_count(&self) -> usize {
         self.cores.len()
+    }
+
+    pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
+        CpuTime::from_stat("")
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+pub struct CpuTime {
+    pub user: u64,
+    pub nice: u64,
+    pub system: u64,
+    pub idle: u64,
+    pub iowait: u64,
+    pub irq: u64,
+    pub softirq: u64,
+}
+impl CpuTime {
+    fn from_stat_line(stat: &str) -> Result<CpuTime> {
+        let mut elems = stat.split_ascii_whitespace();
+
+        Ok(CpuTime {
+            user: next::<u64, SplitAsciiWhitespace>(skip(1, &mut elems), &stat)?,
+            nice: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            system: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            idle: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            iowait: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            irq: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            softirq: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+        })
+    }
+
+    pub(crate) fn from_stat(id: &str) -> Result<Option<CpuTime>> {
+        let name = format!("cpu{}", id);
+        for line in SysPath::ProcStat.read()?.lines() {
+            if line.starts_with(&name) {
+                return Ok(Some(CpuTime::from_stat_line(line)?));
+            }
+        }
+        Ok(None)
     }
 }
 
@@ -109,5 +153,9 @@ impl Core {
         self.max_freq = Core::frequency(self.id, Frequency::Maximal)?;
 
         Ok(())
+    }
+
+    pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
+        CpuTime::from_stat(&format!("{}", self.id))
     }
 }
