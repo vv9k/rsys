@@ -94,6 +94,14 @@ impl CpuTime {
         }
         Ok(None)
     }
+
+    pub fn total_time(&self) -> u64 {
+        self.user + self.nice + self.system + self.idle + self.iowait + self.irq + self.softirq
+    }
+
+    pub fn idle_time(&self) -> u64 {
+        self.idle
+    }
 }
 
 #[derive(Clone, Debug, Default)]
