@@ -49,6 +49,12 @@ impl From<&str> for ProcessState {
     }
 }
 
+fn cmdline(path: SysPath) -> Result<String> {
+    path.extend(&["cmdline"])
+        .read()
+        .map(|s| s.trim_end_matches('\x00').replace('\x00', " ").to_string())
+}
+
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Task {
@@ -58,11 +64,7 @@ pub struct Task {
 impl Task {
     pub(crate) fn from_sys_path(path: SysPath) -> Result<Task> {
         Ok(Task {
-            cmdline: path
-                .clone()
-                .extend(&["cmdline"])
-                .read()
-                .map(|s| s.trim_end_matches('\x00').to_string())?,
+            cmdline: cmdline(path.clone())?,
             stat: ProcessStat::from_sys_path(path)?,
         })
     }
@@ -78,11 +80,7 @@ impl Process {
     pub fn new(pid: i32) -> Result<Process> {
         let p = SysPath::ProcPid(pid);
         Ok(Process {
-            cmdline: p
-                .clone()
-                .extend(&["cmdline"])
-                .read()
-                .map(|s| s.trim_end_matches('\x00').to_string())?,
+            cmdline: cmdline(p.clone())?,
             stat: ProcessStat::from_sys_path(p)?,
         })
     }
