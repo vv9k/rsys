@@ -205,14 +205,14 @@ mod tests {
 
         let core = Core {
             id: 1,
-            min_freq: 2200000000,
-            cur_freq: 3443204000,
-            max_freq: 3600000000,
+            min_freq: 2_200_000_000,
+            cur_freq: 3_443_204_000,
+            max_freq: 3_600_000_000,
         };
 
         assert_eq!(Ok(core), Core::from_sys_path(SysPath::Custom(dir.path().to_owned())));
 
-        Ok(())
+        dir.close()
     }
 
     #[test]
@@ -231,24 +231,24 @@ mod tests {
 
         let core = Core {
             id: 1,
-            min_freq: 2200000000,
-            cur_freq: 3443204000,
-            max_freq: 3600000000,
+            min_freq: 2_200_000_000,
+            cur_freq: 3_443_204_000,
+            max_freq: 3_600_000_000,
         };
 
         assert_eq!(Ok(core), Core::from_sys_path(SysPath::Custom(dir.path().to_owned())));
 
-        Ok(())
+        dir.close()
     }
 
     #[test]
     fn parses_cputime_from_stat() {
         let line = "cpu0 12902 26 1888 731468 332 224 183 0 0 0";
         let time = CpuTime {
-            user: 12902,
+            user: 12_902,
             nice: 26,
-            system: 1888,
-            idle: 731468,
+            system: 1_888,
+            idle: 731_468,
             iowait: 332,
             irq: 224,
             softirq: 183,
@@ -262,8 +262,8 @@ mod tests {
         fs::write(dir.path().join("cpuinfo"), CPUINFO)?;
 
         let cpu = Processor {
-            bogomips: 7189.98,
-            cache_size: 524288,
+            bogomips: 7_189.98,
+            cache_size: 524_288,
             model: "AMD Ryzen 5 3600 6-Core Processor".to_string(),
             cores: Vec::new(),
         };
@@ -273,6 +273,6 @@ mod tests {
             Processor::from_sys_path(SysPath::Custom(dir.path().join("cpuinfo").to_owned()))
         );
 
-        Ok(())
+        dir.close()
     }
 }

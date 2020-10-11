@@ -4,7 +4,7 @@ mod types;
 pub use types::*;
 
 #[cfg(test)]
-use super::mocks::SYS_BLOCK_DEV_STAT;
+pub(crate) use super::mocks::SYS_BLOCK_DEV_STAT;
 use super::{storage::stat, SysPath};
 use crate::Result;
 use system::blk_bsz_get;
@@ -96,48 +96,6 @@ pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
-    #[test]
-    fn parses_block_device_stat_from_sys_block_dev_stat() {
-        let path = PathBuf::new();
-        let dev = StorageDevice {
-            model: "ST2000DM008-2FR1".to_string(),
-            vendor: "ATA".to_string(),
-            state: "running".to_string(),
-            info: BlockStorageInfo {
-                stat: Some(BlockStorageStat {
-                    read_ios: 327,
-                    read_merges: 72,
-                    read_sectors: 8832,
-                    read_ticks: 957,
-                    write_ios: 31,
-                    write_merges: 1,
-                    write_sectors: 206,
-                    write_ticks: 775,
-                    in_flight: 0,
-                    io_ticks: 1620,
-                    time_in_queue: 2427,
-                    discard_ios: 0,
-                    discard_merges: 0,
-                    discard_sectors: 0,
-                    discard_ticks: 0,
-                }),
-
-                path,
-                dev: "sda".to_string(),
-                size: 3907029168,
-                maj: 8,
-                min: 1,
-                block_size: 4096,
-            },
-            partitions: vec![],
-        };
-
-        assert_eq!(
-            BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT),
-            Ok(dev.info.stat.unwrap())
-        )
-    }
     #[test]
     fn parses_maj_min() {
         assert_eq!(parse_maj_min("X:5"), None);

@@ -1,3 +1,5 @@
+#[cfg(test)]
+use super::SYS_BLOCK_DEV_STAT;
 use super::{block_size, parse_maj_min, SysPath};
 use crate::{
     util::{next, trim_parse_map},
@@ -80,7 +82,7 @@ pub(crate) enum Hierarchy {
     None,
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Provides several statistics about the state of block device.
 /// This information is gathered from /sys/block/<dev>/stat
@@ -143,7 +145,7 @@ impl BlockStorageStat {
     }
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Common information of each type of storage device.
 pub struct BlockStorageInfo {
@@ -198,7 +200,7 @@ impl BlockStorageInfo {
     }
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a scsi cdrom
 pub struct ScsiCdrom {
@@ -229,7 +231,7 @@ impl BlockStorageDeviceName for ScsiCdrom {
     }
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a block storage device.
 pub struct StorageDevice {
@@ -268,7 +270,7 @@ impl BlockStorageDeviceName for StorageDevice {
     }
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct DeviceMapper {
     pub info: BlockStorageInfo,
@@ -330,7 +332,7 @@ impl BlockStorageDeviceName for DeviceMapper {
     }
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct Partition {
     pub info: BlockStorageInfo,
@@ -360,7 +362,7 @@ impl BlockStorageDeviceName for Partition {
     }
 }
 
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Clone, Default, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct MultipleDeviceStorage {
     pub info: BlockStorageInfo,
@@ -405,5 +407,80 @@ impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
 impl BlockStorageDeviceName for MultipleDeviceStorage {
     fn prefix() -> &'static str {
         "md"
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, io};
+
+    #[test]
+    fn parses_block_storage_device_stat() {
+        let stat = BlockStorageStat {
+            read_ios: 327,
+            read_merges: 72,
+            read_sectors: 8832,
+            read_ticks: 957,
+            write_ios: 31,
+            write_merges: 1,
+            write_sectors: 206,
+            write_ticks: 775,
+            in_flight: 0,
+            io_ticks: 1620,
+            time_in_queue: 2427,
+            discard_ios: 0,
+            discard_merges: 0,
+            discard_sectors: 0,
+            discard_ticks: 0,
+        };
+
+        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(stat))
+    }
+    #[test]
+    fn parses_block_storage_info() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let p = dir.path().join("sda");
+
+        fs::create_dir(p.as_path())?;
+
+        fs::write(p.as_path().join("stat"), SYS_BLOCK_DEV_STAT)?;
+        fs::write(p.as_path().join("dev"), b"8:0")?;
+        fs::write(p.as_path().join("size"), b"3907029168")?;
+
+        let mut info = BlockStorageInfo {
+            dev: "sda".to_string(),
+            // This probably shouldn't be here
+            block_size: 4096,
+            path: p.clone(),
+            size: 3907029168,
+            maj: 8,
+            min: 0,
+            stat: Some(BlockStorageStat {
+                read_ios: 327,
+                read_merges: 72,
+                read_sectors: 8832,
+                read_ticks: 957,
+                write_ios: 31,
+                write_merges: 1,
+                write_sectors: 206,
+                write_ticks: 775,
+                in_flight: 0,
+                io_ticks: 1620,
+                time_in_queue: 2427,
+                discard_ios: 0,
+                discard_merges: 0,
+                discard_sectors: 0,
+                discard_ticks: 0,
+            }),
+        };
+
+        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(p.clone(), true));
+
+        info.stat = None;
+
+        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(p.clone(), false));
+
+        dir.close()
     }
 }

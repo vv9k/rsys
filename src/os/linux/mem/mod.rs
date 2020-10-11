@@ -30,8 +30,12 @@ pub struct Memory {
 }
 impl Memory {
     pub fn from_proc() -> Result<Memory> {
+        Self::from_sys_path(SysPath::ProcMemInfo)
+    }
+
+    fn from_sys_path(path: SysPath) -> Result<Memory> {
         let mut mem = Memory::default();
-        for line in SysPath::ProcMemInfo.read()?.lines() {
+        for line in path.read()?.lines() {
             let mut elems = line.split_ascii_whitespace();
             if let Some(p) = elems.next() {
                 let param = match p {
@@ -104,11 +108,33 @@ pub fn memory() -> Result<Memory> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{fs, io};
     #[test]
     fn extracts_meminfo() {
         assert_eq!(_mem_extract(MEMINFO, MEM_TOTAL), Ok(16712671232));
         assert_eq!(_mem_extract(MEMINFO, MEM_AVAILABLE), Ok(14993084416));
         assert_eq!(_mem_extract(MEMINFO, SWAP_TOTAL), Ok(0));
         assert_eq!(_mem_extract(MEMINFO, SWAP_FREE), Ok(0));
+    }
+    #[test]
+    fn creates_memory_struct() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let p = dir.path().join("meminfo");
+        fs::write(p.as_path(), MEMINFO)?;
+
+        let mem = Memory {
+            active: 1848623104,
+            available: 14993084416,
+            buffers: 130609152,
+            cached: 2210324480,
+            free: 12829442048,
+            inactive: 1351041024,
+            shared: 45924352,
+            total: 16712671232,
+        };
+
+        assert_eq!(Ok(mem), Memory::from_sys_path(SysPath::Custom(p)));
+
+        dir.close()
     }
 }

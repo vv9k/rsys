@@ -131,6 +131,6 @@ mod tests {
 
         assert_eq!(ids, out);
 
-        Ok(())
+        dir.close()
     }
 }

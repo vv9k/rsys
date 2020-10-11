@@ -1,3 +1,6 @@
+#[cfg(test)]
+use super::NET_DEV;
+
 use super::{ipv4, ipv6, Error, Result, SysPath};
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
@@ -27,21 +30,22 @@ pub struct Interface {
 }
 impl Interface {
     pub(crate) fn from_sys(name: &str) -> Result<Interface> {
+        let mut iface = Self::from_sys_path(SysPath::SysClassNetDev(name), name)?;
+        iface.stat = IfaceStat::from_proc(name)?;
+        iface.ipv4 = ipv4(name)?;
+        iface.ipv6 = ipv6(name)?;
+        Ok(iface)
+    }
+
+    fn from_sys_path(path: SysPath, name: &str) -> Result<Interface> {
         Ok(Interface {
             name: name.to_string(),
-            stat: IfaceStat::from_proc(name)?,
-            mtu: SysPath::SysClassNetDev(name).extend(&["mtu"]).read_as::<u32>()?,
-            mac_address: SysPath::SysClassNetDev(name)
-                .extend(&["address"])
-                .read()?
-                .trim()
-                .to_string(),
-            speed: SysPath::SysClassNetDev(name)
-                .extend(&["speed"])
-                .read_as::<u64>()
-                .unwrap_or_else(|_| 0),
-            ipv4: ipv4(name)?,
-            ipv6: ipv6(name)?,
+            stat: IfaceStat::default(),
+            mtu: path.clone().extend(&["mtu"]).read_as::<u32>()?,
+            mac_address: path.clone().extend(&["address"]).read()?.trim().to_string(),
+            speed: path.extend(&["speed"]).read_as::<u64>().unwrap_or_else(|_| 0),
+            ipv4: "".to_string(),
+            ipv6: "".to_string(),
         })
     }
 
@@ -87,7 +91,11 @@ macro_rules! next_u64 {
 
 impl IfaceStat {
     pub(crate) fn from_proc(name: &str) -> Result<IfaceStat> {
-        for line in SysPath::ProcNetDev.read()?.lines() {
+        Self::from_sys_path(SysPath::ProcNetDev, name)
+    }
+
+    fn from_sys_path(path: SysPath, name: &str) -> Result<IfaceStat> {
+        for line in path.read()?.lines() {
             if line.contains(name) {
                 return IfaceStat::from_line(line);
             }
@@ -98,7 +106,8 @@ impl IfaceStat {
             format!("interface {} not found in file", name),
         ))
     }
-    pub(crate) fn from_line(line: &str) -> Result<IfaceStat> {
+
+    fn from_line(line: &str) -> Result<IfaceStat> {
         let mut elems = line.split_ascii_whitespace().take(17);
         if elems.clone().count() >= 17 {
             // skip interface name
@@ -128,5 +137,85 @@ impl IfaceStat {
             line.to_string(),
             "contains invalid input for IfaceDev".to_string(),
         ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, io};
+    #[test]
+    fn parses_iface_stat() -> io::Result<()> {
+        let lo = IfaceStat {
+            rx_bytes: 17776656,
+            rx_packets: 127989,
+            rx_errs: 0,
+            rx_drop: 0,
+            rx_fifo: 0,
+            rx_frame: 0,
+            rx_compressed: 0,
+            rx_multicast: 0,
+
+            tx_bytes: 17776656,
+            tx_packets: 127989,
+            tx_errs: 0,
+            tx_drop: 0,
+            tx_fifo: 0,
+            tx_frame: 0,
+            tx_compressed: 0,
+            tx_multicast: 0,
+        };
+        let enp = IfaceStat {
+            rx_bytes: 482459368,
+            rx_packets: 349468,
+            rx_errs: 0,
+            rx_drop: 0,
+            rx_fifo: 0,
+            rx_frame: 0,
+            rx_compressed: 0,
+            rx_multicast: 4785,
+
+            tx_bytes: 16133415,
+            tx_packets: 198549,
+            tx_errs: 0,
+            tx_drop: 0,
+            tx_fifo: 0,
+            tx_frame: 0,
+            tx_compressed: 0,
+            tx_multicast: 0,
+        };
+        let dir = tempfile::tempdir()?;
+        let p = dir.path().join("net_dev");
+        fs::write(p.as_path(), NET_DEV)?;
+
+        assert_eq!(Ok(lo), IfaceStat::from_sys_path(SysPath::Custom(p.clone()), "lo"));
+        assert_eq!(Ok(enp), IfaceStat::from_sys_path(SysPath::Custom(p), "enp"));
+
+        dir.close()
+    }
+
+    #[test]
+    fn creates_interface() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("speed"), b"1000")?;
+        fs::write(dir.path().join("mtu"), b"1500")?;
+        fs::write(dir.path().join("address"), b"70:85:c2:f9:9b:2a")?;
+
+        let iface = Interface {
+            name: "enp8s0".to_string(),
+            speed: 1000,
+            mtu: 1500,
+            mac_address: "70:85:c2:f9:9b:2a".to_string(),
+            ipv4: "".to_string(),
+            ipv6: "".to_string(),
+            stat: IfaceStat::default(),
+        };
+
+        assert_eq!(
+            Ok(iface),
+            Interface::from_sys_path(SysPath::Custom(dir.path().to_owned()), "enp8s0")
+        );
+
+        dir.close()
     }
 }
