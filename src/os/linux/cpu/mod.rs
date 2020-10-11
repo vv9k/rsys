@@ -1,7 +1,7 @@
 pub(crate) mod types;
 
 #[cfg(test)]
-use super::mocks::CPUINFO;
+pub(crate) use super::mocks::CPUINFO;
 pub(crate) use super::SysPath;
 use crate::{Error, Result};
 use std::{fmt::Display, str::FromStr};
@@ -39,9 +39,9 @@ where
     _cpuinfo_extract(&SysPath::ProcCpuInfo.read()?, &line)
 }
 
-fn core_ids() -> Result<Vec<u32>> {
+fn core_ids(path: SysPath) -> Result<Vec<u32>> {
     let mut core_ids = Vec::new();
-    for entry in SysPath::SysDevicesSystemCpu().read_dir()? {
+    for entry in path.read_dir()? {
         if let Ok(entry) = entry {
             let file_name = entry.file_name().to_string_lossy().to_string();
             if !file_name.starts_with("cpu") {
@@ -88,7 +88,7 @@ pub fn logical_cores() -> Result<u16> {
 /// Returns Core objects with frequencies
 pub fn cores() -> Result<Cores> {
     let mut cores = Vec::new();
-    for id in core_ids()? {
+    for id in core_ids(SysPath::SysDevicesSystemCpu)? {
         cores.push(Core::from_sys(id)?);
     }
 
@@ -109,10 +109,28 @@ pub fn clock_tick() -> Result<Option<i64>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{fs::File, io};
     #[test]
     fn extracts_cpuinfo() {
         assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES), Ok(6));
         assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS), Ok(12));
         assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK), Ok(2053.971));
+    }
+
+    #[test]
+    fn finds_core_ids() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let mut ids = Vec::new();
+        for id in 0..16 {
+            File::create(dir.path().join(format!("cpu{}", id)))?;
+            ids.push(id);
+        }
+
+        let mut out = core_ids(SysPath::Custom(dir.path().to_owned())).unwrap();
+        out.sort();
+
+        assert_eq!(ids, out);
+
+        Ok(())
     }
 }

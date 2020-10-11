@@ -1,3 +1,5 @@
+#[cfg(test)]
+use super::CPUINFO;
 use super::{cores, SysPath, BOGOMIPS, CACHE_SIZE, MODEL_NAME};
 use crate::{
     util::{next, skip},
@@ -8,7 +10,7 @@ pub type Cores = Vec<Core>;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// A structure representing host machine cpu
 pub struct Processor {
@@ -19,17 +21,22 @@ pub struct Processor {
 }
 impl Processor {
     pub(crate) fn from_sys() -> Result<Processor> {
-        let cpuinfo = SysPath::ProcCpuInfo.read()?;
-        let mut proc = Processor::default();
+        let mut proc = Self::from_sys_path(SysPath::ProcCpuInfo)?;
         proc.cores = cores()?;
+        Ok(proc)
+    }
+
+    pub(crate) fn from_sys_path(path: SysPath) -> Result<Processor> {
+        let cpuinfo = path.read()?;
+        let mut proc = Processor::default();
         for line in cpuinfo.lines() {
+            dbg!(line);
             if line.starts_with(MODEL_NAME) {
                 proc.model = Self::last_line_elem(line).to_string();
             } else if line.starts_with(BOGOMIPS) {
                 proc.bogomips = Self::bogomips_from(line)?;
             } else if line.starts_with(CACHE_SIZE) {
                 proc.cache_size = Self::cache_size_from(line)?;
-                break;
             }
         }
         Ok(proc)
@@ -59,7 +66,7 @@ impl Processor {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub struct CpuTime {
     pub user: u64,
@@ -104,7 +111,7 @@ impl CpuTime {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Represents a virtual core in a cpu
 pub struct Core {
@@ -122,48 +129,150 @@ enum Frequency {
 
 impl Core {
     pub(crate) fn from_sys(id: u32) -> Result<Core> {
+        Self::from_sys_path(SysPath::SysDevicesSystemCpuCore(id))
+    }
+
+    fn from_sys_path(p: SysPath) -> Result<Core> {
+        let freq_p = p.clone().extend(&["cpufreq"]);
+        let id = Core::core_id(p)?;
         Ok(Core {
             id,
-            min_freq: Core::frequency(id, Frequency::Minimal)?,
-            cur_freq: Core::frequency(id, Frequency::Current)?,
-            max_freq: Core::frequency(id, Frequency::Maximal)?,
+            min_freq: Core::frequency(freq_p.clone(), Frequency::Minimal)?,
+            cur_freq: Core::frequency(freq_p.clone(), Frequency::Current)?,
+            max_freq: Core::frequency(freq_p, Frequency::Maximal)?,
         })
     }
 
-    fn frequency(id: u32, which: Frequency) -> Result<u64> {
-        let mut p = SysPath::SysDevicesSystemCpuCore(id).extend(&["cpufreq"]);
+    fn core_id(p: SysPath) -> Result<u32> {
+        p.extend(&["topology", "core_id"]).read_as::<u32>()
+    }
+
+    fn frequency(p: SysPath, which: Frequency) -> Result<u64> {
+        let mut new_p;
         match which {
-            Frequency::Minimal => p = p.extend(&["scaling_min_freq"]),
-            Frequency::Current => p = p.extend(&["scaling_cur_freq"]),
-            Frequency::Maximal => p = p.extend(&["scaling_max_freq"]),
+            Frequency::Minimal => new_p = p.clone().extend(&["scaling_min_freq"]),
+            Frequency::Current => new_p = p.clone().extend(&["scaling_cur_freq"]),
+            Frequency::Maximal => new_p = p.clone().extend(&["scaling_max_freq"]),
         };
-        if !p.clone().path().exists() {
-            p = SysPath::SysDevicesSystemCpuCore(id).extend(&["cpufreq"]);
+        if !new_p.clone().path().exists() {
             match which {
-                Frequency::Minimal => p = p.extend(&["cpuinfo_min_freq"]),
-                Frequency::Current => p = p.extend(&["cpuinfo_cur_freq"]),
-                Frequency::Maximal => p = p.extend(&["cpuinfo_max_freq"]),
+                Frequency::Minimal => new_p = p.extend(&["cpuinfo_min_freq"]),
+                Frequency::Current => new_p = p.extend(&["cpuinfo_cur_freq"]),
+                Frequency::Maximal => new_p = p.extend(&["cpuinfo_max_freq"]),
             };
         }
 
-        if !p.clone().path().exists() {
+        if !new_p.clone().path().exists() {
             return Ok(0);
         }
 
         // Value is in KHz so we multiply it by 1000
-        p.read_as::<u64>().map(|f| f * 1000)
+        new_p.read_as::<u64>().map(|f| f * 1000)
     }
 
     /// Updates all frequencies of this core to currently available values
     pub fn update(&mut self) -> Result<()> {
-        self.min_freq = Core::frequency(self.id, Frequency::Minimal)?;
-        self.cur_freq = Core::frequency(self.id, Frequency::Current)?;
-        self.max_freq = Core::frequency(self.id, Frequency::Maximal)?;
+        self.min_freq = Core::frequency(SysPath::SysDevicesSystemCpuCore(self.id), Frequency::Minimal)?;
+        self.cur_freq = Core::frequency(SysPath::SysDevicesSystemCpuCore(self.id), Frequency::Current)?;
+        self.max_freq = Core::frequency(SysPath::SysDevicesSystemCpuCore(self.id), Frequency::Maximal)?;
 
         Ok(())
     }
 
     pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
         CpuTime::from_stat(&format!("{}", self.id))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{fs, io};
+
+    #[test]
+    fn creates_core_scaling_frequency() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let freq_p = dir.path().join("cpufreq");
+        fs::create_dir(freq_p.as_path())?;
+
+        let topology_p = dir.path().join("topology");
+        fs::create_dir(topology_p.as_path())?;
+        fs::write(topology_p.join("core_id"), b"1")?;
+
+        fs::write(freq_p.join("scaling_min_freq"), b"2200000")?;
+        fs::write(freq_p.join("scaling_cur_freq"), b"3443204")?;
+        fs::write(freq_p.join("scaling_max_freq"), b"3600000")?;
+
+        let core = Core {
+            id: 1,
+            min_freq: 2200000000,
+            cur_freq: 3443204000,
+            max_freq: 3600000000,
+        };
+
+        assert_eq!(Ok(core), Core::from_sys_path(SysPath::Custom(dir.path().to_owned())));
+
+        Ok(())
+    }
+
+    #[test]
+    fn creates_core_fallback_cpuinfo() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let freq_p = dir.path().join("cpufreq");
+        fs::create_dir(freq_p.as_path())?;
+
+        let topology_p = dir.path().join("topology");
+        fs::create_dir(topology_p.as_path())?;
+        fs::write(topology_p.join("core_id"), b"1")?;
+
+        fs::write(freq_p.join("cpuinfo_min_freq"), b"2200000")?;
+        fs::write(freq_p.join("cpuinfo_cur_freq"), b"3443204")?;
+        fs::write(freq_p.join("cpuinfo_max_freq"), b"3600000")?;
+
+        let core = Core {
+            id: 1,
+            min_freq: 2200000000,
+            cur_freq: 3443204000,
+            max_freq: 3600000000,
+        };
+
+        assert_eq!(Ok(core), Core::from_sys_path(SysPath::Custom(dir.path().to_owned())));
+
+        Ok(())
+    }
+
+    #[test]
+    fn parses_cputime_from_stat() {
+        let line = "cpu0 12902 26 1888 731468 332 224 183 0 0 0";
+        let time = CpuTime {
+            user: 12902,
+            nice: 26,
+            system: 1888,
+            idle: 731468,
+            iowait: 332,
+            irq: 224,
+            softirq: 183,
+        };
+        assert_eq!(Ok(time), CpuTime::from_stat_line(&line));
+    }
+
+    #[test]
+    fn creates_processor_from_cpuinfo() -> io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("cpuinfo"), CPUINFO)?;
+
+        let cpu = Processor {
+            bogomips: 7189.98,
+            cache_size: 524288,
+            model: "AMD Ryzen 5 3600 6-Core Processor".to_string(),
+            cores: Vec::new(),
+        };
+
+        assert_eq!(
+            Ok(cpu),
+            Processor::from_sys_path(SysPath::Custom(dir.path().join("cpuinfo").to_owned()))
+        );
+
+        Ok(())
     }
 }
