@@ -5,7 +5,7 @@ use std::{fmt::Display, fs, path::PathBuf, str::FromStr};
 
 /// SysPath is an abstraction around procfs and sysfs. Allows for easy reading and parsing
 /// of values in system paths.
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) enum SysPath<'p> {
     ProcHostname,
     ProcDomainName,
@@ -102,12 +102,35 @@ impl<'p> SysPath<'p> {
             .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
     }
 
-    /// Extends path with new elements returning a custom SysPath
+    /// Extends path with new elements returning a custom SysPath and consuming old one
     pub(crate) fn extend(self, p: &[&str]) -> Self {
         let mut path = self.path();
         for elem in p {
             path.push(elem);
         }
         SysPath::Custom(path)
+    }
+
+    /// Extends path with new elements returning a custom SysPath by cloning old one
+    pub(crate) fn join(&self, p: &[&str]) -> Self {
+        let mut path = self.clone().path();
+        for elem in p {
+            path.push(elem);
+        }
+        SysPath::Custom(path)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+    #[test]
+    fn extends_path() {
+        let some_path = SysPath::SysClassBlock;
+        assert_eq!(
+            SysPath::Custom(PathBuf::from_str("/sys/class/block/test/123").unwrap()),
+            some_path.extend(&["test", "123"])
+        );
     }
 }
