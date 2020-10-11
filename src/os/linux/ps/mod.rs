@@ -241,8 +241,9 @@ pub fn processes() -> Result<Processes> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{fs, io};
     #[test]
-    fn parses_process_from_stat() {
+    fn parses_process_stat() {
         let process = ProcessStat {
             pid: 69035,
             name: "(alacritty)".to_string(),
@@ -273,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_process_with_whitespace_from_stat() {
+    fn parses_process_stat_with_whitespace_in_name() {
         let process = ProcessStat {
             pid: 1483,
             name: "(tmux: server)".to_string(),
@@ -301,5 +302,19 @@ mod tests {
             processor: 6,
         };
         assert_eq!(ProcessStat::from_stat(PROCESS_STAT_WHITESPACE_NAME), Ok(process))
+    }
+
+    #[test]
+    fn parses_cmdline() -> io::Result<()> {
+        let line = "/usr/lib/firefox/firefox\x00-contentproc\x00-childID\x001\x00-isForBrowser\x00-prefsLen\x001\x00-prefMapSize\x00234803\x00-parentBuildID\x0020201001181215\x00-appdir\x00/usr/lib/firefox/browser\x006732\x00true\x00tab\x00";
+
+        let dir = tempfile::tempdir()?;
+        fs::write(dir.path().join("cmdline"), line)?;
+
+        let after = "/usr/lib/firefox/firefox -contentproc -childID 1 -isForBrowser -prefsLen 1 -prefMapSize 234803 -parentBuildID 20201001181215 -appdir /usr/lib/firefox/browser 6732 true tab".to_string();
+
+        assert_eq!(Ok(after), cmdline(SysPath::Custom(dir.path().to_owned())));
+
+        dir.close()
     }
 }
