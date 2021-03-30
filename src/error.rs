@@ -18,7 +18,7 @@ pub enum RsysError {
     #[error("Failed while calling system api - context: `{0}`, error: `{1}`")]
     FfiError(String, String),
     #[error("Syscall failed - `{0}`")]
-    SyscallError(#[from] nix::Error),
+    NixSyscallError(#[from] nix::Error),
 
     // Windows
     #[cfg(target_os = "windows")]
