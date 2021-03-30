@@ -21,16 +21,20 @@ where
 {
     Ok(out
         .split('\n')
-        .filter(|l| l.starts_with(line))
-        .take(1)
-        .collect::<String>()
-        .split(':')
-        .skip(1)
-        .take(1)
-        .collect::<String>()
-        .trim()
-        .parse::<T>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))?)
+        .find(|l| l.starts_with(line))
+        .map(|s| {
+            s.split(':')
+                .skip(1)
+                .take(1)
+                .next()
+                .map(|s| {
+                    s.trim()
+                        .parse::<T>()
+                        .map_err(|e| Error::CommandParseError(e.to_string()))
+                })
+                .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))
+        })
+        .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))???)
 }
 
 pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
