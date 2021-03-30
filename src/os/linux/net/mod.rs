@@ -10,11 +10,7 @@ use nix::{
 pub use types::*;
 
 fn _ip(name: &str, v6: bool) -> Result<Option<String>> {
-    for iface in getifaddrs()
-        .map_err(|e| Error::FfiError(format!("getting ipv4 address of interface {}", name), e.to_string()))?
-        .into_iter()
-        .filter(|iface| iface.interface_name == name)
-    {
+    for iface in getifaddrs()?.into_iter().filter(|iface| iface.interface_name == name) {
         if let Some(addr) = iface.address {
             match addr {
                 SockAddr::Inet(ip) => match ip {

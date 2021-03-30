@@ -4,6 +4,7 @@ pub(crate) mod types;
 pub(crate) use super::mocks::CPUINFO;
 pub(crate) use super::SysPath;
 use crate::{Error, Result};
+use nix::unistd;
 use std::{fmt::Display, str::FromStr};
 pub use types::*;
 
@@ -102,8 +103,7 @@ pub fn processor() -> Result<Processor> {
 }
 
 pub fn clock_tick() -> Result<Option<i64>> {
-    nix::unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK)
-        .map_err(|e| Error::FfiError("getting clock tick of cpu".to_string(), e.to_string()))
+    unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK).map_err(Error::from)
 }
 
 #[cfg(test)]
