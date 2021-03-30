@@ -1,5 +1,5 @@
 # rsys
-[![Build Status](https://travis-ci.com/wojciechkepka/rsys.svg?branch=master)](https://travis-ci.com/wojciechkepka/rsys)
+[![master](https://github.com/wojciechkepka/rsys/actions/workflows/master.yml/badge.svg)](https://github.com/wojciechkepka/rsys/actions/workflows/master.yml)
 [![crates.io](https://img.shields.io/crates/v/rsys)](https://crates.io/crates/rsys)
 [![crates.io](https://img.shields.io/crates/l/rsys)](https://github.com/wojciechkepka/rsys/blob/master/LICENSE)
 [![Docs](https://img.shields.io/badge/docs-master-brightgreen)](https://docs.rs/rsys)  
