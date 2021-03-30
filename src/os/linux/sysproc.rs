@@ -133,4 +133,13 @@ mod tests {
             some_path.extend(&["test", "123"])
         );
     }
+
+    #[test]
+    fn doesnt_extend_path_on_empty() {
+        let some_path = SysPath::SysClassBlock;
+        assert_eq!(
+            SysPath::Custom(PathBuf::from_str("/sys/class/block").unwrap()),
+            some_path.extend(&[])
+        );
+    }
 }
