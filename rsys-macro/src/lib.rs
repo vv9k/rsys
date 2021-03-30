@@ -6,8 +6,8 @@ const PUB_CRATE_PREFIX: &str = "pub(crate) struct ";
 #[proc_macro_derive(OsImpl)]
 pub fn os_impl(item: TokenStream) -> TokenStream {
     let s = format!("{}", item);
-    if s.starts_with(PUB_CRATE_PREFIX) {
-        let name = &s[PUB_CRATE_PREFIX.len()..].split_ascii_whitespace().next().unwrap();
+    if let Some(prefix) = s.strip_prefix(PUB_CRATE_PREFIX) {
+        let name = prefix.split_ascii_whitespace().next().unwrap();
 
         return format!(
             "
