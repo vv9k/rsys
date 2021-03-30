@@ -3,8 +3,6 @@ use thiserror::Error;
 #[derive(Error, Debug, PartialEq, Eq)]
 /// Error type used by this crate
 pub enum RsysError {
-    #[error("Failed to execute command - `{0}`")]
-    CommandRunError(String),
     #[error("Failed to parse command output - `{0}`")]
     CommandParseError(String),
     #[error("Failed to read a file at `{0}` - `{1}`")]
