@@ -59,7 +59,7 @@ impl Rsys {
 
     /// Returns a hostname.
     ///   * **linux**
-    ///     * by reading `/proc/sys/kernel/hostname`
+    ///     * by making a `gethostname` syscall
     ///   * **macos**
     ///     * by calling `sysctl("kern.hostname")`
     ///   * **windows**
@@ -70,7 +70,7 @@ impl Rsys {
 
     /// Returns time since boot in seconds.
     ///   * **linux**
-    ///     * by reading `/proc/uptime`
+    ///     * by making a `getsysinfo` syscall
     ///   * **macos**
     ///     * by calling `sysctl("kern.boottime")`
     ///   * **windows**
@@ -86,7 +86,7 @@ impl Rsys {
 
     /// Returns cpu architecture.
     ///   * **linux** and **macos**
-    ///     * by calling `uname -m`
+    ///     * by making a `uname` syscall
     ///   * **windows**
     ///     * by calling win32 api `GetSystemInfo`
     pub fn arch(&self) -> Result<String> {
@@ -218,7 +218,7 @@ impl Rsys {
 
     /// Returns a domain name.
     ///   * **linux**
-    ///     * by reading `/proc/sys/kernel/domainname`
+    ///     * by making a `uname` syscall
     ///   * **windows**
     ///     * by calling win32 api `NetWkstaGetInfo`
     ///   ...
@@ -283,8 +283,8 @@ impl Rsys {
     }
     #[cfg(target_os = "linux")]
     /// Returns kernel version of host os.
-    pub fn kernel_version(&self) -> Result<String> {
-        self.1.kernel_version()
+    pub fn kernel_release(&self) -> Result<String> {
+        self.1.kernel_release()
     }
     #[cfg(target_os = "linux")]
     /// Returns MountPoints read from /proc/mounts

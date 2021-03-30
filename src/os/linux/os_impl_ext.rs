@@ -1,4 +1,4 @@
-use super::{cpu::*, kernel_version, mem::*, misc::*, net::*, ps::*, storage::*, Linux};
+use super::{cpu::*, kernel_release, mem::*, misc::*, net::*, ps::*, storage::*, Linux};
 use crate::Result;
 
 /// Trait extending Rsys functionality with linux specific api
@@ -51,7 +51,7 @@ pub trait OsImplExt {
     //
 
     /// Returns kernel version of host os.
-    fn kernel_version(&self) -> Result<String>;
+    fn kernel_release(&self) -> Result<String>;
 
     /// Returns MountPoints read from /proc/mounts
     fn mounts(&self) -> Result<MountPoints>;
@@ -127,8 +127,8 @@ impl OsImplExt for Linux {
     // other
     //
 
-    fn kernel_version(&self) -> Result<String> {
-        kernel_version()
+    fn kernel_release(&self) -> Result<String> {
+        kernel_release()
     }
 
     fn mounts(&self) -> Result<MountPoints> {

@@ -7,12 +7,8 @@ use std::{fmt::Display, fs, path::PathBuf, str::FromStr};
 /// of values in system paths.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(crate) enum SysPath<'p> {
-    ProcHostname,
-    ProcDomainName,
     ProcCpuInfo,
     ProcMemInfo,
-    ProcUptime,
-    ProcKernelRelease,
     ProcMounts,
     ProcNetDev,
     ProcNetArp,
@@ -42,12 +38,8 @@ impl<'p> SysPath<'p> {
     pub(crate) fn path(self) -> PathBuf {
         use SysPath::*;
         let s = match self {
-            ProcHostname => "/proc/sys/kernel/hostname".to_string(),
-            ProcDomainName => "/proc/sys/kernel/domainname".to_string(),
             ProcCpuInfo => "/proc/cpuinfo".to_string(),
             ProcMemInfo => "/proc/meminfo".to_string(),
-            ProcUptime => "/proc/uptime".to_string(),
-            ProcKernelRelease => "/proc/sys/kernel/osrelease".to_string(),
             ProcMounts => "/proc/mounts".to_string(),
             ProcNetDev => "/proc/net/dev".to_string(),
             ProcNetArp => "/proc/net/arp".to_string(),

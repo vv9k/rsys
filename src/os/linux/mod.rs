@@ -3,8 +3,6 @@
 
 #[cfg(test)]
 pub(crate) mod mocks;
-#[cfg(test)]
-use mocks::UPTIME;
 
 pub mod cpu;
 #[cfg(feature = "display")]
@@ -17,9 +15,16 @@ pub mod ps;
 pub mod storage;
 mod sysproc;
 
-use super::{run, OsImpl};
+use std::ffi::CStr;
+
+use super::OsImpl;
 use crate::{Error, Result};
-use std::process::Command;
+use libc::{c_char, size_t};
+use nix::{
+    errno::Errno,
+    sys::{sysinfo, utsname},
+    unistd,
+};
 
 pub(crate) use {
     cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
@@ -32,47 +37,42 @@ pub(crate) use sysproc::SysPath;
 
 /// Returns a hostname.
 pub fn hostname() -> Result<String> {
-    Ok(SysPath::ProcHostname.read()?.trim().to_string())
+    let mut buf = [0u8; 64];
+    Ok(unistd::gethostname(&mut buf)?.to_string_lossy().to_string())
 }
 
-/// Internal implementation of parsing uptime from /proc/uptime
-fn _uptime(out: &str) -> Result<u64> {
-    Ok(out
-        .split_ascii_whitespace()
-        .take(1)
-        .collect::<String>()
-        .parse::<f64>()
-        .map_err(|e| Error::CommandParseError(e.to_string()))? as u64)
-}
-
-/// Returns current uptime.
-pub fn uptime() -> Result<u64> {
-    _uptime(&SysPath::ProcUptime.read()?)
+/// Returns uptime of host machine in seconds
+fn uptime() -> Result<u64> {
+    Ok(sysinfo::sysinfo()?.uptime().as_secs())
 }
 
 /// Returns the processor architecture
 pub fn arch() -> Result<String> {
-    run(Command::new("uname").arg("-m"))
+    Ok(utsname::uname().machine().to_string())
 }
 
 /// Returns a domainname read from /proc/sys/kernel/domainname
 pub fn domainname() -> Result<String> {
-    Ok(SysPath::ProcDomainName.read()?.trim().to_string())
+    const BUF_LEN: usize = 64; // Acording to manual entry of getdomainname this is the limit
+                               // of length for the domain name
+    let mut buf = [0u8; BUF_LEN];
+    let ptr = buf.as_mut_ptr() as *mut c_char;
+    let len = BUF_LEN as size_t;
+
+    let res = unsafe { libc::getdomainname(ptr, len) };
+    Errno::result(res)
+        .map(|_| {
+            unsafe { CStr::from_ptr(buf.as_ptr() as *const c_char) }
+                .to_string_lossy()
+                .to_string()
+        })
+        .map_err(Error::from)
 }
 
-/// Returns a kernel version of host os.
-pub fn kernel_version() -> Result<String> {
-    SysPath::ProcKernelRelease.read().map(|s| s.trim().to_string())
+/// Returns a kernel release of host os.
+pub fn kernel_release() -> Result<String> {
+    Ok(utsname::uname().release().to_string())
 }
 
 #[derive(Default, OsImpl)]
 pub(crate) struct Linux {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn gets_uptime() {
-        assert_eq!(_uptime(UPTIME), Ok(5771))
-    }
-}

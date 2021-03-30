@@ -82,9 +82,6 @@ cache_alignment : 64
 address sizes   : 43 bits physical, 48 bits virtual
 power management: ts ttp tm hwpstate eff_freq_ro [13] [14]";
 
-/// Content of /proc/uptime
-pub(crate) static UPTIME: &str = "5771.26 68230.61";
-
 /// Content of /proc/net/dev
 pub(crate) static NET_DEV: &str = "Inter-|   Receive                                                |  Transmit
 face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
