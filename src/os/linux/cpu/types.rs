@@ -270,7 +270,7 @@ mod tests {
 
         assert_eq!(
             Ok(cpu),
-            Processor::from_sys_path(SysPath::Custom(dir.path().join("cpuinfo").to_owned()))
+            Processor::from_sys_path(SysPath::Custom(dir.path().join("cpuinfo")))
         );
 
         dir.close()

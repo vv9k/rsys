@@ -43,7 +43,7 @@ impl Interface {
             stat: IfaceStat::default(),
             mtu: path.clone().extend(&["mtu"]).read_as::<u32>()?,
             mac_address: path.clone().extend(&["address"]).read()?.trim().to_string(),
-            speed: path.extend(&["speed"]).read_as::<u64>().unwrap_or_else(|_| 0),
+            speed: path.extend(&["speed"]).read_as::<u64>().unwrap_or(0),
             ipv4: "".to_string(),
             ipv6: "".to_string(),
         })

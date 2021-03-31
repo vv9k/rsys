@@ -479,7 +479,7 @@ mod tests {
 
         info.stat = None;
 
-        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(p.clone(), false));
+        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(p, false));
 
         dir.close()
     }

@@ -52,7 +52,7 @@ impl From<&str> for ProcessState {
 fn cmdline(path: SysPath) -> Result<String> {
     path.extend(&["cmdline"])
         .read()
-        .map(|s| s.trim_end_matches('\x00').replace('\x00', " ").to_string())
+        .map(|s| s.trim_end_matches('\x00').replace('\x00', " "))
 }
 
 #[derive(Debug, Eq, PartialEq)]

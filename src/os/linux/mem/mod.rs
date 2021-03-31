@@ -73,7 +73,7 @@ fn _mem_extract(out: &str, line: &str) -> Result<usize> {
         .collect::<String>()
         .parse::<usize>()
         .map_err(|e| Error::CommandParseError(e.to_string()))?
-        * 1024 as usize)
+        * 1024_usize)
 }
 
 pub(crate) fn mem_extract(line: &str) -> Result<usize> {

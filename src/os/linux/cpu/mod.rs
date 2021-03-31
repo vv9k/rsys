@@ -19,8 +19,7 @@ fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T>
 where
     <T as FromStr>::Err: Display,
 {
-    Ok(out
-        .split('\n')
+    out.split('\n')
         .find(|l| l.starts_with(line))
         .map(|s| {
             s.split(':')
@@ -34,7 +33,7 @@ where
                 })
                 .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))
         })
-        .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))???)
+        .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))??
 }
 
 pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
@@ -131,7 +130,7 @@ mod tests {
         }
 
         let mut out = core_ids(SysPath::Custom(dir.path().to_owned())).unwrap();
-        out.sort();
+        out.sort_unstable();
 
         assert_eq!(ids, out);
 
