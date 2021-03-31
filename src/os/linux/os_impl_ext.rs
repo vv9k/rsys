@@ -1,4 +1,4 @@
-use super::{cpu::*, kernel_release, misc::*, net::*, ps::*, storage::*, Linux};
+use super::{cpu::*, kernel_release, mem::*, misc::*, net::*, ps::*, storage::*, Linux};
 use crate::Result;
 
 /// Trait extending Rsys functionality with linux specific api
@@ -25,6 +25,22 @@ pub trait OsImplExt {
 
     /// Returns block size of device in bytes
     fn block_size(&self, name: &str) -> Result<i64>;
+
+    //
+    // mem
+    //
+
+    /// Returns the total amount of shared RAM in Bytes.
+    fn memory_shared(&self) -> Result<usize>;
+
+    /// Returns the total amount of memory used by buffers in Bytes.
+    fn memory_buffered(&self) -> Result<usize>;
+
+    /// Returns the total high memory size in Bytes.
+    fn memory_high_total(&self) -> Result<usize>;
+
+    /// Returns the total amount of unused high memory size in Bytes.
+    fn memory_high_free(&self) -> Result<usize>;
 
     //
     // ps
@@ -90,6 +106,26 @@ impl OsImplExt for Linux {
 
     fn block_size(&self, name: &str) -> Result<i64> {
         block_size(name)
+    }
+
+    //
+    // mem
+    //
+
+    fn memory_shared(&self) -> Result<usize> {
+        memory_shared()
+    }
+
+    fn memory_buffered(&self) -> Result<usize> {
+        memory_buffered()
+    }
+
+    fn memory_high_total(&self) -> Result<usize> {
+        memory_high_total()
+    }
+
+    fn memory_high_free(&self) -> Result<usize> {
+        memory_high_free()
     }
 
     //

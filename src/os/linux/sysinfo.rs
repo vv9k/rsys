@@ -41,7 +41,7 @@ impl SysInfo {
     }
 
     /// Returns the total amount of installed RAM in Bytes.
-    pub fn ram_total(&self) -> u64 {
+    pub fn memory_total(&self) -> u64 {
         self.scale_mem(self.0.totalram)
     }
 
@@ -50,27 +50,27 @@ impl SysInfo {
     /// "Unused" in this context means that the RAM in neither actively used by
     /// programs, nor by the operating system as disk cache or buffer. It is
     /// "wasted" RAM since it currently serves no purpose.
-    pub fn ram_unused(&self) -> u64 {
+    pub fn memory_free(&self) -> u64 {
         self.scale_mem(self.0.freeram)
     }
 
     /// Returns the total amount of shared RAM in Bytes.
-    pub fn ram_shared(&self) -> u64 {
+    pub fn memory_shared(&self) -> u64 {
         self.scale_mem(self.0.sharedram)
     }
 
     /// Returns the total amount of memory used by buffers in Bytes.
-    pub fn ram_buffered(&self) -> u64 {
+    pub fn memory_buffered(&self) -> u64 {
         self.scale_mem(self.0.bufferram)
     }
 
     /// Returns the total high memory size in Bytes.
-    pub fn ram_high_total(&self) -> u64 {
+    pub fn memory_high_total(&self) -> u64 {
         self.scale_mem(self.0.totalhigh)
     }
 
     /// Returns the total amount of unused high memory size in Bytes.
-    pub fn ram_high_unused(&self) -> u64 {
+    pub fn memory_high_free(&self) -> u64 {
         self.scale_mem(self.0.totalhigh)
     }
 
