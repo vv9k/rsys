@@ -1,12 +1,16 @@
-pub(crate) mod types;
+pub(crate) mod cores;
+pub(crate) mod cputime;
+pub(crate) mod processor;
 
-#[cfg(test)]
-pub(crate) use super::mocks::CPUINFO;
-pub(crate) use super::{SysFs, SysPath};
-use crate::{Error, Result};
+pub use cores::*;
+pub use cputime::*;
+pub use processor::*;
+
 use nix::unistd;
 use std::{fmt::Display, str::FromStr};
-pub use types::*;
+
+use crate::linux::{SysFs, SysPath};
+use crate::{Error, Result};
 
 pub(crate) const MODEL_NAME: &str = "model name";
 pub(crate) const CACHE_SIZE: &str = "cache size";
@@ -14,6 +18,54 @@ pub(crate) const BOGOMIPS: &str = "bogomips";
 pub(crate) const CPU_CORES: &str = "cpu cores";
 pub(crate) const SIBLINGS: &str = "siblings";
 pub(crate) const CPU_CLOCK: &str = "cpu MHz";
+
+//################################################################################
+// Public
+//################################################################################
+
+/// Returns the name of first seen cpu in /proc/cpuinfo
+pub fn cpu() -> Result<String> {
+    cpuinfo_extract::<String>(MODEL_NAME)
+}
+
+/// Returns cpu clock of first core in /proc/cpuinfo file.
+pub fn cpu_clock() -> Result<f32> {
+    cpuinfo_extract::<f32>(CPU_CLOCK)
+}
+
+/// Returns total cpu cores available.
+pub fn cpu_cores() -> Result<u16> {
+    cpuinfo_extract::<u16>(CPU_CORES)
+}
+
+/// Returns total logical cores available.
+pub fn logical_cores() -> Result<u16> {
+    cpuinfo_extract::<u16>(SIBLINGS)
+}
+
+/// Returns Core objects with frequencies
+pub fn cores() -> Result<Cores> {
+    let mut cores = Vec::new();
+    for id in core_ids(SysFs::Sys.join("devices").join("system").join("cpu"))? {
+        cores.push(Core::from_sys(id)?);
+    }
+
+    Ok(cores)
+}
+
+/// Returns a Processor object containing gathered information
+/// about host machine processor.
+pub fn processor() -> Result<Processor> {
+    Processor::from_sys()
+}
+
+pub fn clock_tick() -> Result<Option<i64>> {
+    unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK).map_err(Error::from)
+}
+
+//################################################################################
+// Internal
+//################################################################################
 
 fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T>
 where
@@ -69,49 +121,10 @@ fn core_ids(path: SysPath) -> Result<Vec<u32>> {
     Ok(core_ids)
 }
 
-/// Returns the name of first seen cpu in /proc/cpuinfo
-pub fn cpu() -> Result<String> {
-    cpuinfo_extract::<String>(MODEL_NAME)
-}
-
-/// Returns cpu clock of first core in /proc/cpuinfo file.
-pub fn cpu_clock() -> Result<f32> {
-    cpuinfo_extract::<f32>(CPU_CLOCK)
-}
-
-/// Returns total cpu cores available.
-pub fn cpu_cores() -> Result<u16> {
-    cpuinfo_extract::<u16>(CPU_CORES)
-}
-
-/// Returns total logical cores available.
-pub fn logical_cores() -> Result<u16> {
-    cpuinfo_extract::<u16>(SIBLINGS)
-}
-
-/// Returns Core objects with frequencies
-pub fn cores() -> Result<Cores> {
-    let mut cores = Vec::new();
-    for id in core_ids(SysFs::Sys.join("devices").join("system").join("cpu"))? {
-        cores.push(Core::from_sys(id)?);
-    }
-
-    Ok(cores)
-}
-
-/// Returns a Processor object containing gathered information
-/// about host machine processor.
-pub fn processor() -> Result<Processor> {
-    Processor::from_sys()
-}
-
-pub fn clock_tick() -> Result<Option<i64>> {
-    unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK).map_err(Error::from)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::linux::mocks::CPUINFO;
     use std::{fs::File, io};
     #[test]
     fn extracts_cpuinfo() {
