@@ -22,10 +22,10 @@ pub(crate) enum SysFs {
 impl AsRef<str> for SysFs {
     fn as_ref(&self) -> &str {
         match &self {
-            &SysFs::Proc => "/proc",
-            &SysFs::Sys => "/sys",
-            &SysFs::Dev => "/dev",
-            &SysFs::Custom(s) => s.to_str().unwrap_or(""),
+            SysFs::Proc => "/proc",
+            SysFs::Sys => "/sys",
+            SysFs::Dev => "/dev",
+            SysFs::Custom(s) => s.to_str().unwrap_or_default(),
         }
     }
 }
