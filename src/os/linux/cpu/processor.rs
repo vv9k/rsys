@@ -1,10 +1,10 @@
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-
 use crate::linux::cpu::{cores, Cores, CpuTime, BOGOMIPS, CACHE_SIZE, MODEL_NAME};
 use crate::linux::{SysFs, SysPath};
 use crate::{Error, Result};
+
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Clone, Debug, Default, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]

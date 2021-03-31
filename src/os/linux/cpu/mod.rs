@@ -6,11 +6,11 @@ pub use cores::*;
 pub use cputime::*;
 pub use processor::*;
 
-use nix::unistd;
-use std::{fmt::Display, str::FromStr};
-
 use crate::linux::{SysFs, SysPath};
 use crate::{Error, Result};
+
+use nix::unistd;
+use std::{fmt::Display, str::FromStr};
 
 pub(crate) const MODEL_NAME: &str = "model name";
 pub(crate) const CACHE_SIZE: &str = "cache size";
