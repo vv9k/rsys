@@ -1,7 +1,6 @@
 #[cfg(target_os = "linux")]
 use crate::linux::{
     cpu::{Cores, Processor},
-    mem::Memory,
     misc::MountPoints,
     net::Interfaces,
     ps::{ProcessStat, Processes},
@@ -258,12 +257,6 @@ impl Rsys {
     /// Returns block size of device in bytes
     pub fn block_size(&self, name: &str) -> Result<i64> {
         self.1.block_size(name)
-    }
-
-    #[cfg(target_os = "linux")]
-    /// Returns detailed information about memory
-    pub fn memory(&self) -> Result<Memory> {
-        self.1.memory()
     }
 
     #[cfg(target_os = "linux")]

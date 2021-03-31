@@ -1,4 +1,4 @@
-use super::{cpu::*, kernel_release, mem::*, misc::*, net::*, ps::*, storage::*, Linux};
+use super::{cpu::*, kernel_release, misc::*, net::*, ps::*, storage::*, Linux};
 use crate::Result;
 
 /// Trait extending Rsys functionality with linux specific api
@@ -25,13 +25,6 @@ pub trait OsImplExt {
 
     /// Returns block size of device in bytes
     fn block_size(&self, name: &str) -> Result<i64>;
-
-    //
-    // memory
-    //
-
-    /// Returns detailed information about memory
-    fn memory(&self) -> Result<Memory>;
 
     //
     // ps
@@ -97,14 +90,6 @@ impl OsImplExt for Linux {
 
     fn block_size(&self, name: &str) -> Result<i64> {
         block_size(name)
-    }
-
-    //
-    // mem
-    //
-
-    fn memory(&self) -> Result<Memory> {
-        memory()
     }
 
     //

@@ -13,6 +13,7 @@ pub mod net;
 mod os_impl_ext;
 pub mod ps;
 pub mod storage;
+mod sysinfo;
 mod sysproc;
 
 use std::ffi::CStr;
@@ -20,12 +21,9 @@ use std::ffi::CStr;
 use super::OsImpl;
 use crate::{Error, Result};
 use libc::{c_char, size_t};
-use nix::{
-    errno::Errno,
-    sys::{sysinfo, utsname},
-    unistd,
-};
+use nix::{errno::Errno, sys::utsname, unistd};
 
+pub use sysinfo::{sysinfo, SysInfo};
 pub(crate) use {
     cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
     mem::{memory_free, memory_total, swap_free, swap_total},
@@ -43,7 +41,7 @@ pub fn hostname() -> Result<String> {
 
 /// Returns uptime of host machine in seconds
 fn uptime() -> Result<u64> {
-    Ok(sysinfo::sysinfo()?.uptime().as_secs())
+    Ok(sysinfo()?.uptime().as_secs())
 }
 
 /// Returns the processor architecture
