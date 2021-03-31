@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use crate::{Error, Result};
+
 use std::{
     fmt::Display,
     fs,

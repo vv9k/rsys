@@ -1,6 +1,7 @@
 //! Other api
-use super::SysFs;
+use crate::linux::SysFs;
 use crate::Result;
+
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 

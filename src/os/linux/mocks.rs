@@ -1,58 +1,5 @@
 #![cfg(test)]
 
-/// Content of /proc/meminfo
-pub(crate) static MEMINFO: &str = "MemTotal:       16320968 kB
-MemFree:        12528752 kB
-MemAvailable:   14641684 kB
-Buffers:          127548 kB
-Cached:          2158520 kB
-SwapCached:            0 kB
-Active:          1805296 kB
-Inactive:        1319376 kB
-Active(anon):     802480 kB
-Inactive(anon):    43880 kB
-Active(file):    1002816 kB
-Inactive(file):  1275496 kB
-Unevictable:          32 kB
-Mlocked:              32 kB
-SwapTotal:             0 kB
-SwapFree:              0 kB
-Dirty:               632 kB
-Writeback:             0 kB
-AnonPages:        838632 kB
-Mapped:           636564 kB
-Shmem:             44848 kB
-KReclaimable:     170588 kB
-Slab:             317492 kB
-SReclaimable:     170588 kB
-SUnreclaim:       146904 kB
-KernelStack:       13600 kB
-PageTables:        11460 kB
-NFS_Unstable:          0 kB
-Bounce:                0 kB
-WritebackTmp:          0 kB
-CommitLimit:     8160484 kB
-Committed_AS:    4216960 kB
-VmallocTotal:   34359738367 kB
-VmallocUsed:       32520 kB
-VmallocChunk:          0 kB
-Percpu:            23808 kB
-HardwareCorrupted:     0 kB
-AnonHugePages:         0 kB
-ShmemHugePages:        0 kB
-ShmemPmdMapped:        0 kB
-FileHugePages:         0 kB
-FilePmdMapped:         0 kB
-HugePages_Total:       0
-HugePages_Free:        0
-HugePages_Rsvd:        0
-HugePages_Surp:        0
-Hugepagesize:       2048 kB
-Hugetlb:               0 kB
-DirectMap4k:      527152 kB
-DirectMap2M:     6746112 kB
-DirectMap1G:    10485760 kB";
-
 /// Content of /proc/cpuinfo
 pub(crate) static CPUINFO: &str = "processor   : 2
 vendor_id   : AuthenticAMD

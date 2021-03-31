@@ -59,7 +59,6 @@ impl Interface {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::linux::mocks::NET_DEV;
     use std::{fs, io};
 
     #[test]
