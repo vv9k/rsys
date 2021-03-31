@@ -5,7 +5,7 @@ pub use types::*;
 
 #[cfg(test)]
 pub(crate) use super::mocks::SYS_BLOCK_DEV_STAT;
-use super::{storage::stat, SysPath};
+use super::{storage::stat, SysFs, SysPath};
 use crate::Result;
 use system::blk_bsz_get;
 
@@ -30,7 +30,7 @@ fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
 /// Returns block size of device in bytes
 /// device argument must be a path to block device file descriptor
 pub fn block_size(device: &str) -> Result<i64> {
-    blk_bsz_get(SysPath::Dev(device).path().to_string_lossy().as_ref())
+    blk_bsz_get(SysFs::Dev.join(device).path().to_string_lossy().as_ref())
 }
 
 /// Parses a StorageDevice object from system. If the provided name
@@ -64,7 +64,7 @@ pub fn stat_multiple_device_storage(name: &str, parse_stats: bool) -> Result<Mul
 /// Parses multiple storage devices of type T from filesystem
 pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: bool) -> Result<Vec<T>> {
     let mut devices = Vec::new();
-    for entry in SysPath::SysBlock.read_dir()? {
+    for entry in SysFs::Sys.join("block").read_dir()? {
         if let Ok(entry) = entry {
             let filename = entry.file_name().to_string_lossy().to_string();
             if filename.starts_with(T::prefix()) {
@@ -81,11 +81,11 @@ pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: 
 
 pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
     let mut infos = Vec::new();
-    for entry in SysPath::SysClassBlock.read_dir()? {
+    for entry in SysFs::Sys.join("class").join("block").read_dir()? {
         if let Ok(entry) = entry {
             let dev_name = entry.file_name().to_string_lossy().to_string();
             infos.push(BlockStorageInfo::from_sys_path(
-                SysPath::SysClassBlock.extend(&[&dev_name]).path(),
+                SysFs::Sys.join("class").join("block").join(&dev_name).path(),
                 true,
             )?);
         }

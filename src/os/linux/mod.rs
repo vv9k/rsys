@@ -31,7 +31,7 @@ pub(crate) use {
     os_impl_ext::OsImplExt,
 };
 
-pub(crate) use sysproc::SysPath;
+pub(crate) use sysproc::{SysFs, SysPath};
 
 /// Returns a hostname.
 pub fn hostname() -> Result<String> {

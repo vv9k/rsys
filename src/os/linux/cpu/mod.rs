@@ -2,7 +2,7 @@ pub(crate) mod types;
 
 #[cfg(test)]
 pub(crate) use super::mocks::CPUINFO;
-pub(crate) use super::SysPath;
+pub(crate) use super::{SysFs, SysPath};
 use crate::{Error, Result};
 use nix::unistd;
 use std::{fmt::Display, str::FromStr};
@@ -40,7 +40,7 @@ pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
 where
     <T as FromStr>::Err: Display,
 {
-    _cpuinfo_extract(&SysPath::ProcCpuInfo.read()?, &line)
+    _cpuinfo_extract(&SysFs::Proc.join("cpuinfo").read()?, &line)
 }
 
 fn core_ids(path: SysPath) -> Result<Vec<u32>> {
@@ -92,7 +92,7 @@ pub fn logical_cores() -> Result<u16> {
 /// Returns Core objects with frequencies
 pub fn cores() -> Result<Cores> {
     let mut cores = Vec::new();
-    for id in core_ids(SysPath::SysDevicesSystemCpu)? {
+    for id in core_ids(SysFs::Sys.join("devices").join("system").join("cpu"))? {
         cores.push(Core::from_sys(id)?);
     }
 
@@ -129,7 +129,7 @@ mod tests {
             ids.push(id);
         }
 
-        let mut out = core_ids(SysPath::Custom(dir.path().to_owned())).unwrap();
+        let mut out = core_ids(SysFs::Custom(dir.path().to_owned()).as_syspath()).unwrap();
         out.sort_unstable();
 
         assert_eq!(ids, out);

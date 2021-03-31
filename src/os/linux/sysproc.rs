@@ -1,71 +1,55 @@
 #![allow(dead_code)]
 
 use crate::{Error, Result};
-use std::{fmt::Display, fs, path::PathBuf, str::FromStr};
+use std::{
+    fmt::Display,
+    fs,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 /// SysPath is an abstraction around procfs and sysfs. Allows for easy reading and parsing
 /// of values in system paths.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub(crate) enum SysPath<'p> {
-    ProcCpuInfo,
-    ProcMemInfo,
-    ProcMounts,
-    ProcNetDev,
-    ProcNetArp,
-    ProcPidStat(i32),
-    ProcPid(i32),
-    ProcStat,
+#[derive(Clone, Debug)]
+pub(crate) enum SysFs {
+    Sys,
     Proc,
-    SysBlock,
-    SysBlockDevSize(&'p str),
-    SysBlockDevStat(&'p str),
-    SysBlockDevModel(&'p str),
-    SysBlockDevVendor(&'p str),
-    SysBlockDevState(&'p str),
-    SysBlockDev(&'p str),
-    SysClassBlock,
-    SysClassBlockDev(&'p str),
-    SysClassNet,
-    SysClassNetDev(&'p str),
-    SysDevMapperName(&'p str),
-    SysDevMapperUuid(&'p str),
-    SysDevicesSystemCpu,
-    SysDevicesSystemCpuCore(u32),
-    Dev(&'p str),
+    Dev,
     Custom(PathBuf),
 }
-impl<'p> SysPath<'p> {
+
+impl AsRef<str> for SysFs {
+    fn as_ref(&self) -> &str {
+        match &self {
+            &SysFs::Proc => "/proc",
+            &SysFs::Sys => "/sys",
+            &SysFs::Dev => "/dev",
+            &SysFs::Custom(s) => s.to_str().unwrap_or(""),
+        }
+    }
+}
+
+impl SysFs {
+    pub fn join<P: AsRef<Path>>(self, path: P) -> SysPath {
+        self.as_syspath().join(path)
+    }
+
+    pub fn as_syspath(self) -> SysPath {
+        SysPath(PathBuf::from(self.as_ref()))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct SysPath(PathBuf);
+
+impl SysPath {
+    pub fn join<P: AsRef<Path>>(mut self, path: P) -> SysPath {
+        self.0.push(path);
+        self
+    }
+
     pub(crate) fn path(self) -> PathBuf {
-        use SysPath::*;
-        let s = match self {
-            ProcCpuInfo => "/proc/cpuinfo".to_string(),
-            ProcMemInfo => "/proc/meminfo".to_string(),
-            ProcMounts => "/proc/mounts".to_string(),
-            ProcNetDev => "/proc/net/dev".to_string(),
-            ProcNetArp => "/proc/net/arp".to_string(),
-            ProcPidStat(n) => format!("/proc/{}/stat", n),
-            ProcPid(n) => format!("/proc/{}/", n),
-            ProcStat => "/proc/stat".to_string(),
-            Proc => "/proc".to_string(),
-            SysBlockDevSize(d) => format!("/sys/block/{}/size", d),
-            SysBlockDevStat(d) => format!("/sys/block/{}/stat", d),
-            SysBlockDevModel(d) => format!("/sys/block/{}/device/model", d),
-            SysBlockDevVendor(d) => format!("/sys/block/{}/device/vendor", d),
-            SysBlockDevState(d) => format!("/sys/block/{}/device/state", d),
-            SysBlock => "/sys/block/".to_string(),
-            SysBlockDev(d) => format!("/sys/block/{}", d),
-            SysClassBlock => "/sys/class/block".to_string(),
-            SysClassBlockDev(d) => format!("/sys/class/block/{}", d),
-            SysClassNet => "/sys/class/net".to_string(),
-            SysClassNetDev(d) => format!("/sys/class/net/{}", d),
-            SysDevMapperName(d) => format!("/sys/block/{}/dm/name", d),
-            SysDevMapperUuid(d) => format!("/sys/block/{}/dm/uuid", d),
-            SysDevicesSystemCpu => "/sys/devices/system/cpu".to_string(),
-            SysDevicesSystemCpuCore(d) => format!("/sys/devices/system/cpu/cpu{}", d),
-            Dev(d) => format!("/dev/{}", d),
-            Custom(p) => p.to_string_lossy().to_string(),
-        };
-        PathBuf::from(s)
+        self.0
     }
 
     /// Reads path to a string returning FileReadError on error
@@ -94,22 +78,13 @@ impl<'p> SysPath<'p> {
             .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
     }
 
-    /// Extends path with new elements returning a custom SysPath and consuming old one
-    pub(crate) fn extend(self, p: &[&str]) -> Self {
-        let mut path = self.path();
-        for elem in p {
-            path.push(elem);
-        }
-        SysPath::Custom(path)
-    }
-
     /// Extends path with new elements returning a custom SysPath by cloning old one
-    pub(crate) fn join(&self, p: &[&str]) -> Self {
+    pub(crate) fn extend(&self, p: &[&str]) -> Self {
         let mut path = self.clone().path();
         for elem in p {
             path.push(elem);
         }
-        SysPath::Custom(path)
+        SysPath(path)
     }
 }
 
@@ -117,21 +92,19 @@ impl<'p> SysPath<'p> {
 mod tests {
     use super::*;
     use std::path::PathBuf;
-    #[test]
-    fn extends_path() {
-        let some_path = SysPath::SysClassBlock;
-        assert_eq!(
-            SysPath::Custom(PathBuf::from_str("/sys/class/block/test/123").unwrap()),
-            some_path.extend(&["test", "123"])
-        );
-    }
 
     #[test]
-    fn doesnt_extend_path_on_empty() {
-        let some_path = SysPath::SysClassBlock;
-        assert_eq!(
-            SysPath::Custom(PathBuf::from_str("/sys/class/block").unwrap()),
-            some_path.extend(&[])
-        );
+    fn correctly_joins_paths() {
+        let mut path = SysPath(PathBuf::from("/proc/12/cpuset"));
+        assert_eq!(path, SysFs::Proc.join("12").join("cpuset"));
+
+        path = SysPath(PathBuf::from("/sys/block/sda"));
+        assert_eq!(path, SysFs::Sys.join("block").join("sda"));
+
+        path = SysPath(PathBuf::from("/dev/mapper/vgmain-root"));
+        assert_eq!(path, SysFs::Dev.join("mapper").join("vgmain-root"));
+
+        path = SysPath(PathBuf::from("/home/user/"));
+        assert_eq!(path, SysFs::Custom(PathBuf::from("/home")).join("user"));
     }
 }

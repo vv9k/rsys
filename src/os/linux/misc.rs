@@ -1,5 +1,5 @@
 //! Other api
-use super::SysPath;
+use super::SysFs;
 use crate::Result;
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
@@ -46,7 +46,7 @@ pub struct MountPoints(Vec<MountPoint>);
 /// Returns MountPoints read from /proc/mounts
 pub fn mounts() -> Result<MountPoints> {
     let mut mps = Vec::new();
-    for line in SysPath::ProcMounts.read()?.split('\n') {
+    for line in SysFs::Proc.join("mounts").read()?.split('\n') {
         if let Some(mp) = MountPoint::from_line(line) {
             mps.push(mp);
         }

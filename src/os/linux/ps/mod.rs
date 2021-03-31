@@ -1,7 +1,7 @@
 //! All about processes
 #[cfg(test)]
 use super::mocks::{PROCESS_STAT, PROCESS_STAT_WHITESPACE_NAME};
-use super::SysPath;
+use super::{SysFs, SysPath};
 use crate::{
     util::{next, skip},
     Error, Result,
@@ -50,7 +50,7 @@ impl From<&str> for ProcessState {
 }
 
 fn cmdline(path: SysPath) -> Result<String> {
-    path.extend(&["cmdline"])
+    path.join("cmdline")
         .read()
         .map(|s| s.trim_end_matches('\x00').replace('\x00', " "))
 }
@@ -78,7 +78,7 @@ pub struct Process {
 }
 impl Process {
     pub fn new(pid: i32) -> Result<Process> {
-        let p = SysPath::ProcPid(pid);
+        let p = SysFs::Proc.join(pid.to_string());
         Ok(Process {
             cmdline: cmdline(p.clone())?,
             stat: ProcessStat::from_sys_path(p)?,
@@ -87,9 +87,9 @@ impl Process {
 
     pub fn tasks(&self) -> Result<Vec<Task>> {
         let mut tasks = Vec::new();
-        for entry in SysPath::ProcPid(self.stat.pid).extend(&["task"]).read_dir()? {
+        for entry in SysFs::Proc.join(self.stat.pid.to_string()).join("task").read_dir()? {
             if let Ok(entry) = entry {
-                tasks.push(Task::from_sys_path(SysPath::Custom(entry.path()))?);
+                tasks.push(Task::from_sys_path(SysFs::Custom(entry.path()).as_syspath())?);
             }
         }
         Ok(tasks)
@@ -169,7 +169,7 @@ impl ProcessStat {
     }
 
     pub(crate) fn from_sys_path(path: SysPath) -> Result<ProcessStat> {
-        ProcessStat::from_stat(&path.extend(&["stat"]).read()?)
+        ProcessStat::from_stat(&path.join("stat").read()?)
     }
 
     pub fn update(&mut self) -> Result<()> {
@@ -203,12 +203,12 @@ impl ProcessStat {
 
 /// Returns detailed Process information parsed from /proc/[pid]/stat
 pub fn stat_process(pid: i32) -> Result<ProcessStat> {
-    ProcessStat::from_stat(&SysPath::ProcPidStat(pid).read()?)
+    ProcessStat::from_stat(&SysFs::Proc.join(pid.to_string()).join("stat").read()?)
 }
 
 /// Returns a list of pids read from /proc
 pub fn pids() -> Result<Vec<i32>> {
-    let path = SysPath::Proc.path();
+    let path = SysFs::Proc.as_syspath().path();
     let mut pids = Vec::new();
     for _entry in
         fs::read_dir(&path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))?
@@ -313,7 +313,7 @@ mod tests {
 
         let after = "/usr/lib/firefox/firefox -contentproc -childID 1 -isForBrowser -prefsLen 1 -prefMapSize 234803 -parentBuildID 20201001181215 -appdir /usr/lib/firefox/browser 6732 true tab".to_string();
 
-        assert_eq!(Ok(after), cmdline(SysPath::Custom(dir.path().to_owned())));
+        assert_eq!(Ok(after), cmdline(SysFs::Custom(dir.path().to_owned()).as_syspath()));
 
         dir.close()
     }

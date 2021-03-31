@@ -1,7 +1,7 @@
 #[cfg(test)]
 use super::NET_DEV;
 
-use super::{ipv4, ipv6, Error, Result, SysPath};
+use super::{ipv4, ipv6, Error, Result, SysFs, SysPath};
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +30,7 @@ pub struct Interface {
 }
 impl Interface {
     pub(crate) fn from_sys(name: &str) -> Result<Interface> {
-        let mut iface = Self::from_sys_path(SysPath::SysClassNetDev(name), name)?;
+        let mut iface = Self::from_sys_path(SysFs::Sys.join("class").join("net").join(name), name)?;
         iface.stat = IfaceStat::from_proc(name)?;
         iface.ipv4 = ipv4(name)?;
         iface.ipv6 = ipv6(name)?;
@@ -41,9 +41,9 @@ impl Interface {
         Ok(Interface {
             name: name.to_string(),
             stat: IfaceStat::default(),
-            mtu: path.clone().extend(&["mtu"]).read_as::<u32>()?,
-            mac_address: path.clone().extend(&["address"]).read()?.trim().to_string(),
-            speed: path.extend(&["speed"]).read_as::<u64>().unwrap_or(0),
+            mtu: path.clone().join("mtu").read_as::<u32>()?,
+            mac_address: path.clone().join("address").read()?.trim().to_string(),
+            speed: path.join("speed").read_as::<u64>().unwrap_or(0),
             ipv4: "".to_string(),
             ipv6: "".to_string(),
         })
@@ -91,7 +91,7 @@ macro_rules! next_u64 {
 
 impl IfaceStat {
     pub(crate) fn from_proc(name: &str) -> Result<IfaceStat> {
-        Self::from_sys_path(SysPath::ProcNetDev, name)
+        Self::from_sys_path(SysFs::Proc.join("net").join("dev"), name)
     }
 
     fn from_sys_path(path: SysPath, name: &str) -> Result<IfaceStat> {
@@ -102,7 +102,7 @@ impl IfaceStat {
         }
 
         Err(Error::InvalidInputError(
-            SysPath::ProcNetDev.path().to_string_lossy().to_string(),
+            SysFs::Proc.join("net").join("dev").path().to_string_lossy().to_string(),
             format!("interface {} not found in file", name),
         ))
     }
@@ -188,8 +188,11 @@ mod tests {
         let p = dir.path().join("net_dev");
         fs::write(p.as_path(), NET_DEV)?;
 
-        assert_eq!(Ok(lo), IfaceStat::from_sys_path(SysPath::Custom(p.clone()), "lo"));
-        assert_eq!(Ok(enp), IfaceStat::from_sys_path(SysPath::Custom(p), "enp"));
+        assert_eq!(
+            Ok(lo),
+            IfaceStat::from_sys_path(SysFs::Custom(p.clone()).as_syspath(), "lo")
+        );
+        assert_eq!(Ok(enp), IfaceStat::from_sys_path(SysFs::Custom(p).as_syspath(), "enp"));
 
         dir.close()
     }
@@ -213,7 +216,7 @@ mod tests {
 
         assert_eq!(
             Ok(iface),
-            Interface::from_sys_path(SysPath::Custom(dir.path().to_owned()), "enp8s0")
+            Interface::from_sys_path(SysFs::Custom(dir.path().to_owned()).as_syspath(), "enp8s0")
         );
 
         dir.close()

@@ -1,6 +1,6 @@
 #[cfg(test)]
 use super::CPUINFO;
-use super::{cores, SysPath, BOGOMIPS, CACHE_SIZE, MODEL_NAME};
+use super::{cores, SysFs, SysPath, BOGOMIPS, CACHE_SIZE, MODEL_NAME};
 use crate::{
     util::{next, skip},
     Error, Result,
@@ -21,7 +21,7 @@ pub struct Processor {
 }
 impl Processor {
     pub(crate) fn from_sys() -> Result<Processor> {
-        let mut proc = Self::from_sys_path(SysPath::ProcCpuInfo)?;
+        let mut proc = Self::from_sys_path(SysFs::Proc.join("cpuinfo"))?;
         proc.cores = cores()?;
         Ok(proc)
     }
@@ -94,7 +94,7 @@ impl CpuTime {
 
     pub(crate) fn from_stat(id: &str) -> Result<Option<CpuTime>> {
         let name = format!("cpu{}", id);
-        for line in SysPath::ProcStat.read()?.lines() {
+        for line in SysFs::Proc.join("stat").read()?.lines() {
             if line.starts_with(&name) {
                 return Ok(Some(CpuTime::from_stat_line(line)?));
             }
@@ -129,11 +129,17 @@ enum Frequency {
 
 impl Core {
     pub(crate) fn from_sys(id: u32) -> Result<Core> {
-        Self::from_sys_path(SysPath::SysDevicesSystemCpuCore(id))
+        Self::from_sys_path(
+            SysFs::Sys
+                .join("devices")
+                .join("system")
+                .join("cpu")
+                .join(format!("cpu{}", id)),
+        )
     }
 
     fn from_sys_path(p: SysPath) -> Result<Core> {
-        let freq_p = p.clone().extend(&["cpufreq"]);
+        let freq_p = p.clone().join("cpufreq");
         let id = Core::core_id(p)?;
         Ok(Core {
             id,
@@ -150,15 +156,15 @@ impl Core {
     fn frequency(p: SysPath, which: Frequency) -> Result<u64> {
         let mut new_p;
         match which {
-            Frequency::Minimal => new_p = p.clone().extend(&["scaling_min_freq"]),
-            Frequency::Current => new_p = p.clone().extend(&["scaling_cur_freq"]),
-            Frequency::Maximal => new_p = p.clone().extend(&["scaling_max_freq"]),
+            Frequency::Minimal => new_p = p.clone().join("scaling_min_freq"),
+            Frequency::Current => new_p = p.clone().join("scaling_cur_freq"),
+            Frequency::Maximal => new_p = p.clone().join("scaling_max_freq"),
         };
         if !new_p.clone().path().exists() {
             match which {
-                Frequency::Minimal => new_p = p.extend(&["cpuinfo_min_freq"]),
-                Frequency::Current => new_p = p.extend(&["cpuinfo_cur_freq"]),
-                Frequency::Maximal => new_p = p.extend(&["cpuinfo_max_freq"]),
+                Frequency::Minimal => new_p = p.join("cpuinfo_min_freq"),
+                Frequency::Current => new_p = p.join("cpuinfo_cur_freq"),
+                Frequency::Maximal => new_p = p.join("cpuinfo_max_freq"),
             };
         }
 
@@ -172,9 +178,14 @@ impl Core {
 
     /// Updates all frequencies of this core to currently available values
     pub fn update(&mut self) -> Result<()> {
-        self.min_freq = Core::frequency(SysPath::SysDevicesSystemCpuCore(self.id), Frequency::Minimal)?;
-        self.cur_freq = Core::frequency(SysPath::SysDevicesSystemCpuCore(self.id), Frequency::Current)?;
-        self.max_freq = Core::frequency(SysPath::SysDevicesSystemCpuCore(self.id), Frequency::Maximal)?;
+        let path = SysFs::Sys
+            .join("devices")
+            .join("system")
+            .join("cpu")
+            .join(format!("cpu{}", self.id));
+        self.min_freq = Core::frequency(path.clone(), Frequency::Minimal)?;
+        self.cur_freq = Core::frequency(path.clone(), Frequency::Current)?;
+        self.max_freq = Core::frequency(path, Frequency::Maximal)?;
 
         Ok(())
     }
@@ -210,7 +221,10 @@ mod tests {
             max_freq: 3_600_000_000,
         };
 
-        assert_eq!(Ok(core), Core::from_sys_path(SysPath::Custom(dir.path().to_owned())));
+        assert_eq!(
+            Ok(core),
+            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).as_syspath())
+        );
 
         dir.close()
     }
@@ -236,7 +250,10 @@ mod tests {
             max_freq: 3_600_000_000,
         };
 
-        assert_eq!(Ok(core), Core::from_sys_path(SysPath::Custom(dir.path().to_owned())));
+        assert_eq!(
+            Ok(core),
+            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).as_syspath())
+        );
 
         dir.close()
     }
@@ -270,7 +287,7 @@ mod tests {
 
         assert_eq!(
             Ok(cpu),
-            Processor::from_sys_path(SysPath::Custom(dir.path().join("cpuinfo")))
+            Processor::from_sys_path(SysFs::Custom(dir.path().to_owned()).join("cpuinfo"))
         );
 
         dir.close()
