@@ -25,17 +25,17 @@ impl BlockStorageDeviceName for ScsiCdrom {
 }
 
 impl FromSysName<ScsiCdrom> for ScsiCdrom {
-    fn from_sys(name: &str, _parse_stat: bool) -> Result<ScsiCdrom> {
-        if !name.starts_with("sr") {
+    fn from_sys(name: &str, _parse_stat: bool) -> Result<Self> {
+        if !name.starts_with(Self::prefix()) {
             return Err(Error::InvalidInputError(
                 name.to_string(),
-                "SCSI CDrom device name must begin with 'sr'".to_string(),
+                format!("SCSI CDrom device name must begin with '{}'", Self::prefix()),
             ));
         }
         let base_path = SysFs::Sys.join("block").join(name);
         let dev_path = base_path.clone().join("device");
 
-        Ok(ScsiCdrom {
+        Ok(Self {
             info: BlockStorageInfo::from_sys_path(base_path.path(), true)?,
             model: trim_parse_map::<String>(&dev_path.clone().join("model").read()?)?,
             vendor: trim_parse_map::<String>(&dev_path.clone().join("vendor").read()?)?,

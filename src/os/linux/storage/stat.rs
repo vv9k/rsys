@@ -43,6 +43,7 @@ pub struct BlockStorageStat {
     /// while processing discard requests.
     pub discard_ticks: u64,
 }
+
 impl BlockStorageStat {
     pub(crate) fn from_stat(stat: &str) -> Result<BlockStorageStat> {
         let mut elems = stat.split_ascii_whitespace();

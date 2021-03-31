@@ -28,8 +28,8 @@ impl BlockStorageDeviceName for MultipleDeviceStorage {
 }
 
 impl MultipleDeviceStorage {
-    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool, parse_stat: bool) -> Result<MultipleDeviceStorage> {
-        Ok(MultipleDeviceStorage {
+    pub(crate) fn from_sys_path(path: PathBuf, hierarchy: bool, parse_stat: bool) -> Result<Self> {
+        Ok(Self {
             info: BlockStorageInfo::from_sys_path(path.clone(), parse_stat)?,
             level: trim_parse_map::<String>(&SysFs::Custom(path.clone()).join("md").join("level").read()?)?,
             slave_parts: if hierarchy {
@@ -47,14 +47,14 @@ impl MultipleDeviceStorage {
 }
 
 impl FromSysName<MultipleDeviceStorage> for MultipleDeviceStorage {
-    fn from_sys(name: &str, parse_stat: bool) -> Result<MultipleDeviceStorage> {
+    fn from_sys(name: &str, parse_stat: bool) -> Result<Self> {
         if !name.starts_with("md") {
             return Err(Error::InvalidInputError(
                 name.to_string(),
                 "multiple device storage name must begin with 'md'".to_string(),
             ));
         }
-        MultipleDeviceStorage::from_sys_path(
+        Self::from_sys_path(
             SysFs::Sys.join("class").join("block").join(name).path(),
             true,
             parse_stat,

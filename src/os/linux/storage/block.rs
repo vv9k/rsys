@@ -28,17 +28,17 @@ impl BlockStorageDeviceName for StorageDevice {
 }
 
 impl FromSysName<StorageDevice> for StorageDevice {
-    fn from_sys(name: &str, parse_stat: bool) -> Result<StorageDevice> {
-        if !name.starts_with("sd") {
+    fn from_sys(name: &str, parse_stat: bool) -> Result<Self> {
+        if !name.starts_with(Self::prefix()) {
             return Err(Error::InvalidInputError(
                 name.to_string(),
-                "block storage device name must begin with 'sd'".to_string(),
+                format!("block storage device name must begin with '{}'", Self::prefix()),
             ));
         }
         let base_path = SysFs::Sys.join("block").join(name);
         let dev_path = base_path.clone().join("device");
 
-        Ok(StorageDevice {
+        Ok(Self {
             info: BlockStorageInfo::from_sys_path(base_path.path(), true)?,
             model: trim_parse_map::<String>(&dev_path.clone().join("model").read()?)?,
             vendor: trim_parse_map::<String>(&dev_path.clone().join("vendor").read()?)?,

@@ -21,7 +21,7 @@ pub struct Partition {
 
 impl FromSysPath<Partition> for Partition {
     fn from_sys_path(path: PathBuf, hierarchy: bool, parse_stat: bool) -> Result<Self> {
-        Ok(Partition {
+        Ok(Self {
             info: BlockStorageInfo::from_sys_path(path.clone(), parse_stat)?,
             holder_mds: if hierarchy {
                 find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Holders, false, parse_stat)

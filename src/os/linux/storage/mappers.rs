@@ -29,17 +29,17 @@ impl BlockStorageDeviceName for DeviceMapper {
 }
 
 impl FromSysName<DeviceMapper> for DeviceMapper {
-    fn from_sys(name: &str, parse_stat: bool) -> Result<DeviceMapper> {
-        if !name.starts_with("dm") {
+    fn from_sys(name: &str, parse_stat: bool) -> Result<Self> {
+        if !name.starts_with(Self::prefix()) {
             return Err(Error::InvalidInputError(
                 name.to_string(),
-                "device mapper name must begin with 'dm'".to_string(),
+                format!("device mapper name must begin with '{}'", Self::prefix()),
             ));
         }
         let base_path = SysFs::Sys.join("block").join("name");
         let base_pathbuf = base_path.clone().path();
 
-        Ok(DeviceMapper {
+        Ok(Self {
             info: BlockStorageInfo::from_sys_path(base_pathbuf.clone(), true)?,
             uuid: trim_parse_map::<String>(&base_path.clone().join("dm").join("uuid").read()?)?,
             name: trim_parse_map::<String>(&base_path.join("dm").join("name").read()?)?,
@@ -51,7 +51,7 @@ impl FromSysName<DeviceMapper> for DeviceMapper {
 
 impl FromSysPath<DeviceMapper> for DeviceMapper {
     fn from_sys_path(path: PathBuf, hierarchy: bool, parse_stat: bool) -> Result<Self> {
-        Ok(DeviceMapper {
+        Ok(Self {
             info: BlockStorageInfo::from_sys_path(path.clone(), parse_stat)?,
             name: trim_parse_map::<String>(&SysFs::Custom(path.clone()).join("dm").join("name").read()?)?,
             uuid: trim_parse_map::<String>(&SysFs::Custom(path.clone()).join("dm").join("uuid").read()?)?,
