@@ -13,11 +13,9 @@ use crate::{Error, Result};
 
 use std::fs;
 
-fn cmdline(path: SysPath) -> Result<String> {
-    path.join("cmdline")
-        .read()
-        .map(|s| s.trim_end_matches('\x00').replace('\x00', " "))
-}
+//################################################################################
+// Public
+//################################################################################
 
 /// Returns detailed Process information parsed from /proc/[pid]/stat
 pub fn stat_process(pid: i32) -> Result<ProcessStat> {
@@ -54,6 +52,16 @@ pub fn processes() -> Result<Processes> {
     }
 
     Ok(ps)
+}
+
+//################################################################################
+// Internal
+//################################################################################
+
+fn cmdline(path: SysPath) -> Result<String> {
+    path.join("cmdline")
+        .read()
+        .map(|s| s.trim_end_matches('\x00').replace('\x00', " "))
 }
 
 #[cfg(test)]

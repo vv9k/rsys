@@ -24,14 +24,20 @@ impl CpuTime {
     pub(crate) fn from_stat_line(stat: &str) -> Result<CpuTime> {
         let mut elems = stat.split_ascii_whitespace();
 
+        macro_rules! _next {
+            ($t:tt) => {
+                next::<$t, SplitAsciiWhitespace>(&mut elems, &stat)?
+            };
+        }
+
         Ok(CpuTime {
             user: next::<u64, SplitAsciiWhitespace>(skip(1, &mut elems), &stat)?,
-            nice: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
-            system: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
-            idle: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
-            iowait: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
-            irq: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
-            softirq: next::<u64, SplitAsciiWhitespace>(&mut elems, &stat)?,
+            nice: _next!(u64),
+            system: _next!(u64),
+            idle: _next!(u64),
+            iowait: _next!(u64),
+            irq: _next!(u64),
+            softirq: _next!(u64),
         })
     }
 

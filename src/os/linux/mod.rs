@@ -5,8 +5,6 @@
 pub(crate) mod mocks;
 
 pub mod cpu;
-#[cfg(feature = "display")]
-mod display;
 pub mod mem;
 pub mod misc;
 pub mod net;
@@ -16,14 +14,8 @@ pub mod storage;
 mod sysinfo;
 mod sysproc;
 
-use std::ffi::CStr;
-
-use super::OsImpl;
-use crate::{Error, Result};
-use libc::{c_char, size_t};
-use nix::{errno::Errno, sys::utsname, unistd};
-
 pub use sysinfo::{sysinfo, SysInfo};
+pub(crate) use sysproc::{SysFs, SysPath};
 pub(crate) use {
     cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
     mem::{memory_free, memory_total, swap_free, swap_total},
@@ -31,7 +23,12 @@ pub(crate) use {
     os_impl_ext::OsImplExt,
 };
 
-pub(crate) use sysproc::{SysFs, SysPath};
+use crate::os::OsImpl;
+use crate::{Error, Result};
+
+use libc::{c_char, size_t};
+use nix::{errno::Errno, sys::utsname, unistd};
+use std::ffi::CStr;
 
 /// Returns a hostname.
 pub fn hostname() -> Result<String> {
@@ -40,7 +37,7 @@ pub fn hostname() -> Result<String> {
 }
 
 /// Returns uptime of host machine in seconds
-fn uptime() -> Result<u64> {
+pub fn uptime() -> Result<u64> {
     Ok(sysinfo()?.uptime().as_secs())
 }
 
