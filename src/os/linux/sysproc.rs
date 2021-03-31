@@ -30,13 +30,19 @@ impl AsRef<str> for SysFs {
     }
 }
 
+impl Into<SysPath> for SysFs {
+    fn into(self) -> SysPath {
+        SysPath(PathBuf::from(self.as_ref()))
+    }
+}
+
 impl SysFs {
     pub fn join<P: AsRef<Path>>(self, path: P) -> SysPath {
-        self.as_syspath().join(path)
+        self.to_syspath().join(path)
     }
 
-    pub fn as_syspath(self) -> SysPath {
-        SysPath(PathBuf::from(self.as_ref()))
+    pub fn to_syspath(self) -> SysPath {
+        self.into()
     }
 }
 

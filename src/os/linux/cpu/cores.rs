@@ -116,7 +116,7 @@ mod tests {
 
         assert_eq!(
             Ok(core),
-            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).as_syspath())
+            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).to_syspath())
         );
 
         dir.close()
@@ -145,7 +145,7 @@ mod tests {
 
         assert_eq!(
             Ok(core),
-            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).as_syspath())
+            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).to_syspath())
         );
 
         dir.close()

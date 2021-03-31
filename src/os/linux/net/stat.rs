@@ -140,9 +140,9 @@ mod tests {
 
         assert_eq!(
             Ok(lo),
-            IfaceStat::from_sys_path(SysFs::Custom(p.clone()).as_syspath(), "lo")
+            IfaceStat::from_sys_path(SysFs::Custom(p.clone()).to_syspath(), "lo")
         );
-        assert_eq!(Ok(enp), IfaceStat::from_sys_path(SysFs::Custom(p).as_syspath(), "enp"));
+        assert_eq!(Ok(enp), IfaceStat::from_sys_path(SysFs::Custom(p).to_syspath(), "enp"));
 
         dir.close()
     }
