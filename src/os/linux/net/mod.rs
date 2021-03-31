@@ -1,43 +1,20 @@
-mod types;
-#[cfg(test)]
-use super::mocks::NET_DEV;
-use super::{SysFs, SysPath};
-use crate::{Error, Result};
+pub(crate) mod iface;
+pub(crate) mod stat;
+
+pub use iface::*;
+pub use stat::*;
+
+use crate::linux::SysFs;
+use crate::Result;
+
 use nix::{
     ifaddrs::getifaddrs,
     sys::socket::{InetAddr, SockAddr},
 };
-pub use types::*;
 
-fn _ip(name: &str, v6: bool) -> Result<Option<String>> {
-    for iface in getifaddrs()?.into_iter().filter(|iface| iface.interface_name == name) {
-        if let Some(addr) = iface.address {
-            match addr {
-                SockAddr::Inet(ip) => match ip {
-                    InetAddr::V4(_) if !v6 => {
-                        let addr = addr.to_str();
-                        // skip :<port>
-                        if let Some(last_idx) = addr.rfind(':') {
-                            return Ok(Some(addr[..last_idx].to_string()));
-                        }
-                        return Ok(Some(addr));
-                    }
-                    InetAddr::V6(_) if v6 => {
-                        let addr = addr.to_str();
-                        // skip [ ]:<port>
-                        if let Some(last_idx) = addr.rfind(']') {
-                            return Ok(Some(addr[1..last_idx].to_string()));
-                        }
-                        return Ok(Some(addr));
-                    }
-                    _ => continue,
-                },
-                _ => continue,
-            }
-        }
-    }
-    Ok(None)
-}
+//################################################################################
+// Public
+//################################################################################
 
 /// Returns a default interface. If there are no interfaces in /proc/net/arp
 /// returns an empty string.
@@ -111,6 +88,40 @@ pub fn iface(name: &str) -> Result<Option<Interface>> {
                 if filename == name {
                     return Ok(Some(Interface::from_sys(filename)?));
                 }
+            }
+        }
+    }
+    Ok(None)
+}
+
+//################################################################################
+// Internal
+//################################################################################
+
+fn _ip(name: &str, v6: bool) -> Result<Option<String>> {
+    for iface in getifaddrs()?.into_iter().filter(|iface| iface.interface_name == name) {
+        if let Some(addr) = iface.address {
+            match addr {
+                SockAddr::Inet(ip) => match ip {
+                    InetAddr::V4(_) if !v6 => {
+                        let addr = addr.to_str();
+                        // skip :<port>
+                        if let Some(last_idx) = addr.rfind(':') {
+                            return Ok(Some(addr[..last_idx].to_string()));
+                        }
+                        return Ok(Some(addr));
+                    }
+                    InetAddr::V6(_) if v6 => {
+                        let addr = addr.to_str();
+                        // skip [ ]:<port>
+                        if let Some(last_idx) = addr.rfind(']') {
+                            return Ok(Some(addr[1..last_idx].to_string()));
+                        }
+                        return Ok(Some(addr));
+                    }
+                    _ => continue,
+                },
+                _ => continue,
             }
         }
     }

@@ -1,4 +1,4 @@
-use super::sysinfo;
+use crate::linux::sysinfo;
 use crate::Result;
 
 /// Returns the total amount of installed RAM in Bytes.
