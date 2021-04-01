@@ -4,6 +4,8 @@ use libc::SI_LOAD_SHIFT;
 use nix::errno::Errno;
 use std::{cmp, mem, time::Duration};
 
+/// A structure containing certain statistics on memory and swap usage, as
+/// well as the load average and uptime.
 pub struct SysInfo(libc::sysinfo);
 
 // Shamelessly borrowed from nix crate to add missing fields
@@ -80,6 +82,7 @@ impl SysInfo {
     }
 }
 
+/// returns certain statistics on memory and swap usage, as well as the load average.
 pub fn sysinfo() -> Result<SysInfo> {
     let mut info = mem::MaybeUninit::uninit();
     let res = unsafe { libc::sysinfo(info.as_mut_ptr()) };
