@@ -13,6 +13,7 @@ pub enum RsysError {
     InvalidInputError(String, String),
     #[error("Failed to serialize `{0}` - `{1}`")]
     SerializeError(String, String),
+    #[cfg(target_os = "linux")]
     #[error("Syscall failed - `{0}`")]
     NixSyscallError(#[from] nix::Error),
 
