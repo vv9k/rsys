@@ -27,16 +27,6 @@ pub struct IfaceStat {
     pub tx_multicast: u64,
 }
 
-macro_rules! next_u64 {
-    ($list:ident, $line:ident) => {
-        $list
-            .next()
-            .unwrap()
-            .parse::<u64>()
-            .map_err(|e| Error::InvalidInputError($line.to_string(), e.to_string()))?
-    };
-}
-
 impl IfaceStat {
     pub(crate) fn from_proc(name: &str) -> Result<IfaceStat> {
         Self::from_sys_path(&SysFs::Proc.join("net/dev"), name)
@@ -57,27 +47,38 @@ impl IfaceStat {
 
     fn from_line(line: &str) -> Result<IfaceStat> {
         let mut elems = line.split_ascii_whitespace().take(17);
+
+        macro_rules! next_u64 {
+            () => {
+                elems
+                    .next()
+                    .unwrap()
+                    .parse::<u64>()
+                    .map_err(|e| Error::InvalidInputError(line.to_string(), e.to_string()))?
+            };
+        }
+
         if elems.clone().count() >= 17 {
             // skip interface name
             elems.next();
             return Ok(IfaceStat {
-                rx_bytes: next_u64!(elems, line),
-                rx_packets: next_u64!(elems, line),
-                rx_errs: next_u64!(elems, line),
-                rx_drop: next_u64!(elems, line),
-                rx_fifo: next_u64!(elems, line),
-                rx_frame: next_u64!(elems, line),
-                rx_compressed: next_u64!(elems, line),
-                rx_multicast: next_u64!(elems, line),
+                rx_bytes: next_u64!(),
+                rx_packets: next_u64!(),
+                rx_errs: next_u64!(),
+                rx_drop: next_u64!(),
+                rx_fifo: next_u64!(),
+                rx_frame: next_u64!(),
+                rx_compressed: next_u64!(),
+                rx_multicast: next_u64!(),
 
-                tx_bytes: next_u64!(elems, line),
-                tx_packets: next_u64!(elems, line),
-                tx_errs: next_u64!(elems, line),
-                tx_drop: next_u64!(elems, line),
-                tx_fifo: next_u64!(elems, line),
-                tx_frame: next_u64!(elems, line),
-                tx_compressed: next_u64!(elems, line),
-                tx_multicast: next_u64!(elems, line),
+                tx_bytes: next_u64!(),
+                tx_packets: next_u64!(),
+                tx_errs: next_u64!(),
+                tx_drop: next_u64!(),
+                tx_fifo: next_u64!(),
+                tx_frame: next_u64!(),
+                tx_compressed: next_u64!(),
+                tx_multicast: next_u64!(),
             });
         }
 
