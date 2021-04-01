@@ -8,7 +8,7 @@ fn main() -> Result<()> {
     println!("HOSTNAME - {}", rsys::linux::hostname()?);
     println!("KERNEL_VERSION - {}", rsys.kernel_release()?);
     println!("{:#?}", rsys::linux::cpu::processor()?);
-    println!("MOUNTS - {:#?}", rsys::linux::misc::mounts()?);
+    println!("MOUNTS - {:#?}", rsys::linux::mounts::mounts()?);
     Ok(())
 }
 

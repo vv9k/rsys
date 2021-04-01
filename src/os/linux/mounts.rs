@@ -1,4 +1,3 @@
-//! Other api
 use crate::linux::SysFs;
 use crate::Result;
 
@@ -86,7 +85,7 @@ impl MountPoint {
     }
 }
 
-/// Returns MountPoints read from /proc/mounts
+/// Returns `MountPoints` read from `/proc/mounts`
 pub fn mounts() -> Result<MountPoints> {
     _mounts(&SysFs::Proc.join("mounts").read()?)
 }

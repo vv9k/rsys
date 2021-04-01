@@ -13,6 +13,7 @@ pub struct Task {
     pub cmdline: String,
     pub stat: ProcessStat,
 }
+
 impl Task {
     pub(crate) fn from_sys_path(path: &SysPath) -> Result<Task> {
         Ok(Task {
@@ -28,6 +29,7 @@ pub struct Process {
     pub cmdline: String,
     pub stat: ProcessStat,
 }
+
 impl Process {
     pub fn new(pid: i32) -> Result<Process> {
         let p = SysFs::Proc.join(pid.to_string());

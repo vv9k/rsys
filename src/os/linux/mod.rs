@@ -6,7 +6,7 @@ pub(crate) mod mocks;
 
 pub mod cpu;
 pub mod mem;
-pub mod misc;
+pub mod mounts;
 pub mod net;
 mod os_impl_ext;
 pub mod ps;

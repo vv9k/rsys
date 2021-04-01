@@ -1,7 +1,7 @@
 #[cfg(target_os = "linux")]
 use crate::linux::{
     cpu::{Cores, Processor},
-    misc::MountPoints,
+    mounts::MountPoints,
     net::Interfaces,
     ps::{ProcessStat, Processes},
     storage::{DeviceMapper, MultipleDeviceStorage, ScsiCdrom, StorageDevice},
