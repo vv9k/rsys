@@ -39,7 +39,7 @@ pub trait FromSysName<T> {
 /// Returns block size of device in bytes
 /// device argument must be a path to block device file descriptor
 pub fn block_size(device: &str) -> Result<i64> {
-    blk_bsz_get(SysFs::Dev.join(device).to_pathbuf().to_string_lossy().as_ref())
+    blk_bsz_get(SysFs::Dev.join(device).into_pathbuf().to_string_lossy().as_ref())
 }
 
 /// Parses a StorageDevice object from system. If the provided name

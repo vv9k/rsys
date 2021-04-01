@@ -143,7 +143,7 @@ mod tests {
             ids.push(id);
         }
 
-        let mut out = core_ids(SysFs::Custom(dir.path().to_owned()).to_syspath()).unwrap();
+        let mut out = core_ids(SysFs::Custom(dir.path().to_owned()).into_syspath()).unwrap();
         out.sort_unstable();
 
         assert_eq!(ids, out);

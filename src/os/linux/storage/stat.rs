@@ -142,7 +142,7 @@ mod tests {
             }),
         };
 
-        let p = SysFs::Custom(p).to_syspath();
+        let p = SysFs::Custom(p).into_syspath();
 
         assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(&p, true));
 

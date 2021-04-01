@@ -80,7 +80,7 @@ mod tests {
 
         assert_eq!(
             Ok(iface),
-            Interface::from_sys_path(&SysFs::Custom(dir.path().to_owned()).to_syspath(), "enp8s0")
+            Interface::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath(), "enp8s0")
         );
 
         dir.close()

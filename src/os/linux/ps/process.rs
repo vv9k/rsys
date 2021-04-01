@@ -43,7 +43,7 @@ impl Process {
         let mut tasks = Vec::new();
         for entry in SysFs::Proc.join(self.stat.pid.to_string()).join("task").read_dir()? {
             if let Ok(entry) = entry {
-                tasks.push(Task::from_sys_path(&SysFs::Custom(entry.path()).to_syspath())?);
+                tasks.push(Task::from_sys_path(&SysFs::Custom(entry.path()).into_syspath())?);
             }
         }
         Ok(tasks)

@@ -43,11 +43,11 @@ impl From<SysPath> for PathBuf {
 }
 
 impl SysFs {
-    pub fn join<P: AsRef<Path>>(self, path: P) -> SysPath {
-        self.to_syspath().join(path)
+    pub(crate) fn join<P: AsRef<Path>>(self, path: P) -> SysPath {
+        self.into_syspath().join(path)
     }
 
-    pub fn to_syspath(self) -> SysPath {
+    pub(crate) fn into_syspath(self) -> SysPath {
         self.into()
     }
 }
@@ -56,7 +56,7 @@ impl SysFs {
 pub(crate) struct SysPath(PathBuf);
 
 impl SysPath {
-    pub fn join<P: AsRef<Path>>(mut self, path: P) -> SysPath {
+    pub(crate) fn join<P: AsRef<Path>>(mut self, path: P) -> SysPath {
         self.0.push(path);
         self
     }
@@ -72,7 +72,7 @@ impl SysPath {
         self.0.as_path()
     }
 
-    pub(crate) fn to_pathbuf(self) -> PathBuf {
+    pub(crate) fn into_pathbuf(self) -> PathBuf {
         PathBuf::from(self)
     }
 

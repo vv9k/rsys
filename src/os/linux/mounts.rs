@@ -87,17 +87,17 @@ impl MountPoint {
 
 /// Returns `MountPoints` read from `/proc/mounts`
 pub fn mounts() -> Result<MountPoints> {
-    _mounts(&SysFs::Proc.join("mounts").read()?)
+    Ok(_mounts(&SysFs::Proc.join("mounts").read()?))
 }
 
-fn _mounts(out: &str) -> Result<MountPoints> {
+fn _mounts(out: &str) -> MountPoints {
     let mut mps = Vec::new();
     for line in out.split('\n') {
         if let Some(mp) = MountPoint::from_line(line) {
             mps.push(mp);
         }
     }
-    Ok(MountPoints(mps))
+    MountPoints(mps)
 }
 
 #[cfg(test)]
@@ -639,6 +639,6 @@ mod tests {
             },
         ]);
 
-        assert_eq!(_mounts(MOUNTS).unwrap(), expected);
+        assert_eq!(_mounts(MOUNTS), expected);
     }
 }

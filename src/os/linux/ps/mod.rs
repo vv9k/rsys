@@ -24,7 +24,7 @@ pub fn stat_process(pid: i32) -> Result<ProcessStat> {
 
 /// Returns a list of pids read from /proc
 pub fn pids() -> Result<Vec<i32>> {
-    let path = SysFs::Proc.to_syspath().to_pathbuf();
+    let path = SysFs::Proc.into_syspath().into_pathbuf();
     let mut pids = Vec::new();
     for _entry in
         fs::read_dir(&path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))?
@@ -77,7 +77,7 @@ mod tests {
 
         let after = "/usr/lib/firefox/firefox -contentproc -childID 1 -isForBrowser -prefsLen 1 -prefMapSize 234803 -parentBuildID 20201001181215 -appdir /usr/lib/firefox/browser 6732 true tab".to_string();
 
-        assert_eq!(Ok(after), cmdline(&SysFs::Custom(dir.path().to_owned()).to_syspath()));
+        assert_eq!(Ok(after), cmdline(&SysFs::Custom(dir.path().to_owned()).into_syspath()));
 
         dir.close()
     }

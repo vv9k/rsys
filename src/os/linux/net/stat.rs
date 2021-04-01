@@ -40,7 +40,7 @@ impl IfaceStat {
         }
 
         Err(Error::InvalidInputError(
-            SysFs::Proc.join("net/dev").to_pathbuf().to_string_lossy().to_string(),
+            SysFs::Proc.join("net/dev").into_pathbuf().to_string_lossy().to_string(),
             format!("interface {} not found in file", name),
         ))
     }
@@ -139,7 +139,7 @@ mod tests {
         let p = dir.path().join("net_dev");
         fs::write(p.as_path(), NET_DEV)?;
 
-        let path = SysFs::Custom(p).to_syspath();
+        let path = SysFs::Custom(p).into_syspath();
         assert_eq!(Ok(lo), IfaceStat::from_sys_path(&path, "lo"));
         assert_eq!(Ok(enp), IfaceStat::from_sys_path(&path, "enp"));
 
