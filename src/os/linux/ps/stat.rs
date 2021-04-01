@@ -40,6 +40,35 @@ pub struct ProcessStat {
 }
 
 impl ProcessStat {
+    /// Rereads the current statistics of the process represented by this structure
+    pub fn update(&mut self) -> Result<()> {
+        let p = stat_process(self.pid)?;
+        self.pid = p.pid;
+        self.name = p.name;
+        self.state = p.state;
+        self.ppid = p.ppid;
+        self.pgrp = p.pgrp;
+        self.session = p.session;
+        self.tty_nr = p.tty_nr;
+        self.utime = p.utime;
+        self.stime = p.stime;
+        self.cutime = p.cutime;
+        self.cstime = p.cstime;
+        self.priority = p.priority;
+        self.nice = p.nice;
+        self.num_threads = p.num_threads;
+        self.itrealvalue = p.itrealvalue;
+        self.starttime = p.starttime;
+        self.vsize = p.vsize;
+        self.rss = p.rss;
+        self.rsslim = p.rsslim;
+        self.nswap = p.nswap;
+        self.cnswap = p.cnswap;
+        self.guest_time = p.guest_time;
+        self.cguest_time = p.cguest_time;
+        Ok(())
+    }
+
     pub(crate) fn from_stat(stat: &str) -> Result<ProcessStat> {
         let mut elems = stat.split_ascii_whitespace();
 
@@ -89,34 +118,6 @@ impl ProcessStat {
 
     pub(crate) fn from_sys_path(path: &SysPath) -> Result<ProcessStat> {
         ProcessStat::from_stat(&path.extend("stat").read()?)
-    }
-
-    pub fn update(&mut self) -> Result<()> {
-        let p = stat_process(self.pid)?;
-        self.pid = p.pid;
-        self.name = p.name;
-        self.state = p.state;
-        self.ppid = p.ppid;
-        self.pgrp = p.pgrp;
-        self.session = p.session;
-        self.tty_nr = p.tty_nr;
-        self.utime = p.utime;
-        self.stime = p.stime;
-        self.cutime = p.cutime;
-        self.cstime = p.cstime;
-        self.priority = p.priority;
-        self.nice = p.nice;
-        self.num_threads = p.num_threads;
-        self.itrealvalue = p.itrealvalue;
-        self.starttime = p.starttime;
-        self.vsize = p.vsize;
-        self.rss = p.rss;
-        self.rsslim = p.rsslim;
-        self.nswap = p.nswap;
-        self.cnswap = p.cnswap;
-        self.guest_time = p.guest_time;
-        self.cguest_time = p.cguest_time;
-        Ok(())
     }
 }
 

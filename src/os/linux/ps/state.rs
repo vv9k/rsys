@@ -1,7 +1,6 @@
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
-//#TODO: Add more states
 #[derive(Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub enum ProcessState {
@@ -18,6 +17,7 @@ pub enum ProcessState {
     Idle,
     Unknown,
 }
+
 impl From<&str> for ProcessState {
     fn from(s: &str) -> Self {
         use self::ProcessState::*;

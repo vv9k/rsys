@@ -88,6 +88,8 @@ pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: 
     Ok(devices)
 }
 
+/// Returns a generic [`BlockStorageInfo`](BlockStorageInfo) for all encountered storage devices
+/// the sysfs.
 pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
     let mut infos = Vec::new();
     for entry in SysFs::Sys.join("class").join("block").read_dir()? {
@@ -108,7 +110,7 @@ pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
 
 /// Helper trait for generic parsing of storage devices from /sys/block/<dev>.
 /// parse_stat decides whether or not to parse stats for slave/holder devices.
-pub(crate) trait FromSysPath<T> {
+trait FromSysPath<T> {
     fn from_sys_path(path: &SysPath, hierarchy: bool, parse_stat: bool) -> Result<T>;
 }
 
@@ -116,17 +118,17 @@ pub(crate) trait FromSysPath<T> {
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 /// Helper enum for generic function find_subdevices based on which
 /// it decides to parse slaves or holders or nothing.
-pub(crate) enum Hierarchy {
+enum Hierarchy {
     Holders,
     Slaves,
     None,
 }
 
-pub(crate) fn stat<T: FromSysName<T>>(name: &str, parse_stat: bool) -> Result<T> {
+fn stat<T: FromSysName<T>>(name: &str, parse_stat: bool) -> Result<T> {
     T::from_sys(name, parse_stat)
 }
 
-pub(crate) fn blk_bsz_get(path: &str) -> Result<i64> {
+fn blk_bsz_get(path: &str) -> Result<i64> {
     statfs::statfs(path).map(|v| v.block_size() as i64).map_err(Error::from)
 }
 

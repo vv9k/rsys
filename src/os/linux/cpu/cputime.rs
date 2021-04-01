@@ -68,7 +68,7 @@ impl CpuTime {
         Ok(None)
     }
 
-    fn from_stat_line(stat: &str) -> Result<CpuTime> {
+    pub(crate) fn from_stat_line(stat: &str) -> Result<CpuTime> {
         let mut elems = stat.split_ascii_whitespace();
 
         macro_rules! _next {

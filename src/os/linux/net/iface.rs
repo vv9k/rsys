@@ -29,6 +29,12 @@ pub struct Interface {
     pub speed: u64,
 }
 impl Interface {
+    /// Updates rx/tx stats
+    pub fn update(&mut self) -> Result<()> {
+        self.stat = IfaceStat::from_proc(&self.name)?;
+        Ok(())
+    }
+
     pub(crate) fn from_sys(name: &str) -> Result<Interface> {
         let mut iface = Self::from_sys_path(&SysFs::Sys.join("class").join("net").join(name), name)?;
         iface.stat = IfaceStat::from_proc(name)?;
@@ -41,18 +47,12 @@ impl Interface {
         Ok(Interface {
             name: name.to_string(),
             stat: IfaceStat::default(),
-            mtu: path.clone().join("mtu").read_as::<u32>()?,
-            mac_address: path.clone().join("address").read()?.trim().to_string(),
+            mtu: path.extend("mtu").read_as::<u32>()?,
+            mac_address: path.extend("address").read()?.trim().to_string(),
             speed: path.extend("speed").read_as::<u64>().unwrap_or(0),
             ipv4: "".to_string(),
             ipv6: "".to_string(),
         })
-    }
-
-    /// Updates rx/tx stats
-    pub fn update(&mut self) -> Result<()> {
-        self.stat = IfaceStat::from_proc(&self.name)?;
-        Ok(())
     }
 }
 
