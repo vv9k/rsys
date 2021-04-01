@@ -30,9 +30,15 @@ impl AsRef<str> for SysFs {
     }
 }
 
-impl Into<SysPath> for SysFs {
-    fn into(self) -> SysPath {
-        SysPath(PathBuf::from(self.as_ref()))
+impl From<SysFs> for SysPath {
+    fn from(path: SysFs) -> Self {
+        SysPath(PathBuf::from(path.as_ref()))
+    }
+}
+
+impl From<SysPath> for PathBuf {
+    fn from(path: SysPath) -> Self {
+        path.0
     }
 }
 
@@ -55,43 +61,43 @@ impl SysPath {
         self
     }
 
-    pub(crate) fn path(self) -> PathBuf {
-        self.0
+    /// Extends path with new elements returning a custom SysPath by cloning old one
+    pub(crate) fn extend<P: AsRef<Path>>(&self, p: P) -> Self {
+        let mut path = self.clone();
+        path.0.push(p.as_ref());
+        path
+    }
+
+    pub(crate) fn as_path(&self) -> &Path {
+        self.0.as_path()
+    }
+
+    pub(crate) fn to_pathbuf(self) -> PathBuf {
+        PathBuf::from(self)
     }
 
     /// Reads path to a string returning FileReadError on error
-    pub(crate) fn read(self) -> Result<String> {
-        let path = self.path();
-        fs::read_to_string(&path)
-            .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
+    pub(crate) fn read(&self) -> Result<String> {
+        let path = self.as_path();
+        fs::read_to_string(path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))
     }
 
     /// Reads path and parses it as T otherwise returns FileReadError or InvalidInputError on error
-    pub(crate) fn read_as<T: FromStr>(self) -> Result<T>
+    pub(crate) fn read_as<T: FromStr>(&self) -> Result<T>
     where
         <T as FromStr>::Err: Display,
     {
-        let path = self.path();
-        let data = fs::read_to_string(&path)
-            .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))?;
+        let path = self.as_path();
+        let data = fs::read_to_string(path)
+            .map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))?;
 
         T::from_str(data.trim()).map_err(|e| Error::InvalidInputError(data, e.to_string()))
     }
 
     /// Returns iterator over entries of this path
-    pub(crate) fn read_dir(self) -> Result<fs::ReadDir> {
-        let path = self.path();
-        fs::read_dir(&path)
-            .map_err(|e| Error::FileReadError(path.as_path().to_string_lossy().to_string(), e.to_string()))
-    }
-
-    /// Extends path with new elements returning a custom SysPath by cloning old one
-    pub(crate) fn extend(&self, p: &[&str]) -> Self {
-        let mut path = self.clone().path();
-        for elem in p {
-            path.push(elem);
-        }
-        SysPath(path)
+    pub(crate) fn read_dir(&self) -> Result<fs::ReadDir> {
+        let path = self.as_path();
+        fs::read_dir(path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))
     }
 }
 

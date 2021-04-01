@@ -30,20 +30,20 @@ pub struct Interface {
 }
 impl Interface {
     pub(crate) fn from_sys(name: &str) -> Result<Interface> {
-        let mut iface = Self::from_sys_path(SysFs::Sys.join("class").join("net").join(name), name)?;
+        let mut iface = Self::from_sys_path(&SysFs::Sys.join("class").join("net").join(name), name)?;
         iface.stat = IfaceStat::from_proc(name)?;
         iface.ipv4 = ipv4(name)?;
         iface.ipv6 = ipv6(name)?;
         Ok(iface)
     }
 
-    fn from_sys_path(path: SysPath, name: &str) -> Result<Interface> {
+    fn from_sys_path(path: &SysPath, name: &str) -> Result<Interface> {
         Ok(Interface {
             name: name.to_string(),
             stat: IfaceStat::default(),
             mtu: path.clone().join("mtu").read_as::<u32>()?,
             mac_address: path.clone().join("address").read()?.trim().to_string(),
-            speed: path.join("speed").read_as::<u64>().unwrap_or(0),
+            speed: path.extend("speed").read_as::<u64>().unwrap_or(0),
             ipv4: "".to_string(),
             ipv6: "".to_string(),
         })
@@ -80,7 +80,7 @@ mod tests {
 
         assert_eq!(
             Ok(iface),
-            Interface::from_sys_path(SysFs::Custom(dir.path().to_owned()).to_syspath(), "enp8s0")
+            Interface::from_sys_path(&SysFs::Custom(dir.path().to_owned()).to_syspath(), "enp8s0")
         );
 
         dir.close()

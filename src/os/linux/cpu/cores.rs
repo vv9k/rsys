@@ -22,46 +22,40 @@ enum Frequency {
 
 impl Core {
     pub(crate) fn from_sys(id: u32) -> Result<Core> {
-        Self::from_sys_path(
-            SysFs::Sys
-                .join("devices")
-                .join("system")
-                .join("cpu")
-                .join(format!("cpu{}", id)),
-        )
+        Self::from_sys_path(&SysFs::Sys.join("devices/system/cpu").join(format!("cpu{}", id)))
     }
 
-    fn from_sys_path(p: SysPath) -> Result<Core> {
-        let freq_p = p.clone().join("cpufreq");
+    fn from_sys_path(p: &SysPath) -> Result<Core> {
+        let freq_p = p.extend("cpufreq");
         let id = Core::core_id(p)?;
         Ok(Core {
             id,
-            min_freq: Core::frequency(freq_p.clone(), Frequency::Minimal)?,
-            cur_freq: Core::frequency(freq_p.clone(), Frequency::Current)?,
-            max_freq: Core::frequency(freq_p, Frequency::Maximal)?,
+            min_freq: Core::frequency(&freq_p, Frequency::Minimal)?,
+            cur_freq: Core::frequency(&freq_p, Frequency::Current)?,
+            max_freq: Core::frequency(&freq_p, Frequency::Maximal)?,
         })
     }
 
-    fn core_id(p: SysPath) -> Result<u32> {
-        p.extend(&["topology", "core_id"]).read_as::<u32>()
+    fn core_id(p: &SysPath) -> Result<u32> {
+        p.extend("topology/core_id").read_as::<u32>()
     }
 
-    fn frequency(p: SysPath, which: Frequency) -> Result<u64> {
+    fn frequency(p: &SysPath, which: Frequency) -> Result<u64> {
         let mut new_p;
         match which {
-            Frequency::Minimal => new_p = p.clone().join("scaling_min_freq"),
-            Frequency::Current => new_p = p.clone().join("scaling_cur_freq"),
-            Frequency::Maximal => new_p = p.clone().join("scaling_max_freq"),
+            Frequency::Minimal => new_p = p.extend("scaling_min_freq"),
+            Frequency::Current => new_p = p.extend("scaling_cur_freq"),
+            Frequency::Maximal => new_p = p.extend("scaling_max_freq"),
         };
-        if !new_p.clone().path().exists() {
+        if !new_p.as_path().exists() {
             match which {
-                Frequency::Minimal => new_p = p.join("cpuinfo_min_freq"),
-                Frequency::Current => new_p = p.join("cpuinfo_cur_freq"),
-                Frequency::Maximal => new_p = p.join("cpuinfo_max_freq"),
+                Frequency::Minimal => new_p = p.extend("cpuinfo_min_freq"),
+                Frequency::Current => new_p = p.extend("cpuinfo_cur_freq"),
+                Frequency::Maximal => new_p = p.extend("cpuinfo_max_freq"),
             };
         }
 
-        if !new_p.clone().path().exists() {
+        if !new_p.as_path().exists() {
             return Ok(0);
         }
 
@@ -71,14 +65,10 @@ impl Core {
 
     /// Updates all frequencies of this core to currently available values
     pub fn update(&mut self) -> Result<()> {
-        let path = SysFs::Sys
-            .join("devices")
-            .join("system")
-            .join("cpu")
-            .join(format!("cpu{}", self.id));
-        self.min_freq = Core::frequency(path.clone(), Frequency::Minimal)?;
-        self.cur_freq = Core::frequency(path.clone(), Frequency::Current)?;
-        self.max_freq = Core::frequency(path, Frequency::Maximal)?;
+        let path = SysFs::Sys.join("devices/system/cpu").join(format!("cpu{}", self.id));
+        self.min_freq = Core::frequency(&path, Frequency::Minimal)?;
+        self.cur_freq = Core::frequency(&path, Frequency::Current)?;
+        self.max_freq = Core::frequency(&path, Frequency::Maximal)?;
 
         Ok(())
     }
@@ -116,7 +106,7 @@ mod tests {
 
         assert_eq!(
             Ok(core),
-            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).to_syspath())
+            Core::from_sys_path(&SysFs::Custom(dir.path().to_owned()).to_syspath())
         );
 
         dir.close()
@@ -145,7 +135,7 @@ mod tests {
 
         assert_eq!(
             Ok(core),
-            Core::from_sys_path(SysFs::Custom(dir.path().to_owned()).to_syspath())
+            Core::from_sys_path(&SysFs::Custom(dir.path().to_owned()).to_syspath())
         );
 
         dir.close()

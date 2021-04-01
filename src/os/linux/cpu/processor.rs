@@ -18,12 +18,12 @@ pub struct Processor {
 
 impl Processor {
     pub(crate) fn from_sys() -> Result<Processor> {
-        let mut proc = Self::from_sys_path(SysFs::Proc.join("cpuinfo"))?;
+        let mut proc = Self::from_sys_path(&SysFs::Proc.join("cpuinfo"))?;
         proc.cores = cores()?;
         Ok(proc)
     }
 
-    pub(crate) fn from_sys_path(path: SysPath) -> Result<Processor> {
+    pub(crate) fn from_sys_path(path: &SysPath) -> Result<Processor> {
         let cpuinfo = path.read()?;
         let mut proc = Processor::default();
         for line in cpuinfo.lines() {
@@ -83,7 +83,7 @@ mod tests {
 
         assert_eq!(
             Ok(cpu),
-            Processor::from_sys_path(SysFs::Custom(dir.path().to_owned()).join("cpuinfo"))
+            Processor::from_sys_path(&SysFs::Custom(dir.path().to_owned()).join("cpuinfo"))
         );
 
         dir.close()

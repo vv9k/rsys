@@ -1,12 +1,12 @@
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
-use std::str::SplitAsciiWhitespace;
-
 use crate::linux::SysFs;
 use crate::{
     util::{next, skip},
     Result,
 };
+
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
+use std::str::SplitAsciiWhitespace;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]

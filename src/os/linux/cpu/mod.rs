@@ -46,7 +46,7 @@ pub fn logical_cores() -> Result<u16> {
 /// Returns Core objects with frequencies
 pub fn cores() -> Result<Cores> {
     let mut cores = Vec::new();
-    for id in core_ids(SysFs::Sys.join("devices").join("system").join("cpu"))? {
+    for id in core_ids(SysFs::Sys.join("devices/system/cpu"))? {
         cores.push(Core::from_sys(id)?);
     }
 

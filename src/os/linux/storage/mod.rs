@@ -13,13 +13,12 @@ pub use mappers::*;
 pub use mds::*;
 pub use partition::*;
 
-use crate::linux::SysFs;
+use crate::linux::{SysFs, SysPath};
 use crate::{Error, Result};
 use stat::BlockStorageStat;
 
 use nix::sys::statfs;
 use std::fs;
-use std::path::PathBuf;
 
 //################################################################################
 // Public
@@ -40,7 +39,7 @@ pub trait FromSysName<T> {
 /// Returns block size of device in bytes
 /// device argument must be a path to block device file descriptor
 pub fn block_size(device: &str) -> Result<i64> {
-    blk_bsz_get(SysFs::Dev.join(device).path().to_string_lossy().as_ref())
+    blk_bsz_get(SysFs::Dev.join(device).to_pathbuf().to_string_lossy().as_ref())
 }
 
 /// Parses a StorageDevice object from system. If the provided name
@@ -95,7 +94,7 @@ pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
         if let Ok(entry) = entry {
             let dev_name = entry.file_name().to_string_lossy().to_string();
             infos.push(BlockStorageInfo::from_sys_path(
-                SysFs::Sys.join("class").join("block").join(&dev_name).path(),
+                &SysFs::Sys.join("class/block").join(&dev_name),
                 true,
             )?);
         }
@@ -110,7 +109,7 @@ pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
 /// Helper trait for generic parsing of storage devices from /sys/block/<dev>.
 /// parse_stat decides whether or not to parse stats for slave/holder devices.
 pub(crate) trait FromSysPath<T> {
-    fn from_sys_path(path: PathBuf, hierarchy: bool, parse_stat: bool) -> Result<T>;
+    fn from_sys_path(path: &SysPath, hierarchy: bool, parse_stat: bool) -> Result<T>;
 }
 
 #[derive(Clone, Debug)]
@@ -151,19 +150,19 @@ fn parse_maj_min(dev: &str) -> Option<(u32, u32)> {
 
 fn _find_subdevices<T: FromSysPath<T>>(
     prefix: Option<&str>,
-    mut device_path: PathBuf,
+    device_path: &SysPath,
     holder_or_slave: Hierarchy,
     hierarchy: bool,
     parse_stat: bool,
 ) -> Option<Vec<T>> {
-    match holder_or_slave {
-        Hierarchy::Holders => device_path.push("holders"),
-        Hierarchy::Slaves => device_path.push("slaves"),
-        Hierarchy::None => {}
+    let path = match holder_or_slave {
+        Hierarchy::Holders => device_path.extend("holders"),
+        Hierarchy::Slaves => device_path.extend("slaves"),
+        Hierarchy::None => device_path.clone(),
     };
 
     let mut devs = Vec::new();
-    if let Ok(dir) = fs::read_dir(device_path.as_path()) {
+    if let Ok(dir) = fs::read_dir(path.as_path()) {
         for entry in dir {
             if let Ok(entry) = entry {
                 if let Some(name) = entry.file_name().to_str() {
@@ -172,7 +171,7 @@ fn _find_subdevices<T: FromSysPath<T>>(
                             continue;
                         }
                     }
-                    if let Ok(dev) = T::from_sys_path(device_path.join(name), hierarchy, parse_stat) {
+                    if let Ok(dev) = T::from_sys_path(&path.extend(name), hierarchy, parse_stat) {
                         devs.push(dev);
                     }
                 }
@@ -187,7 +186,7 @@ fn _find_subdevices<T: FromSysPath<T>>(
 }
 
 fn find_subdevices<T: FromSysPath<T> + BlockStorageDeviceName>(
-    device_path: PathBuf,
+    device_path: &SysPath,
     holder_or_slave: Hierarchy,
     hierarchy: bool,
     parse_stat: bool,

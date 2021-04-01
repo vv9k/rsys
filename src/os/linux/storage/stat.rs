@@ -79,6 +79,7 @@ mod tests {
     use super::*;
     use crate::linux::mocks::SYS_BLOCK_DEV_STAT;
     use crate::linux::storage::BlockStorageInfo;
+    use crate::linux::SysFs;
     use std::{fs, io};
 
     #[test]
@@ -141,11 +142,13 @@ mod tests {
             }),
         };
 
-        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(p.clone(), true));
+        let p = SysFs::Custom(p).to_syspath();
+
+        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(&p, true));
 
         info.stat = None;
 
-        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(p, false));
+        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(&p, false));
 
         dir.close()
     }

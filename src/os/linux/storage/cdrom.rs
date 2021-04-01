@@ -33,12 +33,12 @@ impl FromSysName<ScsiCdrom> for ScsiCdrom {
             ));
         }
         let base_path = SysFs::Sys.join("block").join(name);
-        let dev_path = base_path.clone().join("device");
+        let dev_path = base_path.extend("device");
 
         Ok(Self {
-            info: BlockStorageInfo::from_sys_path(base_path.path(), true)?,
-            model: trim_parse_map::<String>(&dev_path.clone().join("model").read()?)?,
-            vendor: trim_parse_map::<String>(&dev_path.clone().join("vendor").read()?)?,
+            info: BlockStorageInfo::from_sys_path(&base_path, true)?,
+            model: trim_parse_map::<String>(&dev_path.extend("model").read()?)?,
+            vendor: trim_parse_map::<String>(&dev_path.extend("vendor").read()?)?,
             state: trim_parse_map::<String>(&dev_path.join("state").read()?)?,
         })
     }

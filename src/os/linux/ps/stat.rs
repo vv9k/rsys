@@ -87,8 +87,8 @@ impl ProcessStat {
         })
     }
 
-    pub(crate) fn from_sys_path(path: SysPath) -> Result<ProcessStat> {
-        ProcessStat::from_stat(&path.join("stat").read()?)
+    pub(crate) fn from_sys_path(path: &SysPath) -> Result<ProcessStat> {
+        ProcessStat::from_stat(&path.extend("stat").read()?)
     }
 
     pub fn update(&mut self) -> Result<()> {

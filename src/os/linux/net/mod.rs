@@ -19,7 +19,7 @@ use nix::{
 /// Returns a default interface. If there are no interfaces in /proc/net/arp
 /// returns an empty string.
 pub fn default_iface() -> Result<String> {
-    if let Some(line) = SysFs::Proc.join("net").join("arp").read()?.lines().nth(1) {
+    if let Some(line) = SysFs::Proc.join("net/arp").read()?.lines().nth(1) {
         if let Some(name) = line.split_ascii_whitespace().last() {
             return Ok(name.to_string());
         }
@@ -48,19 +48,13 @@ pub fn ipv6(iface: &str) -> Result<String> {
 
 /// Returns a mac address of given iface
 pub fn mac(iface: &str) -> Result<String> {
-    Ok(SysFs::Sys
-        .join("class")
-        .join("net")
-        .join(iface)
-        .read()?
-        .trim()
-        .to_string())
+    Ok(SysFs::Sys.join("class/net").join(iface).read()?.trim().to_string())
 }
 
 /// Returns a list of interfaces names.
 pub fn interfaces() -> Result<Vec<String>> {
     let mut names = Vec::new();
-    for entry in SysFs::Sys.join("class").join("net").read_dir()? {
+    for entry in SysFs::Sys.join("class/net").read_dir()? {
         if let Ok(entry) = entry {
             names.push(entry.file_name().to_string_lossy().to_string());
         }
@@ -71,7 +65,7 @@ pub fn interfaces() -> Result<Vec<String>> {
 /// Returns network interfaces on host os
 pub fn ifaces() -> Result<Interfaces> {
     let mut ifaces = Vec::new();
-    for entry in SysFs::Sys.join("class").join("net").read_dir()? {
+    for entry in SysFs::Sys.join("class/net").read_dir()? {
         if let Ok(entry) = entry {
             if let Some(filename) = entry.file_name().to_str() {
                 ifaces.push(Interface::from_sys(filename)?);
@@ -82,7 +76,7 @@ pub fn ifaces() -> Result<Interfaces> {
 }
 
 pub fn iface(name: &str) -> Result<Option<Interface>> {
-    for entry in SysFs::Sys.join("class").join("net").read_dir()? {
+    for entry in SysFs::Sys.join("class/net").read_dir()? {
         if let Ok(entry) = entry {
             if let Some(filename) = entry.file_name().to_str() {
                 if filename == name {

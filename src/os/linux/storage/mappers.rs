@@ -2,12 +2,11 @@ use crate::linux::storage::{
     find_subdevices, BlockStorageDeviceName, BlockStorageInfo, FromSysName, FromSysPath, Hierarchy,
     MultipleDeviceStorage, MultipleDeviceStorages, Partitions, _find_subdevices,
 };
-use crate::linux::SysFs;
+use crate::linux::{SysFs, SysPath};
 use crate::{util::trim_parse_map, Error, Result};
 
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 /// Multiple device mappers
 pub type DeviceMappers = Vec<DeviceMapper>;
@@ -36,27 +35,26 @@ impl FromSysName<DeviceMapper> for DeviceMapper {
                 format!("device mapper name must begin with '{}'", Self::prefix()),
             ));
         }
-        let base_path = SysFs::Sys.join("block").join("name");
-        let base_pathbuf = base_path.clone().path();
+        let base_path = SysFs::Sys.join("block/name");
 
         Ok(Self {
-            info: BlockStorageInfo::from_sys_path(base_pathbuf.clone(), true)?,
-            uuid: trim_parse_map::<String>(&base_path.clone().join("dm").join("uuid").read()?)?,
-            name: trim_parse_map::<String>(&base_path.join("dm").join("name").read()?)?,
-            slave_parts: _find_subdevices(None, base_pathbuf.clone(), Hierarchy::Slaves, false, parse_stat),
-            slave_mds: find_subdevices::<MultipleDeviceStorage>(base_pathbuf, Hierarchy::Slaves, true, parse_stat),
+            info: BlockStorageInfo::from_sys_path(&base_path, true)?,
+            uuid: trim_parse_map::<String>(&base_path.extend("dm/uuid").read()?)?,
+            name: trim_parse_map::<String>(&base_path.extend("dm/name").read()?)?,
+            slave_parts: _find_subdevices(None, &base_path, Hierarchy::Slaves, false, parse_stat),
+            slave_mds: find_subdevices::<MultipleDeviceStorage>(&base_path, Hierarchy::Slaves, true, parse_stat),
         })
     }
 }
 
 impl FromSysPath<DeviceMapper> for DeviceMapper {
-    fn from_sys_path(path: PathBuf, hierarchy: bool, parse_stat: bool) -> Result<Self> {
+    fn from_sys_path(path: &SysPath, hierarchy: bool, parse_stat: bool) -> Result<Self> {
         Ok(Self {
-            info: BlockStorageInfo::from_sys_path(path.clone(), parse_stat)?,
-            name: trim_parse_map::<String>(&SysFs::Custom(path.clone()).join("dm").join("name").read()?)?,
-            uuid: trim_parse_map::<String>(&SysFs::Custom(path.clone()).join("dm").join("uuid").read()?)?,
+            info: BlockStorageInfo::from_sys_path(&path, parse_stat)?,
+            name: trim_parse_map::<String>(&path.extend("dm/name").read()?)?,
+            uuid: trim_parse_map::<String>(&path.extend("dm/uuid").read()?)?,
             slave_mds: if hierarchy {
-                find_subdevices::<MultipleDeviceStorage>(path.clone(), Hierarchy::Slaves, true, parse_stat)
+                find_subdevices::<MultipleDeviceStorage>(&path, Hierarchy::Slaves, true, parse_stat)
             } else {
                 None
             },

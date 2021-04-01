@@ -39,10 +39,10 @@ macro_rules! next_u64 {
 
 impl IfaceStat {
     pub(crate) fn from_proc(name: &str) -> Result<IfaceStat> {
-        Self::from_sys_path(SysFs::Proc.join("net").join("dev"), name)
+        Self::from_sys_path(&SysFs::Proc.join("net/dev"), name)
     }
 
-    fn from_sys_path(path: SysPath, name: &str) -> Result<IfaceStat> {
+    fn from_sys_path(path: &SysPath, name: &str) -> Result<IfaceStat> {
         for line in path.read()?.lines() {
             if line.contains(name) {
                 return IfaceStat::from_line(line);
@@ -50,7 +50,7 @@ impl IfaceStat {
         }
 
         Err(Error::InvalidInputError(
-            SysFs::Proc.join("net").join("dev").path().to_string_lossy().to_string(),
+            SysFs::Proc.join("net/dev").to_pathbuf().to_string_lossy().to_string(),
             format!("interface {} not found in file", name),
         ))
     }
@@ -138,11 +138,9 @@ mod tests {
         let p = dir.path().join("net_dev");
         fs::write(p.as_path(), NET_DEV)?;
 
-        assert_eq!(
-            Ok(lo),
-            IfaceStat::from_sys_path(SysFs::Custom(p.clone()).to_syspath(), "lo")
-        );
-        assert_eq!(Ok(enp), IfaceStat::from_sys_path(SysFs::Custom(p).to_syspath(), "enp"));
+        let path = SysFs::Custom(p).to_syspath();
+        assert_eq!(Ok(lo), IfaceStat::from_sys_path(&path, "lo"));
+        assert_eq!(Ok(enp), IfaceStat::from_sys_path(&path, "enp"));
 
         dir.close()
     }

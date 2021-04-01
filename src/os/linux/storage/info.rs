@@ -1,5 +1,5 @@
 use crate::linux::storage::{block_size, parse_maj_min, BlockStorageStat};
-use crate::linux::SysFs;
+use crate::linux::{SysFs, SysPath};
 use crate::{util::trim_parse_map, Error, Result};
 
 #[cfg(feature = "serialize")]
@@ -25,14 +25,14 @@ pub struct BlockStorageInfo {
     pub(crate) path: PathBuf,
 }
 impl BlockStorageInfo {
-    pub(crate) fn from_sys_path(path: PathBuf, parse_stat: bool) -> Result<BlockStorageInfo> {
-        let (maj, min) = parse_maj_min(&SysFs::Custom(path.clone()).join("dev").read()?).unwrap_or_default();
+    pub(crate) fn from_sys_path(path: &SysPath, parse_stat: bool) -> Result<BlockStorageInfo> {
+        let (maj, min) = parse_maj_min(&path.extend("dev").read()?).unwrap_or_default();
         let device = path
-            .clone()
+            .as_path()
             .file_name()
             .ok_or_else(|| {
                 Error::InvalidInputError(
-                    path.to_string_lossy().to_string(),
+                    path.as_path().to_string_lossy().to_string(),
                     "Given path doesn't have a file name".to_string(),
                 )
             })?
@@ -40,20 +40,19 @@ impl BlockStorageInfo {
             .to_string();
         Ok(BlockStorageInfo {
             dev: device.clone(),
-            size: trim_parse_map::<usize>(&SysFs::Custom(path.clone()).join("size").read()?)?,
+            size: trim_parse_map::<usize>(&path.extend("size").read()?)?,
             maj,
             min,
             block_size: block_size(&device)?,
             stat: if parse_stat {
-                Some(BlockStorageStat::from_stat(
-                    &SysFs::Custom(path.clone()).join("stat").read()?,
-                )?)
+                Some(BlockStorageStat::from_stat(&path.extend("stat").read()?)?)
             } else {
                 None
             },
-            path,
+            path: path.clone().to_pathbuf(),
         })
     }
+
     pub fn update_stats(&mut self) -> Result<()> {
         self.stat = Some(BlockStorageStat::from_stat(
             &SysFs::Custom(self.path.clone()).join("stat").read()?,
@@ -106,11 +105,13 @@ mod tests {
             }),
         };
 
-        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(p.clone(), true));
+        let p = SysFs::Custom(p).to_syspath();
+
+        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(&p, true));
 
         info.stat = None;
 
-        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(p, false));
+        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(&p, false));
 
         dir.close()
     }
