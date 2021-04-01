@@ -12,12 +12,12 @@ use crate::{Error, Result};
 use nix::unistd;
 use std::{fmt::Display, str::FromStr};
 
-pub(crate) const MODEL_NAME: &str = "model name";
-pub(crate) const CACHE_SIZE: &str = "cache size";
-pub(crate) const BOGOMIPS: &str = "bogomips";
-pub(crate) const CPU_CORES: &str = "cpu cores";
-pub(crate) const SIBLINGS: &str = "siblings";
-pub(crate) const CPU_CLOCK: &str = "cpu MHz";
+const MODEL_NAME: &str = "model name";
+const CACHE_SIZE: &str = "cache size";
+const BOGOMIPS: &str = "bogomips";
+const CPU_CORES: &str = "cpu cores";
+const SIBLINGS: &str = "siblings";
+const CPU_CLOCK: &str = "cpu MHz";
 
 //################################################################################
 // Public
@@ -59,6 +59,7 @@ pub fn processor() -> Result<Processor> {
     Processor::from_sys()
 }
 
+/// The number of clock ticks per second.
 pub fn clock_tick() -> Result<Option<i64>> {
     unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK).map_err(Error::from)
 }
@@ -66,6 +67,13 @@ pub fn clock_tick() -> Result<Option<i64>> {
 //################################################################################
 // Internal
 //################################################################################
+
+fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
+where
+    <T as FromStr>::Err: Display,
+{
+    _cpuinfo_extract(&SysFs::Proc.join("cpuinfo").read()?, &line)
+}
 
 fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T>
 where
@@ -86,13 +94,6 @@ where
                 .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))
         })
         .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))??
-}
-
-pub(crate) fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
-where
-    <T as FromStr>::Err: Display,
-{
-    _cpuinfo_extract(&SysFs::Proc.join("cpuinfo").read()?, &line)
 }
 
 fn core_ids(path: SysPath) -> Result<Vec<u32>> {

@@ -12,11 +12,23 @@ use std::str::FromStr;
 pub struct Processor {
     pub cores: Cores,
     pub model: String,
+    /// Cache size in Bytes
     pub cache_size: u64, // bytes
+    /// Relative measurement of how fast a computer is.
     pub bogomips: f32,
 }
 
 impl Processor {
+    /// Returns core count of this processor
+    pub fn core_count(&self) -> usize {
+        self.cores.len()
+    }
+
+    /// Returns cpu time spent by this processor
+    pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
+        CpuTime::from_stat("")
+    }
+
     pub(crate) fn from_sys() -> Result<Processor> {
         let mut proc = Self::from_sys_path(&SysFs::Proc.join("cpuinfo"))?;
         proc.cores = cores()?;
@@ -27,7 +39,6 @@ impl Processor {
         let cpuinfo = path.read()?;
         let mut proc = Processor::default();
         for line in cpuinfo.lines() {
-            dbg!(line);
             if line.starts_with(MODEL_NAME) {
                 proc.model = Self::last_line_elem(line).to_string();
             } else if line.starts_with(BOGOMIPS) {
@@ -51,15 +62,6 @@ impl Processor {
         u64::from_str(Self::last_line_elem(line).split_whitespace().next().unwrap_or_default())
             .map_err(|e| Error::InvalidInputError(line.to_string(), e.to_string()))
             .map(|v| v * 1024)
-    }
-
-    /// Returns core count of this processor
-    pub fn core_count(&self) -> usize {
-        self.cores.len()
-    }
-
-    pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
-        CpuTime::from_stat("")
     }
 }
 

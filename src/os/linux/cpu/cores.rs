@@ -21,6 +21,21 @@ enum Frequency {
 }
 
 impl Core {
+    /// Updates all frequencies of this core to currently available values
+    pub fn update(&mut self) -> Result<()> {
+        let path = SysFs::Sys.join("devices/system/cpu").join(format!("cpu{}", self.id));
+        self.min_freq = Core::frequency(&path, Frequency::Minimal)?;
+        self.cur_freq = Core::frequency(&path, Frequency::Current)?;
+        self.max_freq = Core::frequency(&path, Frequency::Maximal)?;
+
+        Ok(())
+    }
+
+    /// Returns the cpu time spent by this core
+    pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
+        CpuTime::from_stat(&format!("{}", self.id))
+    }
+
     pub(crate) fn from_sys(id: u32) -> Result<Core> {
         Self::from_sys_path(&SysFs::Sys.join("devices/system/cpu").join(format!("cpu{}", id)))
     }
@@ -61,20 +76,6 @@ impl Core {
 
         // Value is in KHz so we multiply it by 1000
         new_p.read_as::<u64>().map(|f| f * 1000)
-    }
-
-    /// Updates all frequencies of this core to currently available values
-    pub fn update(&mut self) -> Result<()> {
-        let path = SysFs::Sys.join("devices/system/cpu").join(format!("cpu{}", self.id));
-        self.min_freq = Core::frequency(&path, Frequency::Minimal)?;
-        self.cur_freq = Core::frequency(&path, Frequency::Current)?;
-        self.max_freq = Core::frequency(&path, Frequency::Maximal)?;
-
-        Ok(())
-    }
-
-    pub fn cpu_time(&self) -> Result<Option<CpuTime>> {
-        CpuTime::from_stat(&format!("{}", self.id))
     }
 }
 
@@ -152,6 +153,9 @@ mod tests {
             iowait: 332,
             irq: 224,
             softirq: 183,
+            steal: 0,
+            guest: 0,
+            guest_nice: 0,
         };
         assert_eq!(Ok(time), CpuTime::from_stat_line(&line));
     }
