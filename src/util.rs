@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use super::Error;
 use std::any::type_name;
 
