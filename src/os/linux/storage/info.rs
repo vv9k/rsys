@@ -107,11 +107,11 @@ mod tests {
 
         let p = SysFs::Custom(p).into_syspath();
 
-        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(&p, true));
+        assert_eq!(info, BlockStorageInfo::from_sys_path(&p, true).unwrap());
 
         info.stat = None;
 
-        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(&p, false));
+        assert_eq!(info, BlockStorageInfo::from_sys_path(&p, false).unwrap());
 
         dir.close()
     }

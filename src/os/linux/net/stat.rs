@@ -140,8 +140,8 @@ mod tests {
         fs::write(p.as_path(), NET_DEV)?;
 
         let path = SysFs::Custom(p).into_syspath();
-        assert_eq!(Ok(lo), IfaceStat::from_sys_path(&path, "lo"));
-        assert_eq!(Ok(enp), IfaceStat::from_sys_path(&path, "enp"));
+        assert_eq!(lo, IfaceStat::from_sys_path(&path, "lo").unwrap());
+        assert_eq!(enp, IfaceStat::from_sys_path(&path, "enp").unwrap());
 
         dir.close()
     }

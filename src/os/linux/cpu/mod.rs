@@ -92,9 +92,9 @@ where
                         .parse::<T>()
                         .map_err(|e| Error::InvalidInputError(out_line.to_string(), e.to_string()))
                 })
-                .ok_or_else(|| Error::InvalidInputError(line.to_string(), "missing line from cpuinfo"))
+                .ok_or_else(|| Error::InvalidInputError(line.to_string(), "missing line from cpuinfo".to_string()))
         })
-        .ok_or_else(|| Error::InvalidInputError(line.to_string(), "missing line from cpuinfo"))??
+        .ok_or_else(|| Error::InvalidInputError(line.to_string(), "missing line from cpuinfo".to_string()))??
 }
 
 fn core_ids(path: SysPath) -> Result<Vec<u32>> {
@@ -130,9 +130,9 @@ mod tests {
     use std::{fs::File, io};
     #[test]
     fn extracts_cpuinfo() {
-        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES), Ok(6));
-        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS), Ok(12));
-        assert_eq!(_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK), Ok(2053.971));
+        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, CPU_CORES).unwrap(), 6);
+        assert_eq!(_cpuinfo_extract::<u32>(CPUINFO, SIBLINGS).unwrap(), 12);
+        assert!((_cpuinfo_extract::<f32>(CPUINFO, CPU_CLOCK).unwrap() - 2053.971_f32).abs() < f32::EPSILON);
     }
 
     #[test]

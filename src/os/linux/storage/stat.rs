@@ -102,7 +102,7 @@ mod tests {
             discard_ticks: 0,
         };
 
-        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT), Ok(stat))
+        assert_eq!(BlockStorageStat::from_stat(SYS_BLOCK_DEV_STAT).unwrap(), stat)
     }
     #[test]
     fn parses_block_storage_info() -> io::Result<()> {
@@ -144,11 +144,11 @@ mod tests {
 
         let p = SysFs::Custom(p).into_syspath();
 
-        assert_eq!(Ok(info.clone()), BlockStorageInfo::from_sys_path(&p, true));
+        assert_eq!(info, BlockStorageInfo::from_sys_path(&p, true).unwrap());
 
         info.stat = None;
 
-        assert_eq!(Ok(info), BlockStorageInfo::from_sys_path(&p, false));
+        assert_eq!(info, BlockStorageInfo::from_sys_path(&p, false).unwrap());
 
         dir.close()
     }

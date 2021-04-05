@@ -154,7 +154,7 @@ mod tests {
             cguest_time: 0,
             processor: 6,
         };
-        assert_eq!(ProcessStat::from_stat(PROCESS_STAT), Ok(process))
+        assert_eq!(ProcessStat::from_stat(PROCESS_STAT).unwrap(), process)
     }
 
     #[test]
@@ -185,6 +185,6 @@ mod tests {
             cguest_time: 0,
             processor: 6,
         };
-        assert_eq!(ProcessStat::from_stat(PROCESS_STAT_WHITESPACE_NAME), Ok(process))
+        assert_eq!(ProcessStat::from_stat(PROCESS_STAT_WHITESPACE_NAME).unwrap(), process)
     }
 }

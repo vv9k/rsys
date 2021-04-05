@@ -106,8 +106,8 @@ mod tests {
         };
 
         assert_eq!(
-            Ok(core),
-            Core::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath())
+            core,
+            Core::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath()).unwrap()
         );
 
         dir.close()
@@ -135,8 +135,8 @@ mod tests {
         };
 
         assert_eq!(
-            Ok(core),
-            Core::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath())
+            core,
+            Core::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath()).unwrap()
         );
 
         dir.close()
@@ -157,6 +157,6 @@ mod tests {
             guest: 0,
             guest_nice: 0,
         };
-        assert_eq!(Ok(time), CpuTime::from_stat_line(&line));
+        assert_eq!(time, CpuTime::from_stat_line(&line).unwrap());
     }
 }

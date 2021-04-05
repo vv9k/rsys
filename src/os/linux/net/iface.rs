@@ -79,8 +79,8 @@ mod tests {
         };
 
         assert_eq!(
-            Ok(iface),
-            Interface::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath(), "enp8s0")
+            iface,
+            Interface::from_sys_path(&SysFs::Custom(dir.path().to_owned()).into_syspath(), "enp8s0").unwrap()
         );
 
         dir.close()

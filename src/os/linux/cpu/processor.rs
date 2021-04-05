@@ -84,8 +84,8 @@ mod tests {
         };
 
         assert_eq!(
-            Ok(cpu),
-            Processor::from_sys_path(&SysFs::Custom(dir.path().to_owned()).join("cpuinfo"))
+            cpu,
+            Processor::from_sys_path(&SysFs::Custom(dir.path().to_owned()).join("cpuinfo")).unwrap()
         );
 
         dir.close()

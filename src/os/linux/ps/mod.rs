@@ -77,7 +77,10 @@ mod tests {
 
         let after = "/usr/lib/firefox/firefox -contentproc -childID 1 -isForBrowser -prefsLen 1 -prefMapSize 234803 -parentBuildID 20201001181215 -appdir /usr/lib/firefox/browser 6732 true tab".to_string();
 
-        assert_eq!(Ok(after), cmdline(&SysFs::Custom(dir.path().to_owned()).into_syspath()));
+        assert_eq!(
+            after,
+            cmdline(&SysFs::Custom(dir.path().to_owned()).into_syspath()).unwrap()
+        );
 
         dir.close()
     }
