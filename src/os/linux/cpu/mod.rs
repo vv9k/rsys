@@ -81,19 +81,20 @@ where
 {
     out.split('\n')
         .find(|l| l.starts_with(line))
-        .map(|s| {
-            s.split(':')
+        .map(|out_line| {
+            out_line
+                .split(':')
                 .skip(1)
                 .take(1)
                 .next()
                 .map(|s| {
                     s.trim()
                         .parse::<T>()
-                        .map_err(|e| Error::CommandParseError(e.to_string()))
+                        .map_err(|e| Error::InvalidInputError(out_line.to_string(), e.to_string()))
                 })
-                .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))
+                .ok_or_else(|| Error::InvalidInputError(line.to_string(), "missing line from cpuinfo"))
         })
-        .ok_or_else(|| Error::CommandParseError(format!("`{}` missing from cpuinfo", line)))??
+        .ok_or_else(|| Error::InvalidInputError(line.to_string(), "missing line from cpuinfo"))??
 }
 
 fn core_ids(path: SysPath) -> Result<Vec<u32>> {
