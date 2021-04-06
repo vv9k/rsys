@@ -4,6 +4,7 @@ use sysctl::Sysctl;
 
 pub(crate) const SYSCTL_CPU: &str = "machdep.cpu.brand_string";
 pub(crate) const SYSCTL_HOSTNAME: &str = "kern.hostname";
+pub(crate) const SYSCTL_DOMAINNAME: &str = "kern.nisdomainname";
 pub(crate) const SYSCTL_BOOTTIME: &str = "kern.boottime";
 pub(crate) const SYSCTL_MODEL: &str = "hw.model";
 pub(crate) const SYSCTL_MEMSIZE: &str = "hw.memsize";
