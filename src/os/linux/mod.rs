@@ -25,11 +25,7 @@ pub(crate) use {
 };
 
 use crate::os::OsImpl;
-use crate::{Error, Result};
-
-use libc::{c_char, size_t};
-use nix::{errno::Errno, sys::utsname, unistd};
-use std::ffi::CStr;
+use crate::Result;
 
 /// Returns uptime of host machine in seconds
 pub fn uptime() -> Result<u64> {
