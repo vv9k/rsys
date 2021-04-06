@@ -18,4 +18,3 @@ use crate::Result;
 
 #[derive(Default, OsImpl)]
 pub(crate) struct Macos {}
-impl OsImplExt for Macos {}
