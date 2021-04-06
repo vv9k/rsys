@@ -7,7 +7,8 @@ use goblin::mach::cputype::{
 };
 use sysctl::CtlValue;
 
-pub fn arch() -> Result<String> {
+#[allow(dead_code)]
+fn _arch() -> Result<String> {
     let cpu_type = match sysctl(SYSCTL_CPU_TYPE)? {
         CtlValue::Int(ty) => Ok(ty),
         val => Err(Error::UnexpectedSysctlValue(val)),
