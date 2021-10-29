@@ -34,7 +34,7 @@ pub fn uptime() -> Result<u64> {
     Ok(now - boot)
 }
 
-pub fn domainname() -> Result<String> {
+pub fn domain_name() -> Result<String> {
     match sysctl(SYSCTL_DOMAINNAME)? {
         CtlValue::String(cpu) => Ok(cpu),
         val => Err(Error::UnexpectedSysctlValue(val)),

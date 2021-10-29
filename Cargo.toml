@@ -17,7 +17,6 @@ serialize = ["serde"]
 
 [dependencies]
 thiserror = "1"
-rsys_macro = { version = "0.1.2", path = "./rsys-macro/" }
 serde = {version = "1", optional = true, features = ["derive"]}
 cfg-if = "1"
 sysctl = "0.4"

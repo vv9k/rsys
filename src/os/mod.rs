@@ -4,7 +4,7 @@ pub mod linux;
 pub mod macos;
 #[cfg(unix)]
 pub(crate) mod unix;
-#[cfg(target_os = "windows")]
+#[cfg(windows)]
 pub mod windows;
 
 #[cfg(target_os = "linux")]

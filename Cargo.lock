@@ -171,19 +171,11 @@ dependencies = [
  "goblin",
  "libc",
  "nix",
- "rsys_macro",
  "serde",
  "sysctl",
  "tempfile",
  "thiserror",
  "winapi",
-]
-
-[[package]]
-name = "rsys_macro"
-version = "0.1.2"
-dependencies = [
- "proc-macro2",
 ]
 
 [[package]]

@@ -45,6 +45,63 @@ const NL: char = '\n';
 //https://github.com/retep998/winapi-rs/issues/780
 const MAX_COMPUTERNAME_LENGTH: u32 = 31;
 
-#[derive(Default, OsImpl)]
+#[derive(Default)]
 pub(crate) struct Windows {}
+
 impl OsImplExt for Windows {}
+
+impl Windows {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl OsImpl for Windows {
+    fn hostname(&self) -> Result<String> {
+        hostname()
+    }
+
+    fn domain_name(&self) -> Result<String> {
+        domain_name()
+    }
+
+    fn uptime(&self) -> Result<u64> {
+        uptime()
+    }
+
+    fn arch(&self) -> Result<String> {
+        arch()
+    }
+
+    fn cpu(&self) -> Result<String> {
+        cpu()
+    }
+
+    fn cpu_clock(&self) -> Result<f32> {
+        cpu_clock()
+    }
+
+    fn cpu_cores(&self) -> Result<u16> {
+        cpu_cores()
+    }
+
+    fn logical_cores(&self) -> Result<u16> {
+        logical_cores()
+    }
+
+    fn memory_total(&self) -> Result<usize> {
+        memory_total()
+    }
+
+    fn memory_free(&self) -> Result<usize> {
+        memory_free()
+    }
+
+    fn swap_total(&self) -> Result<usize> {
+        swap_total()
+    }
+
+    fn swap_free(&self) -> Result<usize> {
+        swap_free()
+    }
+}
