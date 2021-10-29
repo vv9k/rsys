@@ -20,6 +20,9 @@ use stat::BlockStorageStat;
 use nix::sys::statfs;
 use std::fs;
 
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
+
 //################################################################################
 // Public
 //################################################################################

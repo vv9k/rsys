@@ -20,7 +20,7 @@ thiserror = "1"
 rsys_macro = { version = "0.1.2", path = "./rsys-macro/" }
 serde = {version = "1", optional = true, features = ["derive"]}
 cfg-if = "1"
-sysctl = { git = "https://github.com/wojciechkepka/sysctl-rs"}
+sysctl = "0.4"
 
 
 [dev-dependencies]

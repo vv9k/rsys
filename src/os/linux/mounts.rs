@@ -23,6 +23,7 @@ pub struct MountPoint {
 /// Represents an option `ro` or `rw` deciding wether the mountpoint is mounter with read only or
 /// read and write permissions.
 #[derive(Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 pub enum MountMode {
     ReadWrite,
     ReadOnly,

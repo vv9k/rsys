@@ -2,6 +2,9 @@ use crate::linux::cpu::cputime::CpuTime;
 use crate::linux::{SysFs, SysPath};
 use crate::Result;
 
+#[cfg(feature = "serialize")]
+use serde::{Deserialize, Serialize};
+
 pub type Cores = Vec<Core>;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
