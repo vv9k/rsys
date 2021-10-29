@@ -67,7 +67,7 @@ impl Rsys {
 
     /// Returns time since boot in seconds.
     ///   * **linux**
-    ///     * by making a `getsysinfo` syscall
+    ///     * from `SysInfo` structure
     ///   * **macos**
     ///     * by calling `sysctl("kern.boottime")`
     ///   * **windows**
@@ -83,7 +83,7 @@ impl Rsys {
 
     /// Returns cpu architecture.
     ///   * **linux** and **macos**
-    ///     * by making a `uname` syscall
+    ///     * by calling `utsname::uname`
     ///   * **windows**
     ///     * by calling win32 api `GetSystemInfo`
     pub fn arch(&self) -> Result<String> {
@@ -133,7 +133,7 @@ impl Rsys {
 
     /// Returns total ram memory.
     ///   * **linux**
-    ///     * by reading `/proc/meminfo`
+    ///     * from `SysInfo` structure
     ///   * **macos**
     ///     * by calling `sysctl("hw.memsize")`
     ///   * **windows**
@@ -144,7 +144,7 @@ impl Rsys {
 
     /// Returns free ram memory.
     ///   * **linux**
-    ///     * by reading `/proc/meminfo`
+    ///     * from `SysInfo` structure
     ///   ...
     pub fn memory_free(&self) -> Result<usize> {
         self.0.memory_free()
@@ -152,7 +152,7 @@ impl Rsys {
 
     /// Returns total swap size.
     ///   * **linux**
-    ///     * by reading `/proc/meminfo`
+    ///     * from `SysInfo` structure
     ///   * **macos**
     ///     * by calling `sysctl("hw.swapusage")`
     ///   * **windows**
@@ -163,7 +163,7 @@ impl Rsys {
 
     /// Returns free swap size.
     ///   * **linux**
-    ///     * by reading `/proc/meminfo`
+    ///     * from `SysInfo` structure
     ///   * **macos**
     ///     * by calling `sysctl("hw.swapusage")`
     ///   * **windows**
@@ -174,7 +174,7 @@ impl Rsys {
 
     /// Returns a domain name.
     ///   * **linux**
-    ///     * by making a `uname` syscall
+    ///     * by calling `libc::getdomainname`
     ///   * **windows**
     ///     * by calling win32 api `NetWkstaGetInfo`
     ///   ...
