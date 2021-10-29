@@ -18,10 +18,12 @@ fn main() -> Result<()> {
 
     #[cfg(target_os = "linux")]
     {
+        // Or use functions in each module
         println!("KERNEL VERSION - {}", rsys::linux::kernel_release()?);
-        println!("HOSTNAME - {}", rsys::linux::hostname()?);
+
+        // Os-specific functions are also available as methods
         println!("KERNEL_VERSION - {}", rsys.kernel_release()?);
-        println!("{:#?}", rsys::linux::cpu::processor()?);
+        println!("{:#?}", rsys.pids()?);
         println!("MOUNTS - {:#?}", rsys::linux::mounts::mounts()?);
     }
     Ok(())
