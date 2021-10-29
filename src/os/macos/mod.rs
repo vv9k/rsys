@@ -15,14 +15,14 @@ use crate::os::OsImpl;
 use crate::Result;
 
 #[derive(Default)]
-pub(crate) struct Macos {}
-impl Macos {
+pub(crate) struct MacOS {}
+impl MacOS {
     pub fn new() -> Self {
         Self::default()
     }
 }
 
-impl OsImpl for Macos {
+impl OsImpl for MacOS {
     fn hostname(&self) -> Result<String> {
         hostname()
     }

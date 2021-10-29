@@ -16,5 +16,5 @@ pub(crate) const SYSCTL_LOGICAL_CORES: &str = "hw.logicalcpu";
 pub(crate) const SYSCTL_VM_SWAPUSAGE: &str = "vm.swapusage";
 
 pub(crate) fn sysctl(property: &str) -> Result<sysctl::CtlValue> {
-    Ok(sysctl::Ctl::new(property).unwrap().value().unwrap())
+    Ok(sysctl::Ctl::new(property).unwrap().value().unwrap()) // # TODO: proper error handling...
 }

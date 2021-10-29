@@ -6,7 +6,7 @@ use crate::linux::{
     Linux,
 };
 #[cfg(target_os = "macos")]
-use crate::macos::Macos;
+use crate::macos::MacOS;
 #[cfg(target_os = "windows")]
 use crate::windows::Windows;
 
@@ -33,8 +33,8 @@ impl Default for Rsys {
 impl Default for Rsys {
     fn default() -> Self {
         Self(
-            Box::new(Macos::new()) as Box<dyn OsImpl>,
-            Box::new(Macos::new()) as Box<dyn OsImplExt>,
+            Box::new(MacOS::new()) as Box<dyn OsImpl>,
+            Box::new(MacOS::new()) as Box<dyn OsImplExt>,
         )
     }
 }
