@@ -30,7 +30,7 @@ pub fn default_iface() -> Result<String> {
 /// Returns an IPv4 address of a given iface. If the interface is not
 /// found in /proc/net/arp returns "127.0.0.1"
 pub fn ipv4(iface: &str) -> Result<String> {
-    if let Some(ip) = _ip(&iface, false)? {
+    if let Some(ip) = _ip(iface, false)? {
         Ok(ip)
     } else {
         Ok("".to_string())
@@ -39,7 +39,7 @@ pub fn ipv4(iface: &str) -> Result<String> {
 
 /// Returns an IPv6 address of a given iface.
 pub fn ipv6(iface: &str) -> Result<String> {
-    if let Some(ip) = _ip(&iface, true)? {
+    if let Some(ip) = _ip(iface, true)? {
         Ok(ip)
     } else {
         Ok("".to_string())
@@ -54,10 +54,8 @@ pub fn mac(iface: &str) -> Result<String> {
 /// Returns a list of interfaces names.
 pub fn interfaces() -> Result<Vec<String>> {
     let mut names = Vec::new();
-    for entry in SysFs::Sys.join("class/net").read_dir()? {
-        if let Ok(entry) = entry {
-            names.push(entry.file_name().to_string_lossy().to_string());
-        }
+    for entry in SysFs::Sys.join("class/net").read_dir()?.flatten() {
+        names.push(entry.file_name().to_string_lossy().to_string());
     }
     Ok(names)
 }
@@ -65,23 +63,19 @@ pub fn interfaces() -> Result<Vec<String>> {
 /// Returns network interfaces on host os
 pub fn ifaces() -> Result<Interfaces> {
     let mut ifaces = Vec::new();
-    for entry in SysFs::Sys.join("class/net").read_dir()? {
-        if let Ok(entry) = entry {
-            if let Some(filename) = entry.file_name().to_str() {
-                ifaces.push(Interface::from_sys(filename)?);
-            }
+    for entry in SysFs::Sys.join("class/net").read_dir()?.flatten() {
+        if let Some(filename) = entry.file_name().to_str() {
+            ifaces.push(Interface::from_sys(filename)?);
         }
     }
     Ok(Interfaces(ifaces))
 }
 
 pub fn iface(name: &str) -> Result<Option<Interface>> {
-    for entry in SysFs::Sys.join("class/net").read_dir()? {
-        if let Ok(entry) = entry {
-            if let Some(filename) = entry.file_name().to_str() {
-                if filename == name {
-                    return Ok(Some(Interface::from_sys(filename)?));
-                }
+    for entry in SysFs::Sys.join("class/net").read_dir()?.flatten() {
+        if let Some(filename) = entry.file_name().to_str() {
+            if filename == name {
+                return Ok(Some(Interface::from_sys(filename)?));
             }
         }
     }

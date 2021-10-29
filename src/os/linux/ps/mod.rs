@@ -26,19 +26,18 @@ pub fn stat_process(pid: i32) -> Result<ProcessStat> {
 pub fn pids() -> Result<Vec<i32>> {
     let path = SysFs::Proc.into_syspath().into_pathbuf();
     let mut pids = Vec::new();
-    for _entry in
-        fs::read_dir(&path).map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))?
+    for entry in fs::read_dir(&path)
+        .map_err(|e| Error::FileReadError(path.to_string_lossy().to_string(), e.to_string()))?
+        .flatten()
     {
-        if let Ok(entry) = _entry {
-            let filename = entry.file_name();
-            let sfilename = filename.as_os_str().to_string_lossy();
-            if sfilename.chars().all(|c| c.is_digit(10)) {
-                pids.push(
-                    sfilename
-                        .parse::<i32>()
-                        .map_err(|e| Error::InvalidInputError(sfilename.to_string(), e.to_string()))?,
-                );
-            }
+        let filename = entry.file_name();
+        let sfilename = filename.as_os_str().to_string_lossy();
+        if sfilename.chars().all(|c| c.is_digit(10)) {
+            pids.push(
+                sfilename
+                    .parse::<i32>()
+                    .map_err(|e| Error::InvalidInputError(sfilename.to_string(), e.to_string()))?,
+            );
         }
     }
     Ok(pids)

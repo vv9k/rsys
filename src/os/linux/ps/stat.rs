@@ -96,7 +96,7 @@ impl ProcessStat {
             pgrp: _next!(i32),
             session: _next!(i32),
             tty_nr: _next!(i32),
-            utime: next::<u64, SplitAsciiWhitespace>(skip(6, &mut elems), &stat)?,
+            utime: next::<u64, SplitAsciiWhitespace>(skip(6, &mut elems), stat)?,
             stime: _next!(u64),
             cutime: _next!(i64),
             cstime: _next!(i64),
@@ -108,10 +108,10 @@ impl ProcessStat {
             vsize: _next!(u64),
             rss: _next!(i32),
             rsslim: _next!(u64),
-            nswap: next::<u32, SplitAsciiWhitespace>(skip(10, &mut elems), &stat)?,
+            nswap: next::<u32, SplitAsciiWhitespace>(skip(10, &mut elems), stat)?,
             cnswap: _next!(u32),
-            processor: next::<u32, SplitAsciiWhitespace>(skip(1, &mut elems), &stat)?,
-            guest_time: next::<u32, SplitAsciiWhitespace>(skip(3, &mut elems), &stat)?,
+            processor: next::<u32, SplitAsciiWhitespace>(skip(1, &mut elems), stat)?,
+            guest_time: next::<u32, SplitAsciiWhitespace>(skip(3, &mut elems), stat)?,
             cguest_time: _next!(u32),
         })
     }

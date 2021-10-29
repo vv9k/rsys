@@ -160,6 +160,6 @@ mod tests {
             guest: 0,
             guest_nice: 0,
         };
-        assert_eq!(time, CpuTime::from_stat_line(&line).unwrap());
+        assert_eq!(time, CpuTime::from_stat_line(line).unwrap());
     }
 }

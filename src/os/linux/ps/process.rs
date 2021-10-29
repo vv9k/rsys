@@ -17,8 +17,8 @@ pub struct Task {
 impl Task {
     pub(crate) fn from_sys_path(path: &SysPath) -> Result<Task> {
         Ok(Task {
-            cmdline: cmdline(&path)?,
-            stat: ProcessStat::from_sys_path(&path)?,
+            cmdline: cmdline(path)?,
+            stat: ProcessStat::from_sys_path(path)?,
         })
     }
 }
@@ -41,10 +41,13 @@ impl Process {
 
     pub fn tasks(&self) -> Result<Vec<Task>> {
         let mut tasks = Vec::new();
-        for entry in SysFs::Proc.join(self.stat.pid.to_string()).join("task").read_dir()? {
-            if let Ok(entry) = entry {
-                tasks.push(Task::from_sys_path(&SysFs::Custom(entry.path()).into_syspath())?);
-            }
+        for entry in SysFs::Proc
+            .join(self.stat.pid.to_string())
+            .join("task")
+            .read_dir()?
+            .flatten()
+        {
+            tasks.push(Task::from_sys_path(&SysFs::Custom(entry.path()).into_syspath())?);
         }
         Ok(tasks)
     }

@@ -50,11 +50,11 @@ impl FromSysName<DeviceMapper> for DeviceMapper {
 impl FromSysPath<DeviceMapper> for DeviceMapper {
     fn from_sys_path(path: &SysPath, hierarchy: bool, parse_stat: bool) -> Result<Self> {
         Ok(Self {
-            info: BlockStorageInfo::from_sys_path(&path, parse_stat)?,
+            info: BlockStorageInfo::from_sys_path(path, parse_stat)?,
             name: trim_parse_map::<String>(&path.extend("dm/name").read()?)?,
             uuid: trim_parse_map::<String>(&path.extend("dm/uuid").read()?)?,
             slave_mds: if hierarchy {
-                find_subdevices::<MultipleDeviceStorage>(&path, Hierarchy::Slaves, true, parse_stat)
+                find_subdevices::<MultipleDeviceStorage>(path, Hierarchy::Slaves, true, parse_stat)
             } else {
                 None
             },

@@ -72,7 +72,7 @@ fn cpuinfo_extract<T: FromStr>(line: &str) -> Result<T>
 where
     <T as FromStr>::Err: Display,
 {
-    _cpuinfo_extract(&SysFs::Proc.join("cpuinfo").read()?, &line)
+    _cpuinfo_extract(&SysFs::Proc.join("cpuinfo").read()?, line)
 }
 
 fn _cpuinfo_extract<T: FromStr>(out: &str, line: &str) -> Result<T>
@@ -99,23 +99,22 @@ where
 
 fn core_ids(path: SysPath) -> Result<Vec<u32>> {
     let mut core_ids = Vec::new();
-    for entry in path.read_dir()? {
-        if let Ok(entry) = entry {
-            let file_name = entry.file_name().to_string_lossy().to_string();
-            if !file_name.starts_with("cpu") {
-                continue;
-            }
-            if let Some(digits) = file_name.split("cpu").last() {
-                if let Some(digit) = digits.chars().next() {
-                    if !digit.is_digit(10) {
-                        continue;
-                    }
-
-                    core_ids.push(
-                        u32::from_str_radix(digits, 10)
-                            .map_err(|e| Error::InvalidInputError(file_name, e.to_string()))?,
-                    );
+    for entry in path.read_dir()?.flatten() {
+        let file_name = entry.file_name().to_string_lossy().to_string();
+        if !file_name.starts_with("cpu") {
+            continue;
+        }
+        if let Some(digits) = file_name.split("cpu").last() {
+            if let Some(digit) = digits.chars().next() {
+                if !digit.is_digit(10) {
+                    continue;
                 }
+
+                core_ids.push(
+                    digits
+                        .parse::<u32>()
+                        .map_err(|e| Error::InvalidInputError(file_name, e.to_string()))?,
+                );
             }
         }
     }

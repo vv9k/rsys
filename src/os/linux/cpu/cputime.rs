@@ -78,7 +78,7 @@ impl CpuTime {
         }
 
         Ok(CpuTime {
-            user: next::<u64, SplitAsciiWhitespace>(skip(1, &mut elems), &stat)?,
+            user: next::<u64, SplitAsciiWhitespace>(skip(1, &mut elems), stat)?,
             nice: _next!(u64),
             system: _next!(u64),
             idle: _next!(u64),

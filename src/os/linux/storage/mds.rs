@@ -41,10 +41,10 @@ impl FromSysName<MultipleDeviceStorage> for MultipleDeviceStorage {
 impl FromSysPath<MultipleDeviceStorage> for MultipleDeviceStorage {
     fn from_sys_path(path: &SysPath, hierarchy: bool, parse_stat: bool) -> Result<Self> {
         Ok(Self {
-            info: BlockStorageInfo::from_sys_path(&path, parse_stat)?,
+            info: BlockStorageInfo::from_sys_path(path, parse_stat)?,
             level: trim_parse_map::<String>(&path.extend("md/level").read()?)?,
             slave_parts: if hierarchy {
-                _find_subdevices(None, &path, Hierarchy::Slaves, false, parse_stat)
+                _find_subdevices(None, path, Hierarchy::Slaves, false, parse_stat)
             } else {
                 None
             },

@@ -76,15 +76,13 @@ pub fn stat_multiple_device_storage(name: &str, parse_stats: bool) -> Result<Mul
 /// Parses multiple storage devices of type T from filesystem
 pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: bool) -> Result<Vec<T>> {
     let mut devices = Vec::new();
-    for entry in SysFs::Sys.join("block").read_dir()? {
-        if let Ok(entry) = entry {
-            let filename = entry.file_name().to_string_lossy().to_string();
-            if filename.starts_with(T::prefix()) {
-                devices.push(stat::<T>(
-                    &entry.file_name().to_string_lossy().to_string(),
-                    parse_stats,
-                )?);
-            }
+    for entry in SysFs::Sys.join("block").read_dir()?.flatten() {
+        let filename = entry.file_name().to_string_lossy().to_string();
+        if filename.starts_with(T::prefix()) {
+            devices.push(stat::<T>(
+                &entry.file_name().to_string_lossy().to_string(),
+                parse_stats,
+            )?);
         }
     }
 
@@ -95,14 +93,12 @@ pub fn storage_devices<T: FromSysName<T> + BlockStorageDeviceName>(parse_stats: 
 /// the sysfs.
 pub fn storage_devices_info() -> Result<Vec<BlockStorageInfo>> {
     let mut infos = Vec::new();
-    for entry in SysFs::Sys.join("class").join("block").read_dir()? {
-        if let Ok(entry) = entry {
-            let dev_name = entry.file_name().to_string_lossy().to_string();
-            infos.push(BlockStorageInfo::from_sys_path(
-                &SysFs::Sys.join("class/block").join(&dev_name),
-                true,
-            )?);
-        }
+    for entry in SysFs::Sys.join("class").join("block").read_dir()?.flatten() {
+        let dev_name = entry.file_name().to_string_lossy().to_string();
+        infos.push(BlockStorageInfo::from_sys_path(
+            &SysFs::Sys.join("class/block").join(&dev_name),
+            true,
+        )?);
     }
     Ok(infos)
 }
@@ -168,17 +164,15 @@ fn _find_subdevices<T: FromSysPath<T>>(
 
     let mut devs = Vec::new();
     if let Ok(dir) = fs::read_dir(path.as_path()) {
-        for entry in dir {
-            if let Ok(entry) = entry {
-                if let Some(name) = entry.file_name().to_str() {
-                    if let Some(prefix) = prefix {
-                        if !name.starts_with(prefix) {
-                            continue;
-                        }
+        for entry in dir.flatten() {
+            if let Some(name) = entry.file_name().to_str() {
+                if let Some(prefix) = prefix {
+                    if !name.starts_with(prefix) {
+                        continue;
                     }
-                    if let Ok(dev) = T::from_sys_path(&path.extend(name), hierarchy, parse_stat) {
-                        devs.push(dev);
-                    }
+                }
+                if let Ok(dev) = T::from_sys_path(&path.extend(name), hierarchy, parse_stat) {
+                    devs.push(dev);
                 }
             }
         }
