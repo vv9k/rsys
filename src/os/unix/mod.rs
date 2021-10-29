@@ -47,3 +47,8 @@ pub fn domain_name() -> Result<String> {
 pub fn kernel_release() -> Result<String> {
     Ok(utsname::uname().release().to_string())
 }
+
+/// The number of clock ticks per second.
+pub fn clock_tick() -> Result<Option<i64>> {
+    unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK).map_err(Error::from)
+}

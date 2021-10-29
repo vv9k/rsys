@@ -12,11 +12,10 @@ pub mod ps;
 mod sysinfo;
 mod sysproc;
 
-pub use crate::os::unix::{arch, domain_name, hostname, kernel_release};
+pub use crate::os::unix::{arch, clock_tick, domain_name, hostname, kernel_release};
 pub use sysinfo::{sysinfo, SysInfo};
 pub(crate) use sysproc::{SysFs, SysPath};
 pub(crate) use {
-    cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
     mem::{memory_free, memory_total, swap_free, swap_total},
     os_impl_ext::OsImplExt,
 };
@@ -56,19 +55,25 @@ impl OsImpl for Linux {
     }
 
     fn cpu(&self) -> Result<String> {
-        cpu()
+        cpu::model()
     }
 
     fn cpu_clock(&self) -> Result<f32> {
-        cpu_clock()
+        clock_tick().and_then(|clock| {
+            if let Some(clock) = clock {
+                Ok(clock as f32)
+            } else {
+                cpu::clock()
+            }
+        })
     }
 
     fn cpu_cores(&self) -> Result<u16> {
-        cpu_cores()
+        cpu::core_count()
     }
 
     fn logical_cores(&self) -> Result<u16> {
-        logical_cores()
+        cpu::logical_cores()
     }
 
     fn memory_total(&self) -> Result<usize> {

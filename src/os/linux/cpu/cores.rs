@@ -1,4 +1,4 @@
-use crate::linux::cpu::cputime::CpuTime;
+use crate::linux::cpu::time::CpuTime;
 use crate::linux::{SysFs, SysPath};
 use crate::Result;
 

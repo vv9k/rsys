@@ -1,15 +1,14 @@
 pub(crate) mod cores;
-pub(crate) mod cputime;
 pub(crate) mod processor;
+pub(crate) mod time;
 
 pub use cores::*;
-pub use cputime::*;
 pub use processor::*;
+pub use time::*;
 
 use crate::linux::{SysFs, SysPath};
 use crate::{Error, Result};
 
-use nix::unistd;
 use std::{fmt::Display, str::FromStr};
 
 const MODEL_NAME: &str = "model name";
@@ -24,17 +23,17 @@ const CPU_CLOCK: &str = "cpu MHz";
 //################################################################################
 
 /// Returns the name of first seen cpu in /proc/cpuinfo
-pub fn cpu() -> Result<String> {
+pub fn model() -> Result<String> {
     cpuinfo_extract::<String>(MODEL_NAME)
 }
 
 /// Returns cpu clock of first core in /proc/cpuinfo file.
-pub fn cpu_clock() -> Result<f32> {
+pub fn clock() -> Result<f32> {
     cpuinfo_extract::<f32>(CPU_CLOCK)
 }
 
 /// Returns total cpu cores available.
-pub fn cpu_cores() -> Result<u16> {
+pub fn core_count() -> Result<u16> {
     cpuinfo_extract::<u16>(CPU_CORES)
 }
 
@@ -57,11 +56,6 @@ pub fn cores() -> Result<Cores> {
 /// about host machine processor.
 pub fn processor() -> Result<Processor> {
     Processor::from_sys()
-}
-
-/// The number of clock ticks per second.
-pub fn clock_tick() -> Result<Option<i64>> {
-    unistd::sysconf(nix::unistd::SysconfVar::CLK_TCK).map_err(Error::from)
 }
 
 //################################################################################

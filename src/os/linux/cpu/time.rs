@@ -54,10 +54,6 @@ impl CpuTime {
             + self.guest_nice
     }
 
-    pub fn idle_time(&self) -> u64 {
-        self.idle
-    }
-
     pub(crate) fn from_stat(id: &str) -> Result<Option<CpuTime>> {
         let name = format!("cpu{}", id);
         for line in SysFs::Proc.join("stat").read()?.lines() {
