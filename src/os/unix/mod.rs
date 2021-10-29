@@ -22,7 +22,7 @@ pub fn arch() -> Result<String> {
 }
 
 /// Returns a domainname by calling getdomainname syscall
-pub fn domainname() -> Result<String> {
+pub fn domain_name() -> Result<String> {
     const BUF_LEN: usize = 64; // Acording to manual entry of getdomainname this is the limit
                                // of length for the domain name
     let mut buf = [0u8; BUF_LEN];

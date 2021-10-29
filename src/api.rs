@@ -2,9 +2,7 @@
 use crate::linux::{
     cpu::{Cores, Processor},
     mounts::MountPoints,
-    net::Interfaces,
     ps::{ProcessStat, Processes},
-    storage::{DeviceMapper, MultipleDeviceStorage, ScsiCdrom, StorageDevice},
     Linux,
 };
 #[cfg(target_os = "macos")]
@@ -174,89 +172,14 @@ impl Rsys {
         self.0.swap_free()
     }
 
-    /// Returns a default internet interface.
-    ///   * **linux**
-    ///     * by calling `route` and determining default route
-    ///   * **macos**
-    ///     * by calling `route get default`
-    ///   ...
-    pub fn default_iface(&self) -> Result<String> {
-        self.0.default_iface()
-    }
-
-    /// Returns IP address version 4 of interface iface.
-    ///   * **linux**
-    ///     * by calling `ip address show <iface>`
-    ///   * **macos**
-    ///     * by calling `ipconfig getifaddr <iface>`
-    ///   ...
-    pub fn ipv4(&self, iface: &str) -> Result<String> {
-        self.0.ipv4(iface)
-    }
-
-    /// Returns IP address version 6 of interface iface.
-    pub fn ipv6(&self, iface: &str) -> Result<String> {
-        self.0.ipv6(iface)
-    }
-
-    /// Returns a MAC address of interface iface.
-    ///   * **linux**
-    ///     * by calling `ip address show <iface>`
-    ///   ...
-    pub fn mac(&self, iface: &str) -> Result<String> {
-        self.0.mac(iface)
-    }
-
-    /// Returns a vector of names of network interfaces that are available.
-    ///   * **linux**
-    ///     * by calling `ip address show`
-    ///   ...
-    pub fn interfaces(&self) -> Result<Vec<String>> {
-        self.0.interfaces()
-    }
-
     /// Returns a domain name.
     ///   * **linux**
     ///     * by making a `uname` syscall
     ///   * **windows**
     ///     * by calling win32 api `NetWkstaGetInfo`
     ///   ...
-    pub fn domainname(&self) -> Result<String> {
-        self.0.domainname()
-    }
-
-    #[cfg(target_os = "linux")]
-    /// Parses a StorageDevice object from system. If the provided name
-    /// doesn't start with `sd` returns an error.
-    pub fn stat_block_device(&self, name: &str) -> Result<StorageDevice> {
-        self.1.stat_block_device(name)
-    }
-
-    #[cfg(target_os = "linux")]
-    /// Parses a DeviceMapper object from system. If the provided name
-    /// doesn't start with `dm` returns an error.
-    pub fn stat_scsi_cdrom(&self, name: &str) -> Result<ScsiCdrom> {
-        self.1.stat_scsi_cdrom(name)
-    }
-
-    #[cfg(target_os = "linux")]
-    /// Parses a ScsiCdrom object from system. If the provided name
-    /// doesn't start with `sr` returns an error.
-    pub fn stat_device_mapper(&self, name: &str) -> Result<DeviceMapper> {
-        self.1.stat_device_mapper(name)
-    }
-
-    #[cfg(target_os = "linux")]
-    /// Parses a MultipleDeviceStorage object from system. If the provided name
-    /// doesn't start with `md` returns an error.
-    pub fn stat_multiple_device_storage(&self, name: &str) -> Result<MultipleDeviceStorage> {
-        self.1.stat_multiple_device_storage(name)
-    }
-
-    #[cfg(target_os = "linux")]
-    /// Returns block size of device in bytes
-    pub fn block_size(&self, name: &str) -> Result<i64> {
-        self.1.block_size(name)
+    pub fn domain_name(&self) -> Result<String> {
+        self.0.domain_name()
     }
 
     #[cfg(target_os = "linux")]
@@ -293,10 +216,5 @@ impl Rsys {
     /// Returns a Processor object containing gathered information about host cpu
     pub fn processor(&self) -> Result<Processor> {
         self.1.processor()
-    }
-    #[cfg(target_os = "linux")]
-    /// Returns network interfaces on host os
-    pub fn ifaces(&self) -> Result<Interfaces> {
-        self.1.ifaces()
     }
 }

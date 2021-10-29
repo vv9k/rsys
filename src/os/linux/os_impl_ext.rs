@@ -1,31 +1,8 @@
-use super::{cpu::*, kernel_release, mem::*, mounts::*, net::*, ps::*, storage::*, Linux};
+use super::{cpu::*, kernel_release, mem::*, mounts::*, ps::*, Linux};
 use crate::Result;
 
 /// Trait extending Rsys functionality with linux specific api
 pub trait OsImplExt {
-    //
-    // storage
-    //
-
-    /// Parses a StorageDevice object from system. If the provided name
-    /// doesn't start with `sd` returns an error.
-    fn stat_block_device(&self, name: &str) -> Result<StorageDevice>;
-
-    /// Parses a DeviceMapper object from system. If the provided name
-    /// doesn't start with `dm` returns an error.
-    fn stat_device_mapper(&self, name: &str) -> Result<DeviceMapper>;
-
-    /// Parses a ScsiCdrom object from system. If the provided name
-    /// doesn't start with `sr` returns an error.
-    fn stat_scsi_cdrom(&self, name: &str) -> Result<ScsiCdrom>;
-
-    /// Parses a MultipleDeviceStorage object from system. If the provided name
-    /// doesn't start with `md` returns an error.
-    fn stat_multiple_device_storage(&self, name: &str) -> Result<MultipleDeviceStorage>;
-
-    /// Returns block size of device in bytes
-    fn block_size(&self, name: &str) -> Result<i64>;
-
     //
     // mem
     //
@@ -74,40 +51,9 @@ pub trait OsImplExt {
 
     /// Returns a Processor object containing gathered information about host cpu
     fn processor(&self) -> Result<Processor>;
-
-    //
-    // net
-    //
-
-    /// Returns network interfaces on host os
-    fn ifaces(&self) -> Result<Interfaces>;
 }
 
 impl OsImplExt for Linux {
-    //
-    // storage
-    //
-
-    fn stat_block_device(&self, name: &str) -> Result<StorageDevice> {
-        stat_block_device(name, true)
-    }
-
-    fn stat_device_mapper(&self, name: &str) -> Result<DeviceMapper> {
-        stat_device_mapper(name, true)
-    }
-
-    fn stat_scsi_cdrom(&self, name: &str) -> Result<ScsiCdrom> {
-        stat_scsi_cdrom(name, true)
-    }
-
-    fn stat_multiple_device_storage(&self, name: &str) -> Result<MultipleDeviceStorage> {
-        stat_multiple_device_storage(name, true)
-    }
-
-    fn block_size(&self, name: &str) -> Result<i64> {
-        block_size(name)
-    }
-
     //
     // mem
     //
@@ -166,13 +112,5 @@ impl OsImplExt for Linux {
 
     fn processor(&self) -> Result<Processor> {
         processor()
-    }
-
-    //
-    // net
-    //
-
-    fn ifaces(&self) -> Result<Interfaces> {
-        ifaces()
     }
 }

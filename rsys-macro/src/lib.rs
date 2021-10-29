@@ -20,6 +20,10 @@ pub fn os_impl(item: TokenStream) -> TokenStream {
             fn hostname(&self) -> Result<String> {{
                 hostname()
             }}
+
+            fn domain_name(&self) -> Result<String> {{
+                domain_name()
+            }}
         
             fn uptime(&self) -> Result<u64> {{
                 uptime()
@@ -61,29 +65,6 @@ pub fn os_impl(item: TokenStream) -> TokenStream {
                 swap_free()
             }}
         
-            fn default_iface(&self) -> Result<String> {{
-                default_iface()
-            }}
-        
-            fn ipv4(&self, iface: &str) -> Result<String> {{
-                ipv4(iface)
-            }}
-        
-            fn ipv6(&self, iface: &str) -> Result<String> {{
-                ipv6(iface)
-            }}
-        
-            fn mac(&self, iface: &str) -> Result<String> {{
-                mac(iface)
-            }}
-        
-            fn interfaces(&self) -> Result<Vec<String>> {{
-                interfaces()
-            }}
-        
-            fn domainname(&self) -> Result<String> {{
-                domainname()
-            }}
         }}
         ",
             &name, &name

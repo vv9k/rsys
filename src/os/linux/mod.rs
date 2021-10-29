@@ -7,20 +7,17 @@ pub(crate) mod mocks;
 pub mod cpu;
 pub mod mem;
 pub mod mounts;
-pub mod net;
 mod os_impl_ext;
 pub mod ps;
-pub mod storage;
 mod sysinfo;
 mod sysproc;
 
-pub use crate::os::unix::{arch, domainname, hostname, kernel_release};
+pub use crate::os::unix::{arch, domain_name, hostname, kernel_release};
 pub use sysinfo::{sysinfo, SysInfo};
 pub(crate) use sysproc::{SysFs, SysPath};
 pub(crate) use {
     cpu::{cpu, cpu_clock, cpu_cores, logical_cores},
     mem::{memory_free, memory_total, swap_free, swap_total},
-    net::{default_iface, interfaces, ipv4, ipv6, mac},
     os_impl_ext::OsImplExt,
 };
 
