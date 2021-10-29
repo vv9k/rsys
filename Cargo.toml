@@ -36,9 +36,5 @@ goblin = { version = "0.3", features = ["mach32", "mach64"]}
 winapi = { version = "0.3.9", features = ["winbase", "errhandlingapi", "winnt", "std", "sysinfoapi", "profileapi", "lmwksta", "powerbase", "winreg", "winerror", "minwindef"] }
 
 [[bin]]
-name = "test_common"
-path = "./src/bin/test_common.rs"
-
-[[bin]]
-name = "test_linux"
-path = "./src/bin/test_linux.rs"
+name = "test"
+path = "src/bin/test.rs"
